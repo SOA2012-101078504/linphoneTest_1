@@ -12,3 +12,8 @@ java/build
 java/captures
 java/.externalNativeBuild
 java/.cxx
+swift/HelloLinphone/Podfile.lock
+swift/HelloLinphone/Pods/
+swift/HelloLinphone/HelloLinphone.xcodeproj/project.xcworkspace/xcuserdata/
+swift/HelloLinphone/HelloLinphone.xcodeproj/xcuserdata/
+swift/HelloLinphone/HelloLinphone.xcworkspace/xcuserdata/
