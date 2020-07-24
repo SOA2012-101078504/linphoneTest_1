@@ -10,36 +10,89 @@ import UIKit
 import SwiftUI
 import linphonesw
 
+let DEBUG_LOGS : Bool = false;
+
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 	var window: UIWindow?
 	var mCore: Core!
+    var proxy_cfg: ProxyConfig!
+    let mRegistrationTrace = LinphoneRegistrationTracer()
+    
+    var log : LoggingService?
+    var logManager : LinphoneLoggingServiceManager?
+    
+    class LinphoneLoggingServiceManager: LoggingServiceDelegate {
+        override func onLogMessageWritten(logService: LoggingService, domain: String, lev: LogLevel, message: String) {
+            print("Logging service log: \(message)s\n")
+        }
+    }
 
+    class LinphoneRegistrationTracer: CoreDelegate {
+        override func onRegistrationStateChanged(lc: Core, cfg: ProxyConfig, cstate: RegistrationState, message: String?) {
+            print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
+        }
+    }
+    
+    func registrationExample()
+    {
+        let factory = Factory.Instance
+        do {
+           // main loop for receiving notifications and doing background linphonecore work:
+            mCore.autoIterateEnabled = true;
+           
+            mCore.addDelegate(delegate: mRegistrationTrace) // Add registration specific logs
+            try mCore.start()
+           
+            proxy_cfg = try mCore.createProxyConfig() // create proxy config
+            let from = try factory.createAddress(addr: "sip:peche5@sip.linphone.org")// parse identity
+            // create authentication structure from identity
+            let info = try factory.createAuthInfo(username: from.username, userid: "", passwd: "peche5", ha1: "", realm: "", domain: "")
+            mCore.addAuthInfo(info: info) // add authentication info to LinphoneCore
+           
+            // configure proxy entries
+            try proxy_cfg.setIdentityaddress(newValue: from) // set identity with user name and domain
+            let server_addr = from.domain // extract domain address from identity
+            try proxy_cfg.setServeraddr(newValue: server_addr) // we assume domain = proxy server address
+            
+            proxy_cfg.registerEnabled = true // activate registration for this proxy config
+           
+            try mCore.addProxyConfig(config: proxy_cfg!) // add proxy config to linphone core
+            mCore.defaultProxyConfig = proxy_cfg // set to default proxy
+        } catch {
+            print(error)
+        }
+        
+    }
+    
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        
+        let factory = Factory.Instance
+        try? mCore = factory.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
+        
+        if (DEBUG_LOGS)
+        {
+            // enable liblinphone logs.
+            log = LoggingService.Instance
+            logManager = LinphoneLoggingServiceManager()
+            log!.addDelegate(delegate: logManager!)
+            log!.logLevel = LogLevel.Debug
+            Factory.Instance.enableLogCollection(state: LogCollectionState.Enabled)
+        }
+        
+        // Create the SwiftUI view that provides the window contents.
+        let contentView = ContentView(coreVersion: Core.getVersion)
 
-	func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-		// Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
-		// If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
-		// This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
-
-		// Core is the main object of the SDK. You can't do much without it.
-        // To create a Core, we need the instance of the Factory.
-		let factory = Factory.Instance
-
-		// Your Core can use up to 2 configuration files, but that isn't mandatory.
-        // On ios the Core doesn't need to have the application context to work.
-		try? mCore = factory.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
-		
-		// Create the SwiftUI view that provides the window contents.
-		let contentView = ContentView(coreVersion: Core.getVersion)
-
-		// Use a UIHostingController as window root view controller.
-		if let windowScene = scene as? UIWindowScene {
-		    let window = UIWindow(windowScene: windowScene)
-		    window.rootViewController = UIHostingController(rootView: contentView)
-		    self.window = window
-		    window.makeKeyAndVisible()
-		}
-	}
+        // Use a UIHostingController as window root view controller.
+        if let windowScene = scene as? UIWindowScene {
+            let window = UIWindow(windowScene: windowScene)
+            window.rootViewController = UIHostingController(rootView: contentView)
+            self.window = window
+            window.makeKeyAndVisible()
+        }
+        
+        registrationExample();
+    }
 
 	func sceneDidDisconnect(_ scene: UIScene) {
 		// Called as the scene is being released by the system.
@@ -72,3 +125,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
 }
 
+
+struct SceneDelegate_Previews: PreviewProvider {
+    static var previews: some View {
+        /*@START_MENU_TOKEN@*/Text("Hello, World!")/*@END_MENU_TOKEN@*/
+    }
+}
