@@ -7,7 +7,7 @@ java/.idea/modules.xml
 java/.idea/workspace.xml
 java/.idea/navEditor.xml
 java/.idea/assetWizardSettings.xml
-java/.DS_Store
+.DS_Store
 java/build
 java/captures
 java/.externalNativeBuild
@@ -26,9 +26,10 @@ AppPackages
 [Oo]bj/
 [Bb]in/
 
-swift/HelloLinphone/Podfile.lock
-swift/HelloLinphone/Pods/
-swift/HelloLinphone/HelloLinphone.xcodeproj/project.xcworkspace/xcuserdata/
-swift/HelloLinphone/HelloLinphone.xcodeproj/xcuserdata/
-swift/HelloLinphone/HelloLinphone.xcworkspace/xcuserdata/
+ios/swift/*/Podfile.lock
+ios/swift/*/Pods/
+ios/swift/*/*.xcodeproj/project.xcworkspace/xcuserdata/
+ios/swift/*/*.xcodeproj/xcuserdata/
+ios/swift/*/*.xcworkspace/xcuserdata/
+ios/swift/*/build
 
