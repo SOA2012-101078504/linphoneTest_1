@@ -16,9 +16,11 @@ class LinphoneCoreHolder
     var proxy_cfg: ProxyConfig!
     var call: Call!
     let mRegistrationTracer = LinphoneRegistrationTracer()
+    let mPhoneStateTracer = LinconePhoneStateTracer()
     
     var log : LoggingService?
     var logManager : LinphoneLoggingServiceManager?
+    
     var callRunning : Bool = false
     
     
@@ -80,6 +82,47 @@ class LinphoneCoreHolder
         
     }
     
+    
+    // Initiate a call
+    func startOutgoingCallExample(destination dest : String)
+    {
+        if (!callRunning)
+        {
+            mCore.addDelegate(delegate: mPhoneStateTracer)
+            
+            // Place an outgoing call
+            let dest : String = "sip:arguillq@sip.linphone.org"
+            call = mCore.invite(url: dest)
+            
+            if (call == nil) {
+                print("Could not place call to \(dest)\n")
+            } else {
+                print("Call to  \(dest) is in progress...")
+                callRunning = true
+            }
+        }
+                
+    }
+    
+    // Terminate a call
+    func stopOutgoingCallExample()
+    {
+        if (callRunning)
+        {
+            if (call.state != Call.State.End){
+                // terminate the call
+                print("Terminating the call...\n")
+                do {
+                    try call.terminate()
+                    callRunning = false
+                } catch {
+                    print(error)
+                }
+             }
+            mCore.removeDelegate(delegate: self.mPhoneStateTracer)
+        }
+    }
+    
 }
 
 struct ContentView: View {
@@ -88,6 +131,7 @@ struct ContentView: View {
     
     @State var id : String = "sip:peche5@sip.linphone.org"
     @State var passwd : String = "peche5"
+    @State var dest : String = "sip:arguillq@sip.linphone.org"
     
     var body: some View {
         
@@ -113,6 +157,30 @@ struct ContentView: View {
                     .background(Color.gray)
             }
             Spacer()
+            HStack {
+                Text("Call destination :")
+                    .font(.headline)
+                TextField("", text : $dest)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+            }
+            HStack {
+                Button(action:  { self.coreHolder.startOutgoingCallExample(destination : self.dest) }) {
+                    Text("Call")
+                        .font(.largeTitle)
+                        .foregroundColor(Color.white)
+                        .frame(width: 130.0, height: 50.0)
+                        .background(Color.green)
+                }
+                Spacer()
+                Button(action: coreHolder.stopOutgoingCallExample) {
+                    Text("Stop Call")
+                        .font(.largeTitle)
+                        .foregroundColor(Color.white)
+                        .frame(width: 170.0, height: 50.0)
+                        .background(Color.red)
+                }
+            }
+            Spacer()
             Text("Hello, Linphone, Core Version is")
             Text("\(coreVersion)")
         }
@@ -129,6 +197,27 @@ class LinphoneLoggingServiceManager: LoggingServiceDelegate {
 class LinphoneRegistrationTracer: CoreDelegate {
     override func onRegistrationStateChanged(lc: Core, cfg: ProxyConfig, cstate: RegistrationState, message: String?) {
         print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
+    }
+}
+
+class LinconePhoneStateTracer: CoreDelegate {
+    override func onCallStateChanged(lc: Core, call: Call, cstate: Call.State, message: String) {
+        switch cstate {
+        case .OutgoingRinging:
+            print("CallTrace - It is now ringing remotely !\n")
+        case .OutgoingEarlyMedia:
+            print("CallTrace - Receiving some early media\n")
+        case .Connected:
+            print("CallTrace - We are connected !\n")
+        case .StreamsRunning:
+            print("CallTrace - Media streams established !\n")
+        case .End:
+            print("CallTrace - Call is terminated.\n")
+        case .Error:
+            print("CallTrace - Call failure !")
+        default:
+            print("CallTrace - Unhandled notification \(cstate)\n")
+        }
     }
 }
 
