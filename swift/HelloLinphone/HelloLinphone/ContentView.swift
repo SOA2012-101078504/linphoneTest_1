@@ -10,7 +10,7 @@ import linphonesw
 import SwiftUI
 
 
-class LinphoneCoreHolder
+class LinphoneCoreHolder : ObservableObject
 {
     var mCore: Core!
     var proxy_cfg: ProxyConfig!
@@ -21,8 +21,12 @@ class LinphoneCoreHolder
     var log : LoggingService?
     var logManager : LinphoneLoggingServiceManager?
     
-    var callRunning : Bool = false
-    
+    @Published var coreVersion: String = Core.getVersion
+    @Published var areLogsEnabled : Bool = true;
+    @Published var callRunning : Bool = false;
+    @Published var id : String = "sip:peche5@sip.linphone.org"
+    @Published var passwd : String = "peche5"
+    @Published var dest : String = "sip:arguillq@sip.linphone.org"
     
     init()
     {
@@ -55,7 +59,7 @@ class LinphoneCoreHolder
     }
     
     
-    func registrationExample(identity id : String, password passwd: String)
+    func registrationExample()
     {
         let factory = Factory.Instance
         do {
@@ -84,14 +88,13 @@ class LinphoneCoreHolder
     
     
     // Initiate a call
-    func startOutgoingCallExample(destination dest : String)
+    func startOutgoingCallExample()
     {
         if (!callRunning)
         {
             mCore.addDelegate(delegate: mPhoneStateTracer)
             
             // Place an outgoing call
-            let dest : String = "sip:arguillq@sip.linphone.org"
             call = mCore.invite(url: dest)
             
             if (call == nil) {
@@ -125,13 +128,11 @@ class LinphoneCoreHolder
     
 }
 
+
+
 struct ContentView: View {
-	var coreVersion: String = "#coreversion"
-    var coreHolder = LinphoneCoreHolder()
     
-    @State var id : String = "sip:peche5@sip.linphone.org"
-    @State var passwd : String = "peche5"
-    @State var dest : String = "sip:arguillq@sip.linphone.org"
+    @ObservedObject var coreHolder = LinphoneCoreHolder()
     
     var body: some View {
         
@@ -139,16 +140,16 @@ struct ContentView: View {
             HStack {
                 Text("Identity :")
                     .font(.headline)
-                TextField("", text : $id)
+                TextField("", text : $coreHolder.id)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
             }
             HStack {
                 Text("Password :")
                     .font(.headline)
-                TextField("", text : $passwd)
+                TextField("", text : $coreHolder.passwd)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
             }
-            Button(action:  { self.coreHolder.registrationExample(identity : self.id, password : self.passwd) })
+            Button(action:  self.coreHolder.registrationExample)
             {
                 Text("Login")
                     .font(.largeTitle)
@@ -160,11 +161,12 @@ struct ContentView: View {
             HStack {
                 Text("Call destination :")
                     .font(.headline)
-                TextField("", text : $dest)
+                TextField("", text : $coreHolder.dest)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
             }
             HStack {
-                Button(action:  { self.coreHolder.startOutgoingCallExample(destination : self.dest) }) {
+                Button(action: self.coreHolder.startOutgoingCallExample)
+                {
                     Text("Call")
                         .font(.largeTitle)
                         .foregroundColor(Color.white)
@@ -180,9 +182,11 @@ struct ContentView: View {
                         .background(Color.red)
                 }
             }
+            Text(coreHolder.callRunning ? "Call currently running" : "")
+                .padding(.top, 5.0)
             Spacer()
             Text("Hello, Linphone, Core Version is")
-            Text("\(coreVersion)")
+            Text("\(coreHolder.coreVersion)")
         }
         .padding()
     }
