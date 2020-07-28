@@ -22,17 +22,29 @@ class LinphoneCoreHolder : ObservableObject
     var logManager : LinphoneLoggingServiceManager?
     
     @Published var coreVersion: String = Core.getVersion
-    @Published var areLogsEnabled : Bool = true;
     @Published var callRunning : Bool = false;
     @Published var id : String = "sip:peche5@sip.linphone.org"
     @Published var passwd : String = "peche5"
     @Published var dest : String = "sip:arguillq@sip.linphone.org"
     
+    
+    @Published var logsEnabled : Bool = true;
+    
     init()
     {
-        enableLogs()
-        let factory = Factory.Instance
-        factory.enableLogCollection(state: LogCollectionState.Enabled)
+        
+        let factory = Factory.Instance // Instanciate
+        
+        
+        // set logsEnabled to false to disable logs collection
+        if (logsEnabled)
+        {
+            log = LoggingService.Instance
+            logManager = LinphoneLoggingServiceManager()
+            log!.addDelegate(delegate: logManager!)
+            log!.logLevel = LogLevel.Debug
+            factory.enableLogCollection(state: LogCollectionState.Enabled)
+        }
         
         // Initialize Linphone Core
         try? mCore = factory.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
@@ -41,23 +53,6 @@ class LinphoneCoreHolder : ObservableObject
         mCore.autoIterateEnabled = true;
         try? mCore.start()
     }
-
-    // Enable log collection
-    func enableLogs()
-    {
-        log = LoggingService.Instance
-        logManager = LinphoneLoggingServiceManager()
-        log!.addDelegate(delegate: logManager!)
-        log!.logLevel = LogLevel.Debug
-    }
-    
-    //Disable log collection
-    func disableLogs()
-    {
-        log = nil
-        logManager = nil
-    }
-    
     
     func registrationExample()
     {
