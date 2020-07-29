@@ -35,18 +35,21 @@ class LinphoneTutorialContext : ObservableObject
     var call: Call!
     
     
-    var mChatRoom : ChatRoom?
-    var mChatMessage : ChatMessage?
     var log : LoggingService?
     var logManager : LinphoneLoggingServiceManager?
     
-    var proxy_cfg_A : ProxyConfig!
-    var proxy_cfg_B : ProxyConfig!
     
     let mRegistrationTracer = LinphoneRegistrationTracker()
     let mPhoneStateTracer = LinconePhoneStateTracker()
     let mChatRoomDelegate = LinphoneChatRoomStateTracker()
     let mChatMessageDelegate =  LinphoneChatMessageTracker()
+    
+    let mFactoryUri = "sip:conference-factory@sip.linphone.org"
+    let mIdA = "sip:peche5@sip.linphone.org", mIdB = "sip:jehan-iphone@sip.linphone.org"
+    var mPasswordA = "peche5", mPasswordB = "cotcot"
+    var mProxyConfigA, mProxyConfigB : ProxyConfig!
+    var mChatRoomA, mChatRoomB : ChatRoom?
+    var mChatMessage : ChatMessage?
     
     @Published var coreVersion: String = Core.getVersion
     @Published var callRunning : Bool = false
@@ -57,7 +60,9 @@ class LinphoneTutorialContext : ObservableObject
     
     @Published var logsEnabled : Bool = true
     
-    @Published var chatroomTutorialState = ChatroomTutorialState.Unstarted
+    @Published var chatroomAState = ChatroomTutorialState.Unstarted
+    @Published var chatroomBState = ChatroomTutorialState.Unstarted
+    
     @Published var proxyConfigARegistered : Bool = false
     @Published var proxyConfigBRegistered : Bool = false
     
@@ -165,9 +170,8 @@ class LinphoneTutorialContext : ObservableObject
     
     func virtualChatRoom()
     {
-        proxy_cfg_A = createProxyConfigAndRegister(identity : "sip:peche5@sip.linphone.org", password : "peche5", factoryUri: "sip:conference-factory@sip.linphone.org")!
-        proxy_cfg_B = createProxyConfigAndRegister(identity :
-            "sip:arguillq@sip.linphone.org", password : "078zUVlK", factoryUri: "sip:conference-factory@sip.linphone.org")!
+        mProxyConfigA = createProxyConfigAndRegister(identity : mIdA, password : mPasswordA, factoryUri: mFactoryUri)!
+        mProxyConfigB = createProxyConfigAndRegister(identity : mIdB, password : mPasswordB, factoryUri: mFactoryUri)!
         
         
         DispatchQueue.global(qos: .userInitiated).async {
@@ -180,22 +184,23 @@ class LinphoneTutorialContext : ObservableObject
                 chatParams.backend = ChatRoomBackend.FlexisipChat
                 chatParams.encryptionEnabled = false
                 chatParams.groupEnabled = false
-                self.mChatRoom = try self.mCore.createChatRoom(params: chatParams
-                    , localAddr: self.proxy_cfg_A.contact!
+                self.mChatRoomA = try self.mCore.createChatRoom(params: chatParams
+                    , localAddr: self.mProxyConfigA.contact!
                     , subject: "Tutorial ChatRoom"
-                    , participants: [self.proxy_cfg_B.contact!])
-                self.mChatRoom!.addDelegate(delegate: self.mChatRoomDelegate)
+                    , participants: [self.mProxyConfigB.contact!])
+                self.mChatRoomA!.addDelegate(delegate: self.mChatRoomDelegate)
+                
             } catch {
                 print(error)
             }
         }
 
-        self.chatroomTutorialState = ChatroomTutorialState.Starting
+        self.chatroomAState = ChatroomTutorialState.Starting
         DispatchQueue.global(qos: .userInitiated).async {
-            while(self.chatroomTutorialState != ChatroomTutorialState.Started){
+            while(self.chatroomAState != ChatroomTutorialState.Started){
                 usleep(1000000)
             }
-            if let chatRoom = self.mChatRoom
+            if let chatRoom = self.mChatRoomA
             {
                 do
                 {
@@ -289,8 +294,8 @@ struct ContentView: View {
                 }
                 HStack {
                     Text("Chatroom state : ")
-                    Text(toString(tutorialState: tutorialContext.chatroomTutorialState))
-                        .foregroundColor((tutorialContext.chatroomTutorialState == ChatroomTutorialState.Started) ? Color.green : Color.black)
+                    Text(toString(tutorialState: tutorialContext.chatroomAState))
+                        .foregroundColor((tutorialContext.chatroomAState == ChatroomTutorialState.Started) ? Color.green : Color.black)
                 }.padding(.top, 2.0)
             }
             Spacer()
@@ -308,7 +313,7 @@ class LinphoneLoggingServiceManager: LoggingServiceDelegate {
 
 class LinphoneRegistrationTracker: CoreDelegate {
     
-    var tutorialContext : LinphoneTutorialContext?
+    var tutorialContext : LinphoneTutorialContext!
     
     override func onRegistrationStateChanged(lc: Core, cfg: ProxyConfig, cstate: RegistrationState, message: String?) {
         print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
@@ -316,13 +321,13 @@ class LinphoneRegistrationTracker: CoreDelegate {
         {
             if let cfgIdentity = cfg.identityAddress
             {
-                if (cfgIdentity.asString() == "sip:peche5@sip.linphone.org")
+                if (cfgIdentity.asString() == tutorialContext.mIdA)
                 {
-                    tutorialContext!.proxyConfigARegistered = true
+                    tutorialContext.proxyConfigARegistered = true
                 }
-                else if (cfgIdentity.asString() == "sip:arguillq@sip.linphone.org")
+                else if (cfgIdentity.asString() == tutorialContext.mIdB)
                 {
-                    tutorialContext!.proxyConfigBRegistered = true
+                    tutorialContext.proxyConfigBRegistered = true
                 }
             }
         }
@@ -352,13 +357,13 @@ class LinconePhoneStateTracker: CoreDelegate {
 
 class LinphoneChatRoomStateTracker: ChatRoomDelegate {
     
-    var tutorialContext : LinphoneTutorialContext?
+    var tutorialContext : LinphoneTutorialContext!
     
     override func onStateChanged(cr: ChatRoom, newState: ChatRoom.State) {
         if (newState == ChatRoom.State.Created)
         {
             print("ChatRoomTrace - Chatroom ready to start")
-            tutorialContext!.chatroomTutorialState = ChatroomTutorialState.Started
+            tutorialContext.chatroomAState = ChatroomTutorialState.Started
         }
     }
 }
