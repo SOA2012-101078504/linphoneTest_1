@@ -9,32 +9,32 @@
 import linphonesw
 import SwiftUI
 
-
 class LinphoneCoreHolder : ObservableObject
 {
+    public static let instance = LinphoneCoreHolder()
+    
     var mCore: Core!
     var proxy_cfg: ProxyConfig!
     var call: Call!
-    let mRegistrationTracer = LinphoneRegistrationTracer()
-    let mPhoneStateTracer = LinconePhoneStateTracer()
     
+    let mRegistrationTracer = LinphoneRegistrationTracker()
+    let mPhoneStateTracer = LinconePhoneStateTracker()
     var log : LoggingService?
     var logManager : LinphoneLoggingServiceManager?
     
+    
     @Published var coreVersion: String = Core.getVersion
-    @Published var callRunning : Bool = false;
+    @Published var callRunning : Bool = false
     @Published var id : String = "sip:peche5@sip.linphone.org"
     @Published var passwd : String = "peche5"
+    @Published var loggedIn: Bool = false
     @Published var dest : String = "sip:arguillq@sip.linphone.org"
     
+    @Published var logsEnabled : Bool = true
     
-    @Published var logsEnabled : Bool = true;
-    
-    init()
+    private init()
     {
-        
         let factory = Factory.Instance // Instanciate
-        
         
         // set logsEnabled to false to disable logs collection
         if (logsEnabled)
@@ -50,35 +50,44 @@ class LinphoneCoreHolder : ObservableObject
         try? mCore = factory.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
 
         // main loop for receiving notifications and doing background linphonecore work:
-        mCore.autoIterateEnabled = true;
+        mCore.autoIterateEnabled = true
         try? mCore.start()
+        mCore.addDelegate(delegate: mRegistrationTracer) // Add registration specific logs
+    }
+    
+    
+    func createProxyConfigAndRegister(identity sId : String, password sPwd : String, factoryUri fUri : String) -> ProxyConfig?
+    {
+        let factory = Factory.Instance
+        do {
+            let proxy_cfg = try mCore.createProxyConfig()
+            let address = try factory.createAddress(addr: sId)
+            let info = try factory.createAuthInfo(username: address.username, userid: "", passwd: sPwd, ha1: "", realm: "", domain: address.domain)
+            mCore.addAuthInfo(info: info)
+            
+            try proxy_cfg.setIdentityaddress(newValue: address)
+            let server_addr = "sip:" + address.domain + ";transport=tls"
+            try proxy_cfg.setServeraddr(newValue: server_addr)
+            proxy_cfg.registerEnabled = true
+            proxy_cfg.conferenceFactoryUri = fUri
+            if ( mCore.defaultProxyConfig == nil)
+            {
+                mCore.defaultProxyConfig = proxy_cfg // set to default proxy
+            }
+            
+            try mCore.addProxyConfig(config: proxy_cfg)
+            return proxy_cfg
+            
+        } catch {
+            loggedIn = false
+            print(error)
+        }
+        return nil
     }
     
     func registrationExample()
     {
-        let factory = Factory.Instance
-        do {
-            mCore.addDelegate(delegate: mRegistrationTracer) // Add registration specific logs
-           
-            proxy_cfg = try mCore.createProxyConfig() // create proxy config
-            let from = try factory.createAddress(addr: id)// parse identity
-            // create authentication structure from identity
-            let info = try factory.createAuthInfo(username: from.username, userid: "", passwd: passwd, ha1: "", realm: "", domain: "")
-            mCore.addAuthInfo(info: info) // add authentication info to LinphoneCore
-           
-            // configure proxy entries
-            try proxy_cfg.setIdentityaddress(newValue: from) // set identity with user name and domain
-            let server_addr = from.domain // extract domain address from identity
-            try proxy_cfg.setServeraddr(newValue: server_addr) // we assume domain = proxy server address
-            
-            proxy_cfg.registerEnabled = true // activate registration for this proxy config
-           
-            try mCore.addProxyConfig(config: proxy_cfg!) // add proxy config to linphone core
-            mCore.defaultProxyConfig = proxy_cfg // set to default proxy
-        } catch {
-            print(error)
-        }
-        
+        proxy_cfg = createProxyConfigAndRegister(identity: id, password: passwd, factoryUri: "")
     }
     
     
@@ -120,68 +129,77 @@ class LinphoneCoreHolder : ObservableObject
             mCore.removeDelegate(delegate: self.mPhoneStateTracer)
         }
     }
-    
+
 }
 
 
 
 struct ContentView: View {
     
-    @ObservedObject var coreHolder = LinphoneCoreHolder()
+    @ObservedObject var coreHolder = LinphoneCoreHolder.instance
     
     var body: some View {
         
         VStack {
-            HStack {
-                Text("Identity :")
-                    .font(.headline)
-                TextField("", text : $coreHolder.id)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-            }
-            HStack {
-                Text("Password :")
-                    .font(.headline)
-                TextField("", text : $coreHolder.passwd)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-            }
-            Button(action:  self.coreHolder.registrationExample)
-            {
-                Text("Login")
-                    .font(.largeTitle)
-                    .foregroundColor(Color.white)
-                    .frame(width: 100.0, height: 50.0)
-                    .background(Color.gray)
+            Group {
+                HStack {
+                    Text("Identity :")
+                        .font(.title)
+                    TextField("", text : $coreHolder.id)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                }
+                HStack {
+                    Text("Password :")
+                        .font(.title)
+                    TextField("", text : $coreHolder.passwd)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                }
+                HStack {
+                    Button(action:  self.coreHolder.registrationExample)
+                    {
+                        Text("Login")
+                            .font(.largeTitle)
+                            .foregroundColor(Color.white)
+                            .frame(width: 100.0, height: 50.0)
+                            .background(Color.gray)
+                    }
+                    Text(coreHolder.loggedIn ? "Registered" : "")
+                }
             }
             Spacer()
-            HStack {
+            VStack(spacing: 0.0) {
                 Text("Call destination :")
-                    .font(.headline)
+                    .font(.largeTitle)
                 TextField("", text : $coreHolder.dest)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-            }
-            HStack {
-                Button(action: self.coreHolder.startOutgoingCallExample)
-                {
-                    Text("Call")
-                        .font(.largeTitle)
-                        .foregroundColor(Color.white)
-                        .frame(width: 130.0, height: 50.0)
-                        .background(Color.green)
+                HStack {
+                    Button(action: self.coreHolder.startOutgoingCallExample)
+                    {
+                        Text("Call")
+                            .font(.largeTitle)
+                            .foregroundColor(Color.white)
+                            .frame(width: 130.0, height: 50.0)
+                            .background(Color.green)
+                    }
+                    .padding(.trailing, 30.0)
+                    Button(action: coreHolder.stopOutgoingCallExample) {
+                        Text("Stop Call")
+                            .font(.largeTitle)
+                            .foregroundColor(Color.white)
+                            .frame(width: 170.0, height: 50.0)
+                            .background(Color.red)
+                    }
                 }
-                Spacer()
-                Button(action: coreHolder.stopOutgoingCallExample) {
-                    Text("Stop Call")
-                        .font(.largeTitle)
-                        .foregroundColor(Color.white)
-                        .frame(width: 170.0, height: 50.0)
-                        .background(Color.red)
+                .padding(.top, 15.0)
+                HStack {
+                    Text("Call State : ")
+                    Text(coreHolder.callRunning ? "Ongoing" : "Stopped")
+                        .foregroundColor(coreHolder.callRunning ? Color.green : Color.black)
                 }
-            }
-            Text(coreHolder.callRunning ? "Call currently running" : "")
                 .padding(.top, 5.0)
+            }
             Spacer()
-            Text("Hello, Linphone, Core Version is")
-            Text("\(coreHolder.coreVersion)")
+            Text("Hello, Linphone, Core Version is \n \(coreHolder.coreVersion)")
         }
         .padding()
     }
@@ -193,13 +211,13 @@ class LinphoneLoggingServiceManager: LoggingServiceDelegate {
     }
 }
 
-class LinphoneRegistrationTracer: CoreDelegate {
+class LinphoneRegistrationTracker: CoreDelegate {
     override func onRegistrationStateChanged(lc: Core, cfg: ProxyConfig, cstate: RegistrationState, message: String?) {
         print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
     }
 }
 
-class LinconePhoneStateTracer: CoreDelegate {
+class LinconePhoneStateTracker: CoreDelegate {
     override func onCallStateChanged(lc: Core, call: Call, cstate: Call.State, message: String) {
         switch cstate {
         case .OutgoingRinging:
