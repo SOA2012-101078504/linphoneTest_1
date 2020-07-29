@@ -30,39 +30,46 @@ func toString(tutorialState state : ChatroomTutorialState) -> String
 
 class LinphoneTutorialContext : ObservableObject
 {
-    var mCore: Core!
-    var proxy_cfg: ProxyConfig!
-    var call: Call!
+    var mCore: Core! // We need a Core for... anything, basically
+    @Published var coreVersion: String = Core.getVersion
     
     
+    /*---------------------------------- Logs related variables ---------------------------------------------*/
+    let logsEnabled : Bool = true
     var log : LoggingService?
     var logManager : LinphoneLoggingServiceManager?
     
     
-    let mRegistrationTracer = LinphoneRegistrationTracker()
-    let mPhoneStateTracer = LinconePhoneStateTracker()
-    let mChatRoomDelegate = LinphoneChatRoomStateTracker()
-    let mChatMessageDelegate =  LinphoneChatMessageTracker()
+    /*-------------------------- Registration tutorial related variables ------------------------------------*/
+    var proxy_cfg: ProxyConfig!
+    @Published var id : String = "sip:peche5@sip.linphone.org"
+    @Published var passwd : String = "peche5"
+    @Published var loggedIn: Bool = false
     
+    
+    
+    /*--------------------------- Call tutorial related variables -------------------------------------------*/
+    let mPhoneStateTracer = LinconePhoneStateTracker()
+    var call: Call!
+    @Published var callRunning : Bool = false
+    @Published var dest : String = "sip:arguillq@sip.linphone.org"
+    
+    
+    
+    
+    /*--------------------------- Chatroom tutorial related variables ---------------------------------------*/
     let mFactoryUri = "sip:conference-factory@sip.linphone.org"
     let mIdA = "sip:peche5@sip.linphone.org", mIdB = "sip:jehan-iphone@sip.linphone.org"
     var mPasswordA = "peche5", mPasswordB = "cotcot"
     var mProxyConfigA, mProxyConfigB : ProxyConfig!
     var mChatRoomA, mChatRoomB : ChatRoom?
+    let mRegistrationTracer = LinphoneRegistrationTracker()
+    let mChatRoomDelegate = LinphoneChatRoomStateTracker()
+    let mChatMessageDelegate =  LinphoneChatMessageTracker()
     var mChatMessage : ChatMessage?
-    
-    @Published var coreVersion: String = Core.getVersion
-    @Published var callRunning : Bool = false
-    @Published var id : String = "sip:peche5@sip.linphone.org"
-    @Published var passwd : String = "peche5"
-    @Published var loggedIn: Bool = false
-    @Published var dest : String = "sip:arguillq@sip.linphone.org"
-    
-    @Published var logsEnabled : Bool = true
     
     @Published var chatroomAState = ChatroomTutorialState.Unstarted
     @Published var chatroomBState = ChatroomTutorialState.Unstarted
-    
     @Published var proxyConfigARegistered : Bool = false
     @Published var proxyConfigBRegistered : Bool = false
     
@@ -117,7 +124,6 @@ class LinphoneTutorialContext : ObservableObject
             return proxy_cfg
             
         } catch {
-            loggedIn = false
             print(error)
         }
         return nil
@@ -126,6 +132,10 @@ class LinphoneTutorialContext : ObservableObject
     func registrationExample()
     {
         proxy_cfg = createProxyConfigAndRegister(identity: id, password: passwd, factoryUri: "")
+        if (proxy_cfg != nil)
+        {
+            loggedIn = true
+        }
     }
     
     
