@@ -191,6 +191,22 @@ class LinphoneTutorialContext : ObservableObject
         }
 
         self.chatroomTutorialState = ChatroomTutorialState.Starting
+        DispatchQueue.global(qos: .userInitiated).async {
+            while(self.chatroomTutorialState != ChatroomTutorialState.Started){
+                usleep(1000000)
+            }
+            if let chatRoom = self.mChatRoom
+            {
+                do
+                {
+                    self.mChatMessage = try chatRoom.createMessage(message: "This is my test message")
+                    self.mChatMessage!.addDelegate(delegate: self.mChatMessageDelegate)
+                    self.mChatMessage!.send()
+                } catch {
+                    print(error)
+                }
+            }
+        }
         
     }
 }
