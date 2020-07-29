@@ -28,18 +28,12 @@ func toString(tutorialState state : ChatroomTutorialState) -> String
 }
 
 
-class LinphoneCoreHolder : ObservableObject
+class LinphoneTutorialContext : ObservableObject
 {
-    public static let instance = LinphoneCoreHolder()
-    
     var mCore: Core!
     var proxy_cfg: ProxyConfig!
     var call: Call!
     
-    let mRegistrationTracer = LinphoneRegistrationTracker()
-    let mPhoneStateTracer = LinconePhoneStateTracker()
-    let mChatRoomDelegate = LinphoneChatRoomStateTracker()
-    let mChatMessageDelegate =  LinphoneChatMessageTracker()
     
     var mChatRoom : ChatRoom?
     var mChatMessage : ChatMessage?
@@ -49,6 +43,10 @@ class LinphoneCoreHolder : ObservableObject
     var proxy_cfg_A : ProxyConfig!
     var proxy_cfg_B : ProxyConfig!
     
+    let mRegistrationTracer = LinphoneRegistrationTracker()
+    let mPhoneStateTracer = LinconePhoneStateTracker()
+    let mChatRoomDelegate = LinphoneChatRoomStateTracker()
+    let mChatMessageDelegate =  LinphoneChatMessageTracker()
     
     @Published var coreVersion: String = Core.getVersion
     @Published var callRunning : Bool = false
@@ -64,8 +62,11 @@ class LinphoneCoreHolder : ObservableObject
     @Published var proxyConfigBRegistered : Bool = false
     
     
-    private init()
+    init()
     {
+        mRegistrationTracer.tutorialContext = self
+        mChatRoomDelegate.tutorialContext = self
+        
         let factory = Factory.Instance // Instanciate
         
         // set logsEnabled to false to disable logs collection
@@ -102,12 +103,12 @@ class LinphoneCoreHolder : ObservableObject
             try proxy_cfg.setServeraddr(newValue: server_addr)
             proxy_cfg.registerEnabled = true
             proxy_cfg.conferenceFactoryUri = fUri
+            try mCore.addProxyConfig(config: proxy_cfg)
             if ( mCore.defaultProxyConfig == nil)
             {
-                mCore.defaultProxyConfig = proxy_cfg // set to default proxy
+                // IMPORTANT : default proxy config setting MUST be done AFTER adding the config to the core !
+                mCore.defaultProxyConfig = proxy_cfg
             }
-            
-            try mCore.addProxyConfig(config: proxy_cfg)
             return proxy_cfg
             
         } catch {
@@ -165,9 +166,9 @@ class LinphoneCoreHolder : ObservableObject
     func virtualChatRoom()
     {
         proxy_cfg_A = createProxyConfigAndRegister(identity : "sip:peche5@sip.linphone.org", password : "peche5", factoryUri: "sip:conference-factory@sip.linphone.org")!
-        mCore.defaultProxyConfig = proxy_cfg_A // set to default proxy
         proxy_cfg_B = createProxyConfigAndRegister(identity :
             "sip:arguillq@sip.linphone.org", password : "078zUVlK", factoryUri: "sip:conference-factory@sip.linphone.org")!
+        
         
         DispatchQueue.global(qos: .userInitiated).async {
             while(!self.proxyConfigARegistered || !self.proxyConfigBRegistered){
@@ -198,7 +199,7 @@ class LinphoneCoreHolder : ObservableObject
 
 struct ContentView: View {
     
-    @ObservedObject var coreHolder = LinphoneCoreHolder.instance
+    @ObservedObject var tutorialContext = LinphoneTutorialContext()
     
     var body: some View {
         
@@ -207,17 +208,17 @@ struct ContentView: View {
                 HStack {
                     Text("Identity :")
                         .font(.title)
-                    TextField("", text : $coreHolder.id)
+                    TextField("", text : $tutorialContext.id)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
                 HStack {
                     Text("Password :")
                         .font(.title)
-                    TextField("", text : $coreHolder.passwd)
+                    TextField("", text : $tutorialContext.passwd)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
                 HStack {
-                    Button(action:  self.coreHolder.registrationExample)
+                    Button(action:  tutorialContext.registrationExample)
                     {
                         Text("Login")
                             .font(.largeTitle)
@@ -225,17 +226,17 @@ struct ContentView: View {
                             .frame(width: 100.0, height: 50.0)
                             .background(Color.gray)
                     }
-                    Text(coreHolder.loggedIn ? "Registered" : "")
+                    Text(tutorialContext.loggedIn ? "Registered" : "")
                 }
             }
             Spacer()
             VStack(spacing: 0.0) {
                 Text("Call destination :")
                     .font(.largeTitle)
-                TextField("", text : $coreHolder.dest)
+                TextField("", text : $tutorialContext.dest)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 HStack {
-                    Button(action: self.coreHolder.startOutgoingCallExample)
+                    Button(action: tutorialContext.startOutgoingCallExample)
                     {
                         Text("Call")
                             .font(.largeTitle)
@@ -244,7 +245,7 @@ struct ContentView: View {
                             .background(Color.green)
                     }
                     .padding(.trailing, 30.0)
-                    Button(action: coreHolder.stopOutgoingCallExample) {
+                    Button(action: tutorialContext.stopOutgoingCallExample) {
                         Text("Stop Call")
                             .font(.largeTitle)
                             .foregroundColor(Color.white)
@@ -255,14 +256,14 @@ struct ContentView: View {
                 .padding(.top, 15.0)
                 HStack {
                     Text("Call State : ")
-                    Text(coreHolder.callRunning ? "Ongoing" : "Stopped")
-                        .foregroundColor(coreHolder.callRunning ? Color.green : Color.black)
+                    Text(tutorialContext.callRunning ? "Ongoing" : "Stopped")
+                        .foregroundColor(tutorialContext.callRunning ? Color.green : Color.black)
                 }
                 .padding(.top, 5.0)
             }
             Spacer()
             Group {
-                Button(action: self.coreHolder.virtualChatRoom)
+                Button(action: tutorialContext.virtualChatRoom)
                 {
                     Text("Simulate Chat")
                         .font(.largeTitle)
@@ -272,12 +273,12 @@ struct ContentView: View {
                 }
                 HStack {
                     Text("Chatroom state : ")
-                    Text(toString(tutorialState: coreHolder.chatroomTutorialState))
-                        .foregroundColor((coreHolder.chatroomTutorialState == ChatroomTutorialState.Started) ? Color.green : Color.black)
+                    Text(toString(tutorialState: tutorialContext.chatroomTutorialState))
+                        .foregroundColor((tutorialContext.chatroomTutorialState == ChatroomTutorialState.Started) ? Color.green : Color.black)
                 }.padding(.top, 2.0)
             }
             Spacer()
-            Text("Hello, Linphone, Core Version is \n \(coreHolder.coreVersion)")
+            Text("Hello, Linphone, Core Version is \n \(tutorialContext.coreVersion)")
         }
         .padding()
     }
@@ -290,6 +291,9 @@ class LinphoneLoggingServiceManager: LoggingServiceDelegate {
 }
 
 class LinphoneRegistrationTracker: CoreDelegate {
+    
+    var tutorialContext : LinphoneTutorialContext?
+    
     override func onRegistrationStateChanged(lc: Core, cfg: ProxyConfig, cstate: RegistrationState, message: String?) {
         print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
         if (cstate == RegistrationState.Ok)
@@ -298,11 +302,11 @@ class LinphoneRegistrationTracker: CoreDelegate {
             {
                 if (cfgIdentity.asString() == "sip:peche5@sip.linphone.org")
                 {
-                    LinphoneCoreHolder.instance.proxyConfigARegistered = true
+                    tutorialContext!.proxyConfigARegistered = true
                 }
                 else if (cfgIdentity.asString() == "sip:arguillq@sip.linphone.org")
                 {
-                    LinphoneCoreHolder.instance.proxyConfigBRegistered = true
+                    tutorialContext!.proxyConfigBRegistered = true
                 }
             }
         }
@@ -331,11 +335,14 @@ class LinconePhoneStateTracker: CoreDelegate {
 }
 
 class LinphoneChatRoomStateTracker: ChatRoomDelegate {
+    
+    var tutorialContext : LinphoneTutorialContext?
+    
     override func onStateChanged(cr: ChatRoom, newState: ChatRoom.State) {
         if (newState == ChatRoom.State.Created)
         {
             print("ChatRoomTrace - Chatroom ready to start")
-            LinphoneCoreHolder.instance.chatroomTutorialState = ChatroomTutorialState.Started
+            tutorialContext!.chatroomTutorialState = ChatroomTutorialState.Started
         }
     }
 }
