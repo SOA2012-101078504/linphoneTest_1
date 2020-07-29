@@ -42,6 +42,7 @@ class LinphoneTutorialContext : ObservableObject
     
     /*-------------------------- Registration tutorial related variables ------------------------------------*/
     var proxy_cfg: ProxyConfig!
+    let mRegistrationDelegate = LinphoneRegistrationDelegate()
     @Published var id : String = "sip:peche5@sip.linphone.org"
     @Published var passwd : String = "peche5"
     @Published var loggedIn: Bool = false
@@ -63,21 +64,24 @@ class LinphoneTutorialContext : ObservableObject
     var mPasswordA = "peche5", mPasswordB = "cotcot"
     var mProxyConfigA, mProxyConfigB : ProxyConfig!
     var mChatRoomA, mChatRoomB : ChatRoom?
-    let mRegistrationTracer = LinphoneRegistrationTracker()
     let mChatRoomDelegate = LinphoneChatRoomStateTracker()
     let mChatMessageDelegate =  LinphoneChatMessageTracker()
+    let mCoreChatDelegate = LinphoneCoreChatDelegate()
+    let mRegistrationConfirmDelegate = LinphoneRegistrationConfirmDelegate()
     var mChatMessage : ChatMessage?
+    var proxyConfigARegistered : Bool = false
+    var proxyConfigBRegistered : Bool = false
+    
     
     @Published var chatroomAState = ChatroomTutorialState.Unstarted
-    @Published var chatroomBState = ChatroomTutorialState.Unstarted
-    @Published var proxyConfigARegistered : Bool = false
-    @Published var proxyConfigBRegistered : Bool = false
+    @Published var sLastReceivedMessage : String = ""
     
     
     init()
     {
-        mRegistrationTracer.tutorialContext = self
         mChatRoomDelegate.tutorialContext = self
+        mCoreChatDelegate.tutorialContext = self
+        mRegistrationConfirmDelegate.tutorialContext = self
         
         let factory = Factory.Instance // Instanciate
         
@@ -97,7 +101,6 @@ class LinphoneTutorialContext : ObservableObject
         // main loop for receiving notifications and doing background linphonecore work:
         mCore.autoIterateEnabled = true
         try? mCore.start()
-        mCore.addDelegate(delegate: mRegistrationTracer) // Add registration specific logs
     }
     
     
@@ -131,6 +134,7 @@ class LinphoneTutorialContext : ObservableObject
     
     func registrationExample()
     {
+        mCore.addDelegate(delegate: mRegistrationDelegate) // Add registration specific logs
         proxy_cfg = createProxyConfigAndRegister(identity: id, password: passwd, factoryUri: "")
         if (proxy_cfg != nil)
         {
@@ -180,6 +184,12 @@ class LinphoneTutorialContext : ObservableObject
     
     func virtualChatRoom()
     {
+        // Important ! Will notify when both config are registered so that we can proceed with the chatroom creation
+        mCore.addDelegate(delegate: mRegistrationConfirmDelegate)
+        
+        // Handle message reception
+        mCore.addDelegate(delegate: mCoreChatDelegate)
+        
         mProxyConfigA = createProxyConfigAndRegister(identity : mIdA, password : mPasswordA, factoryUri: mFactoryUri)!
         mProxyConfigB = createProxyConfigAndRegister(identity : mIdB, password : mPasswordB, factoryUri: mFactoryUri)!
         
@@ -214,13 +224,31 @@ class LinphoneTutorialContext : ObservableObject
             {
                 do
                 {
-                    self.mChatMessage = try chatRoom.createMessage(message: "This is my test message")
+                    self.mChatMessage = try chatRoom.createMessage(message: "Hello, World !")
                     self.mChatMessage!.addDelegate(delegate: self.mChatMessageDelegate)
                     self.mChatMessage!.send()
                 } catch {
                     print(error)
                 }
             }
+        }
+        
+    }
+    
+    
+    func chatReply()
+    {
+        if let chatRoom = mChatRoomB {
+            do
+            {
+                self.mChatMessage = try chatRoom.createMessage(message: "Reply")
+                self.mChatMessage!.send()
+            } catch {
+                print(error)
+            }
+        }
+        else {
+            sLastReceivedMessage = "Initialize chat first !"
         }
         
     }
@@ -248,7 +276,7 @@ struct ContentView: View {
                     TextField("", text : $tutorialContext.passwd)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
-                HStack {
+                VStack {
                     Button(action:  tutorialContext.registrationExample)
                     {
                         Text("Login")
@@ -257,7 +285,13 @@ struct ContentView: View {
                             .frame(width: 100.0, height: 50.0)
                             .background(Color.gray)
                     }
-                    Text(tutorialContext.loggedIn ? "Registered" : "")
+                    HStack {
+                        Text("Login State : ")
+                            .font(.footnote)
+                        Text(tutorialContext.loggedIn ? "Looged in" : "Unregistered")
+                            .font(.footnote)
+                            .foregroundColor(tutorialContext.loggedIn ? Color.green : Color.black)
+                    }
                 }
             }
             Spacer()
@@ -287,25 +321,42 @@ struct ContentView: View {
                 .padding(.top, 15.0)
                 HStack {
                     Text("Call State : ")
+                        .font(.footnote)
                     Text(tutorialContext.callRunning ? "Ongoing" : "Stopped")
+                        .font(.footnote)
                         .foregroundColor(tutorialContext.callRunning ? Color.green : Color.black)
                 }
-                .padding(.top, 5.0)
             }
             Spacer()
             Group {
-                Button(action: tutorialContext.virtualChatRoom)
-                {
-                    Text("Simulate Chat")
-                        .font(.largeTitle)
-                        .foregroundColor(Color.white)
-                        .frame(width: 230.0, height: 50.0)
-                        .background(Color.green)
+                HStack {
+                    Button(action: tutorialContext.virtualChatRoom)
+                    {
+                        Text("Initiate Chat")
+                            .font(.largeTitle)
+                            .foregroundColor(Color.white)
+                            .frame(width: 190.0, height: 50.0)
+                            .background(Color.green)
+                    }
+                    Button(action: tutorialContext.chatReply)
+                    {
+                        Text("Reply")
+                            .font(.largeTitle)
+                            .foregroundColor(Color.white)
+                            .frame(width: 95.0, height: 50.0)
+                            .background(Color.gray)
+                    }
                 }
                 HStack {
                     Text("Chatroom state : ")
+                        .font(.footnote)
                     Text(toString(tutorialState: tutorialContext.chatroomAState))
+                        .font(.footnote)
                         .foregroundColor((tutorialContext.chatroomAState == ChatroomTutorialState.Started) ? Color.green : Color.black)
+                }
+                HStack {
+                    Text("Last chat received :  \(tutorialContext.sLastReceivedMessage)")
+                        .padding(.top, 5.0)
                 }.padding(.top, 2.0)
             }
             Spacer()
@@ -321,7 +372,13 @@ class LinphoneLoggingServiceManager: LoggingServiceDelegate {
     }
 }
 
-class LinphoneRegistrationTracker: CoreDelegate {
+class LinphoneRegistrationDelegate: CoreDelegate {
+    override func onRegistrationStateChanged(lc: Core, cfg: ProxyConfig, cstate: RegistrationState, message: String?) {
+        print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
+    }
+}
+
+class LinphoneRegistrationConfirmDelegate: CoreDelegate {
     
     var tutorialContext : LinphoneTutorialContext!
     
@@ -361,6 +418,21 @@ class LinconePhoneStateTracker: CoreDelegate {
             print("CallTrace - Call failure !")
         default:
             print("CallTrace - Unhandled notification \(cstate)\n")
+        }
+    }
+}
+
+class LinphoneCoreChatDelegate: CoreDelegate {
+    var tutorialContext : LinphoneTutorialContext!
+    override func onMessageReceived(lc: Core, room: ChatRoom, message: ChatMessage) {
+            
+        if (tutorialContext.mChatRoomB == nil)
+        {
+            tutorialContext.mChatRoomB = room
+        }
+        if (message.contentType == "text/plain")
+        {
+            tutorialContext.sLastReceivedMessage = message.textContent
         }
     }
 }
