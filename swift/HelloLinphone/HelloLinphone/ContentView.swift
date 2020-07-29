@@ -9,6 +9,25 @@
 import linphonesw
 import SwiftUI
 
+
+enum ChatroomTutorialState
+{
+    case Unstarted
+    case Starting
+    case Started
+}
+
+func toString(tutorialState state : ChatroomTutorialState) -> String
+{
+    switch (state)
+    {
+        case ChatroomTutorialState.Unstarted : return "Unstarted"
+        case ChatroomTutorialState.Starting: return "Starting"
+        case ChatroomTutorialState.Started: return "Started"
+    }
+}
+
+
 class LinphoneCoreHolder : ObservableObject
 {
     public static let instance = LinphoneCoreHolder()
@@ -19,8 +38,16 @@ class LinphoneCoreHolder : ObservableObject
     
     let mRegistrationTracer = LinphoneRegistrationTracker()
     let mPhoneStateTracer = LinconePhoneStateTracker()
+    let mChatRoomDelegate = LinphoneChatRoomStateTracker()
+    let mChatMessageDelegate =  LinphoneChatMessageTracker()
+    
+    var mChatRoom : ChatRoom?
+    var mChatMessage : ChatMessage?
     var log : LoggingService?
     var logManager : LinphoneLoggingServiceManager?
+    
+    var proxy_cfg_A : ProxyConfig!
+    var proxy_cfg_B : ProxyConfig!
     
     
     @Published var coreVersion: String = Core.getVersion
@@ -31,6 +58,11 @@ class LinphoneCoreHolder : ObservableObject
     @Published var dest : String = "sip:arguillq@sip.linphone.org"
     
     @Published var logsEnabled : Bool = true
+    
+    @Published var chatroomTutorialState = ChatroomTutorialState.Unstarted
+    @Published var proxyConfigARegistered : Bool = false
+    @Published var proxyConfigBRegistered : Bool = false
+    
     
     private init()
     {
@@ -129,7 +161,37 @@ class LinphoneCoreHolder : ObservableObject
             mCore.removeDelegate(delegate: self.mPhoneStateTracer)
         }
     }
+    
+    func virtualChatRoom()
+    {
+        proxy_cfg_A = createProxyConfigAndRegister(identity : "sip:peche5@sip.linphone.org", password : "peche5", factoryUri: "sip:conference-factory@sip.linphone.org")!
+        mCore.defaultProxyConfig = proxy_cfg_A // set to default proxy
+        proxy_cfg_B = createProxyConfigAndRegister(identity :
+            "sip:arguillq@sip.linphone.org", password : "078zUVlK", factoryUri: "sip:conference-factory@sip.linphone.org")!
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            while(!self.proxyConfigARegistered || !self.proxyConfigBRegistered){
+                usleep(1000000)
+            }
 
+            do {
+                let chatParams = try self.mCore.createDefaultChatRoomParams()
+                chatParams.backend = ChatRoomBackend.FlexisipChat
+                chatParams.encryptionEnabled = false
+                chatParams.groupEnabled = false
+                self.mChatRoom = try self.mCore.createChatRoom(params: chatParams
+                    , localAddr: self.proxy_cfg_A.contact!
+                    , subject: "Tutorial ChatRoom"
+                    , participants: [self.proxy_cfg_B.contact!])
+                self.mChatRoom!.addDelegate(delegate: self.mChatRoomDelegate)
+            } catch {
+                print(error)
+            }
+        }
+
+        self.chatroomTutorialState = ChatroomTutorialState.Starting
+        
+    }
 }
 
 
@@ -199,6 +261,22 @@ struct ContentView: View {
                 .padding(.top, 5.0)
             }
             Spacer()
+            Group {
+                Button(action: self.coreHolder.virtualChatRoom)
+                {
+                    Text("Simulate Chat")
+                        .font(.largeTitle)
+                        .foregroundColor(Color.white)
+                        .frame(width: 230.0, height: 50.0)
+                        .background(Color.green)
+                }
+                HStack {
+                    Text("Chatroom state : ")
+                    Text(toString(tutorialState: coreHolder.chatroomTutorialState))
+                        .foregroundColor((coreHolder.chatroomTutorialState == ChatroomTutorialState.Started) ? Color.green : Color.black)
+                }.padding(.top, 2.0)
+            }
+            Spacer()
             Text("Hello, Linphone, Core Version is \n \(coreHolder.coreVersion)")
         }
         .padding()
@@ -214,6 +292,20 @@ class LinphoneLoggingServiceManager: LoggingServiceDelegate {
 class LinphoneRegistrationTracker: CoreDelegate {
     override func onRegistrationStateChanged(lc: Core, cfg: ProxyConfig, cstate: RegistrationState, message: String?) {
         print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
+        if (cstate == RegistrationState.Ok)
+        {
+            if let cfgIdentity = cfg.identityAddress
+            {
+                if (cfgIdentity.asString() == "sip:peche5@sip.linphone.org")
+                {
+                    LinphoneCoreHolder.instance.proxyConfigARegistered = true
+                }
+                else if (cfgIdentity.asString() == "sip:arguillq@sip.linphone.org")
+                {
+                    LinphoneCoreHolder.instance.proxyConfigBRegistered = true
+                }
+            }
+        }
     }
 }
 
@@ -237,6 +329,23 @@ class LinconePhoneStateTracker: CoreDelegate {
         }
     }
 }
+
+class LinphoneChatRoomStateTracker: ChatRoomDelegate {
+    override func onStateChanged(cr: ChatRoom, newState: ChatRoom.State) {
+        if (newState == ChatRoom.State.Created)
+        {
+            print("ChatRoomTrace - Chatroom ready to start")
+            LinphoneCoreHolder.instance.chatroomTutorialState = ChatroomTutorialState.Started
+        }
+    }
+}
+
+class LinphoneChatMessageTracker: ChatMessageDelegate {
+    override func onMsgStateChanged(msg: ChatMessage, state: ChatMessage.State) {
+        print("MessageTrace - msg state changed: \(state)\n")
+    }
+}
+
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
