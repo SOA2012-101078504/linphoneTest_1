@@ -67,7 +67,8 @@ class LinphoneTutorialContext : ObservableObject
     
     @Published var proxyConfigARegistered : Bool = false
     @Published var proxyConfigBRegistered : Bool = false
-    @Published var sLastReceivedMessage : String = ""
+    @Published var sLastReceivedText : String = ""
+    @Published var sReplyText: String = ""
     
     
     /*---- FlexiSip Group Chatroom tutorial related variables ----*/
@@ -255,14 +256,14 @@ class LinphoneTutorialContext : ObservableObject
         if let chatRoom = mChatRoomB {
             do
             {
-                self.mChatMessage = try chatRoom.createMessage(message: "Reply")
+                self.mChatMessage = try chatRoom.createMessage(message: sReplyText)
                 self.mChatMessage!.send()
             } catch {
                 print(error)
             }
         }
         else {
-            sLastReceivedMessage = "Initialize chat first !"
+            sLastReceivedText = "Initialize chat first !"
         }
         
     }
@@ -401,8 +402,20 @@ struct ContentView: View {
                 }
                 .padding(.top, 10.0)
                 HStack {
-                    Text("Last chat received :  \(tutorialContext.sLastReceivedMessage)")
+                    Text("Last chat received :  \(tutorialContext.sLastReceivedText)")
                 }.padding(.top, 30.0)
+                HStack {
+                    Button(action: tutorialContext.groupChatReply)
+                    {
+                        Text("Chat reply")
+                            .font(.largeTitle)
+                            .foregroundColor(Color.white)
+                            .frame(width: 160.0, height: 42.0)
+                            .background(Color.gray)
+                    }.disabled(!tutorialContext.proxyConfigBRegistered || !tutorialContext.proxyConfigBRegistered)
+                    TextField("Reply text", text : $tutorialContext.sReplyText)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                }
             }
             Group {
                 Spacer()
@@ -490,7 +503,7 @@ class LinphoneCoreChatDelegate: CoreDelegate {
         }
         if (message.contentType == "text/plain")
         {
-            tutorialContext.sLastReceivedMessage = message.textContent
+            tutorialContext.sLastReceivedText = message.textContent
         }
     }
 }
