@@ -34,10 +34,9 @@ class LinphoneTutorialContext : ObservableObject
     @Published var coreVersion: String = Core.getVersion
     
     /*------------ Logs related variables ------------------------*/
-    let logsEnabled : Bool = true
     var log : LoggingService?
     var logManager : LinphoneLoggingServiceManager?
-    
+    @Published var logsEnabled : Bool = true
     
     /*------------ Registration tutorial related variables -------*/
     var proxy_cfg: ProxyConfig!
@@ -90,15 +89,12 @@ class LinphoneTutorialContext : ObservableObject
         
         let factory = Factory.Instance // Instanciate
         
-        // set logsEnabled to false to disable logs collection
-        if (logsEnabled)
-        {
-            log = LoggingService.Instance
-            logManager = LinphoneLoggingServiceManager()
-            log!.addDelegate(delegate: logManager!)
-            log!.logLevel = LogLevel.Debug
-            factory.enableLogCollection(state: LogCollectionState.Enabled)
-        }
+        logManager = LinphoneLoggingServiceManager()
+        logManager!.tutorialContext = self;
+        log = LoggingService.Instance
+        log!.addDelegate(delegate: logManager!)
+        log!.logLevel = LogLevel.Debug
+        factory.enableLogCollection(state: LogCollectionState.Enabled)
         
         // Initialize Linphone Core
         try? mCore = factory.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
@@ -408,16 +404,28 @@ struct ContentView: View {
                     Text("Last chat received :  \(tutorialContext.sLastReceivedMessage)")
                 }.padding(.top, 30.0)
             }
-            Spacer()
-            Text("Hello, Linphone, Core Version is \n \(tutorialContext.coreVersion)")
+            Group {
+                Spacer()
+                Toggle(isOn: $tutorialContext.logsEnabled) {
+                    Text("Logs collection")
+                        .multilineTextAlignment(.trailing)
+                }
+                Text("Hello, Linphone, Core Version is \n \(tutorialContext.coreVersion)")
+            }
         }
         .padding()
     }
 }
 
 class LinphoneLoggingServiceManager: LoggingServiceDelegate {
+    
+    var tutorialContext : LinphoneTutorialContext!
+    
     override func onLogMessageWritten(logService: LoggingService, domain: String, lev: LogLevel, message: String) {
-        print("Logging service log: \(message)s\n")
+        if (tutorialContext.logsEnabled)
+        {
+            print("Logging service log: \(message)s\n")
+        }
     }
 }
 
