@@ -33,14 +33,13 @@ class LinphoneTutorialContext : ObservableObject
     var mCore: Core! // We need a Core for... anything, basically
     @Published var coreVersion: String = Core.getVersion
     
-    
-    /*---------------------------------- Logs related variables ---------------------------------------------*/
+    /*------------ Logs related variables ------------------------*/
     let logsEnabled : Bool = true
     var log : LoggingService?
     var logManager : LinphoneLoggingServiceManager?
     
     
-    /*-------------------------- Registration tutorial related variables ------------------------------------*/
+    /*------------ Registration tutorial related variables -------*/
     var proxy_cfg: ProxyConfig!
     let mRegistrationDelegate = LinphoneRegistrationDelegate()
     @Published var id : String = "sip:peche5@sip.linphone.org"
@@ -48,33 +47,39 @@ class LinphoneTutorialContext : ObservableObject
     @Published var loggedIn: Bool = false
     
     
-    
-    /*--------------------------- Call tutorial related variables -------------------------------------------*/
+    /*------------ Call tutorial related variables ---------------*/
     let mPhoneStateTracer = LinconePhoneStateTracker()
     var call: Call!
     @Published var callRunning : Bool = false
     @Published var dest : String = "sip:arguillq@sip.linphone.org"
     
     
-    
-    
-    /*--------------------------- Chatroom tutorial related variables ---------------------------------------*/
-    let mFactoryUri = "sip:conference-factory@sip.linphone.org"
+    /*--- Variable shared between Basic and FlexiSip chatrooms ----
+      -------- "A" always initiates the chat, "B" answers --------*/
     let mIdA = "sip:peche5@sip.linphone.org", mIdB = "sip:jehan-iphone@sip.linphone.org"
     var mPasswordA = "peche5", mPasswordB = "cotcot"
     var mProxyConfigA, mProxyConfigB : ProxyConfig!
-    var mChatRoomA, mChatRoomB : ChatRoom?
-    let mChatRoomDelegate = LinphoneChatRoomStateTracker()
-    let mChatMessageDelegate =  LinphoneChatMessageTracker()
-    let mCoreChatDelegate = LinphoneCoreChatDelegate()
-    let mRegistrationConfirmDelegate = LinphoneRegistrationConfirmDelegate()
     var mChatMessage : ChatMessage?
-    var proxyConfigARegistered : Bool = false
-    var proxyConfigBRegistered : Bool = false
     
+    let mCoreChatDelegate = LinphoneCoreChatDelegate()
+    let mChatMessageDelegate =  LinphoneChatMessageTracker()
+    let mChatRoomDelegate = LinphoneChatRoomStateTracker()
+    let mRegistrationConfirmDelegate = LinphoneRegistrationConfirmDelegate()
     
-    @Published var chatroomAState = ChatroomTutorialState.Unstarted
+    @Published var proxyConfigARegistered : Bool = false
+    @Published var proxyConfigBRegistered : Bool = false
     @Published var sLastReceivedMessage : String = ""
+    
+    
+    /*---- FlexiSip Group Chatroom tutorial related variables ----*/
+    let mFactoryUri = "sip:conference-factory@sip.linphone.org"
+    var mChatRoomA, mChatRoomB : ChatRoom?
+    @Published var chatroomAState = ChatroomTutorialState.Unstarted
+    
+    /*---- Basic Chatroom tutorial related variables ----*/
+    var mBasicChatRoom : ChatRoom?
+    var mBasicChatroomProxyConfigRegistered : Bool = false
+    @Published var basicChatRoomState = ChatroomTutorialState.Unstarted
     
     
     init()
@@ -101,6 +106,12 @@ class LinphoneTutorialContext : ObservableObject
         // main loop for receiving notifications and doing background linphonecore work:
         mCore.autoIterateEnabled = true
         try? mCore.start()
+        
+        // Important ! Will notify when config are registered so that we can proceed with the chatroom creations
+        mCore.addDelegate(delegate: mRegistrationConfirmDelegate)
+        
+        // Handle chat message reception
+        mCore.addDelegate(delegate: mCoreChatDelegate)
     }
     
     
@@ -182,49 +193,58 @@ class LinphoneTutorialContext : ObservableObject
         }
     }
     
-    func virtualChatRoom()
+    func registerChatRoomsProxyConfigurations()
     {
-        // Important ! Will notify when both config are registered so that we can proceed with the chatroom creation
-        mCore.addDelegate(delegate: mRegistrationConfirmDelegate)
-        
-        // Handle message reception
-        mCore.addDelegate(delegate: mCoreChatDelegate)
-        
         mProxyConfigA = createProxyConfigAndRegister(identity : mIdA, password : mPasswordA, factoryUri: mFactoryUri)!
         mProxyConfigB = createProxyConfigAndRegister(identity : mIdB, password : mPasswordB, factoryUri: mFactoryUri)!
+    }
+    
+    func createChatRoom(isBasic isBasicChatroom : Bool)
+    {
+        // proxy configuration must first be initialized and registered
+        if (!proxyConfigARegistered || !proxyConfigBRegistered) { return }
         
-        
-        DispatchQueue.global(qos: .userInitiated).async {
-            while(!self.proxyConfigARegistered || !self.proxyConfigBRegistered){
-                usleep(1000000)
+        do {
+            let chatDest = [mProxyConfigB.contact!]
+            let chatParams = try mCore.createDefaultChatRoomParams()
+            if (isBasicChatroom && mBasicChatRoom == nil)
+            {
+                chatParams.backend = ChatRoomBackend.Basic
+                mBasicChatRoom = try mCore.createChatRoom(params: chatParams
+                    , localAddr: mProxyConfigA.contact!
+                    , subject: "Basic ChatRoom"
+                    , participants: chatDest)
+                basicChatRoomState = ChatroomTutorialState.Started
+                
             }
-
-            do {
-                let chatParams = try self.mCore.createDefaultChatRoomParams()
+            else if (!isBasicChatroom && mChatRoomA == nil)
+            {
                 chatParams.backend = ChatRoomBackend.FlexisipChat
                 chatParams.encryptionEnabled = false
                 chatParams.groupEnabled = false
-                self.mChatRoomA = try self.mCore.createChatRoom(params: chatParams
-                    , localAddr: self.mProxyConfigA.contact!
-                    , subject: "Tutorial ChatRoom"
-                    , participants: [self.mProxyConfigB.contact!])
-                self.mChatRoomA!.addDelegate(delegate: self.mChatRoomDelegate)
-                
-            } catch {
-                print(error)
+                mChatRoomA = try mCore.createChatRoom(params: chatParams
+                    , localAddr: mProxyConfigA.contact!
+                    , subject: "Flexisip ChatRoom"
+                    , participants: chatDest)
+                    mChatRoomA!.addDelegate(delegate: mChatRoomDelegate)
+                    chatroomAState = ChatroomTutorialState.Starting
             }
+            
+        } catch {
+            print(error)
         }
-
-        self.chatroomAState = ChatroomTutorialState.Starting
+        
         DispatchQueue.global(qos: .userInitiated).async {
-            while(self.chatroomAState != ChatroomTutorialState.Started){
+            
+            while((isBasicChatroom ? self.basicChatRoomState : self.chatroomAState) != ChatroomTutorialState.Started){
                 usleep(1000000)
             }
-            if let chatRoom = self.mChatRoomA
+            
+            if let chatRoom = (isBasicChatroom) ? self.mBasicChatRoom : self.mChatRoomA
             {
                 do
                 {
-                    self.mChatMessage = try chatRoom.createMessage(message: "Hello, World !")
+                    self.mChatMessage = try chatRoom.createMessage(message: "Hello, \((isBasicChatroom) ? "Basic" : "Flexisip") World !")
                     self.mChatMessage!.addDelegate(delegate: self.mChatMessageDelegate)
                     self.mChatMessage!.send()
                 } catch {
@@ -232,11 +252,9 @@ class LinphoneTutorialContext : ObservableObject
                 }
             }
         }
-        
     }
     
-    
-    func chatReply()
+    func groupChatReply()
     {
         if let chatRoom = mChatRoomB {
             do
@@ -252,6 +270,7 @@ class LinphoneTutorialContext : ObservableObject
         }
         
     }
+    
 }
 
 
@@ -329,35 +348,65 @@ struct ContentView: View {
             }
             Spacer()
             Group {
-                HStack {
-                    Button(action: tutorialContext.virtualChatRoom)
+                HStack{
+                    Button(action: tutorialContext.registerChatRoomsProxyConfigurations)
                     {
-                        Text("Initiate Chat")
+                        Text("Chat Login")
                             .font(.largeTitle)
                             .foregroundColor(Color.white)
                             .frame(width: 190.0, height: 50.0)
-                            .background(Color.green)
-                    }
-                    Button(action: tutorialContext.chatReply)
-                    {
-                        Text("Reply")
-                            .font(.largeTitle)
-                            .foregroundColor(Color.white)
-                            .frame(width: 95.0, height: 50.0)
                             .background(Color.gray)
+                    }.disabled(tutorialContext.proxyConfigBRegistered && tutorialContext.proxyConfigBRegistered)
+                    VStack{
+                        Text(tutorialContext.proxyConfigARegistered ? "A logged in" :"A not registered")
+                            .font(.footnote)
+                            .foregroundColor(tutorialContext.proxyConfigARegistered ? Color.green : Color.black)
+                        Text(tutorialContext.proxyConfigBRegistered ? "B logged in" :"B not registered")
+                            .font(.footnote)
+                            .foregroundColor(tutorialContext.proxyConfigBRegistered ? Color.green : Color.black)
                     }
                 }
+                
                 HStack {
-                    Text("Chatroom state : ")
-                        .font(.footnote)
-                    Text(toString(tutorialState: tutorialContext.chatroomAState))
-                        .font(.footnote)
-                        .foregroundColor((tutorialContext.chatroomAState == ChatroomTutorialState.Started) ? Color.green : Color.black)
+                    VStack {
+                        Button(action: { self.tutorialContext.createChatRoom(isBasic: true) })
+                        {
+                            Text("Basic Chat")
+                                .font(.largeTitle)
+                                .foregroundColor(Color.white)
+                                .frame(width: 170.0, height: 50.0)
+                                .background(Color.gray)
+                        }.disabled(!tutorialContext.proxyConfigBRegistered || !tutorialContext.proxyConfigBRegistered)
+                        HStack {
+                            Text("Chatroom state : ")
+                                .font(.footnote)
+                            Text(toString(tutorialState: tutorialContext.basicChatRoomState))
+                                .font(.footnote)
+                                .foregroundColor((tutorialContext.basicChatRoomState == ChatroomTutorialState.Started) ? Color.green : Color.black)
+                        }
+                    }
+                    VStack {
+                        Button(action: { self.tutorialContext.createChatRoom(isBasic: false) })
+                        {
+                            Text("Flexisip Chat")
+                                .font(.largeTitle)
+                                .foregroundColor(Color.white)
+                                .frame(width: 200.0, height: 50.0)
+                                .background(Color.gray)
+                        }.disabled(!tutorialContext.proxyConfigBRegistered || !tutorialContext.proxyConfigBRegistered)
+                        HStack {
+                            Text("Chatroom state : ")
+                                .font(.footnote)
+                            Text(toString(tutorialState: tutorialContext.chatroomAState))
+                                .font(.footnote)
+                                .foregroundColor((tutorialContext.chatroomAState == ChatroomTutorialState.Started) ? Color.green : Color.black)
+                        }
+                    }
                 }
+                .padding(.top, 10.0)
                 HStack {
                     Text("Last chat received :  \(tutorialContext.sLastReceivedMessage)")
-                        .padding(.top, 5.0)
-                }.padding(.top, 2.0)
+                }.padding(.top, 30.0)
             }
             Spacer()
             Text("Hello, Linphone, Core Version is \n \(tutorialContext.coreVersion)")
@@ -386,16 +435,17 @@ class LinphoneRegistrationConfirmDelegate: CoreDelegate {
         print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
         if (cstate == RegistrationState.Ok)
         {
-            if let cfgIdentity = cfg.identityAddress
+            if (cfg === tutorialContext.mProxyConfigA)
             {
-                if (cfgIdentity.asString() == tutorialContext.mIdA)
-                {
-                    tutorialContext.proxyConfigARegistered = true
-                }
-                else if (cfgIdentity.asString() == tutorialContext.mIdB)
-                {
-                    tutorialContext.proxyConfigBRegistered = true
-                }
+                tutorialContext.proxyConfigARegistered = true
+            }
+            else if (cfg === tutorialContext.mProxyConfigB)
+            {
+                tutorialContext.proxyConfigBRegistered = true
+            }
+            else if (cfg === tutorialContext.mBasicChatRoom)
+            {
+                tutorialContext.mBasicChatroomProxyConfigRegistered = true
             }
         }
     }
@@ -445,7 +495,14 @@ class LinphoneChatRoomStateTracker: ChatRoomDelegate {
         if (newState == ChatRoom.State.Created)
         {
             print("ChatRoomTrace - Chatroom ready to start")
-            tutorialContext.chatroomAState = ChatroomTutorialState.Started
+            if (cr === tutorialContext.mChatRoomA)
+            {
+                tutorialContext.chatroomAState = ChatroomTutorialState.Started
+            }
+            else if (cr === tutorialContext.mBasicChatRoom)
+            {
+                tutorialContext.basicChatRoomState = ChatroomTutorialState.Started
+            }
         }
     }
 }
