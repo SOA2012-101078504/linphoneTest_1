@@ -117,8 +117,6 @@ class LinphoneTutorialContext : ObservableObject
         
         // Handle chat message reception
         mCore.addDelegate(delegate: mCoreChatDelegate)
-        
-        mVideoDevices = mCore.videoDevicesList
     }
     
     
