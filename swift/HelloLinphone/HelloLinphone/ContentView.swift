@@ -8,6 +8,7 @@
 
 import linphonesw
 import SwiftUI
+import AVFoundation
 
 
 enum ChatroomTutorialState
@@ -48,7 +49,10 @@ class LinphoneTutorialContext : ObservableObject
     
     /*------------ Call tutorial related variables ---------------*/
     let mPhoneStateTracer = LinconePhoneStateTracker()
-    var call: Call!
+    var mCall: Call!
+    
+    @Published var videoEnabled : Bool = false
+    @Published var speakerEnabled : Bool = false
     @Published var callRunning : Bool = false
     @Published var dest : String = "sip:arguillq@sip.linphone.org"
     
@@ -109,6 +113,7 @@ class LinphoneTutorialContext : ObservableObject
         
         // Handle chat message reception
         mCore.addDelegate(delegate: mCoreChatDelegate)
+        
     }
     
     
@@ -152,21 +157,34 @@ class LinphoneTutorialContext : ObservableObject
     
     
     // Initiate a call
-    func startOutgoingCallExample()
+    func outgoingCallExample()
     {
-        if (!callRunning)
-        {
-            mCore.addDelegate(delegate: mPhoneStateTracer)
+        do {
+            let callParams = try mCore.createCallParams(call: nil)
+            callParams.videoEnabled = videoEnabled;
+            mCore.videoCaptureEnabled = callParams.videoEnabled;
             
-            // Place an outgoing call
-            call = mCore.invite(url: dest)
-            
-            if (call == nil) {
-                print("Could not place call to \(dest)\n")
-            } else {
-                print("Call to  \(dest) is in progress...")
-                callRunning = true
+            if (!callRunning)
+            {
+                mCore.addDelegate(delegate: mPhoneStateTracer)
+                
+                let callDest = try Factory.Instance.createAddress(addr: dest)
+                // Place an outgoing call
+                mCall = mCore.inviteAddressWithParams(addr: callDest, params: callParams)
+                
+                if (mCall == nil) {
+                    print("Could not place call to \(dest)\n")
+                } else {
+                    print("Call to  \(dest) is in progress...")
+                    callRunning = true
+                }
             }
+            else
+            {
+                try mCall.update(params: callParams)
+            }
+        } catch {
+            print(error)
         }
                 
     }
@@ -176,11 +194,11 @@ class LinphoneTutorialContext : ObservableObject
     {
         if (callRunning)
         {
-            if (call.state != Call.State.End){
+            if (mCall.state != Call.State.End){
                 // terminate the call
                 print("Terminating the call...\n")
                 do {
-                    try call.terminate()
+                    try mCall.terminate()
                     callRunning = false
                 } catch {
                     print(error)
@@ -194,6 +212,19 @@ class LinphoneTutorialContext : ObservableObject
     {
         mProxyConfigA = createProxyConfigAndRegister(identity : mIdA, password : mPasswordA, factoryUri: mFactoryUri)!
         mProxyConfigB = createProxyConfigAndRegister(identity : mIdB, password : mPasswordB, factoryUri: mFactoryUri)!
+    }
+    
+    func speaker()
+    {
+        speakerEnabled = !speakerEnabled
+        do {
+            try AVAudioSession.sharedInstance().overrideOutputAudioPort(
+                speakerEnabled ?
+                AVAudioSession.PortOverride.speaker : AVAudioSession.PortOverride.none
+            )
+        } catch {
+            print(error)
+        }
     }
     
     func createChatRoom(isBasic isBasicChatroom : Bool)
@@ -298,7 +329,7 @@ struct ContentView: View {
                         Text("Login")
                             .font(.largeTitle)
                             .foregroundColor(Color.white)
-                            .frame(width: 100.0, height: 50.0)
+                            .frame(width: 100.0, height: 42.0)
                             .background(Color.gray)
                     }
                     HStack {
@@ -312,35 +343,59 @@ struct ContentView: View {
             }
             Spacer()
             VStack(spacing: 0.0) {
-                Text("Call destination :")
+                Text("Call Settings")
                     .font(.largeTitle)
-                TextField("", text : $tutorialContext.dest)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
                 HStack {
-                    Button(action: tutorialContext.startOutgoingCallExample)
-                    {
-                        Text("Call")
-                            .font(.largeTitle)
-                            .foregroundColor(Color.white)
-                            .frame(width: 130.0, height: 50.0)
-                            .background(Color.green)
-                    }
-                    .padding(.trailing, 30.0)
-                    Button(action: tutorialContext.stopOutgoingCallExample) {
-                        Text("Stop Call")
-                            .font(.largeTitle)
-                            .foregroundColor(Color.white)
-                            .frame(width: 170.0, height: 50.0)
-                            .background(Color.red)
-                    }
+                    Text("Call destination :")
+                    TextField("", text : $tutorialContext.dest)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
-                .padding(.top, 15.0)
                 HStack {
-                    Text("Call State : ")
-                        .font(.footnote)
-                    Text(tutorialContext.callRunning ? "Ongoing" : "Stopped")
-                        .font(.footnote)
-                        .foregroundColor(tutorialContext.callRunning ? Color.green : Color.black)
+                    VStack(alignment: .leading) {
+                        Toggle(isOn: $tutorialContext.videoEnabled) {
+                            Text("Video")
+                        }
+                        HStack {
+                            Text("Speaker :")
+                            Spacer()
+                            Button(action: tutorialContext.speaker)
+                            {
+                                Text(tutorialContext.speakerEnabled ? "ON" : "OFF")
+                                    .font(.title)
+                                    .foregroundColor(Color.white)
+                                    .frame(width: 60.0, height: 30.0)
+                                    .background(Color.gray)
+                            }
+                        }
+                    }.frame(width : 160.0)
+                    .padding(.top, 5.0)
+                    Spacer()
+                    VStack {
+                        Button(action: tutorialContext.outgoingCallExample)
+                        {
+                            Text(tutorialContext.callRunning ? "Update Call" : "Call")
+                                .font(.largeTitle)
+                                .foregroundColor(Color.white)
+                                .frame(width: 180.0, height: 42.0)
+                                .background(Color.green)
+                        }
+                        Button(action: tutorialContext.stopOutgoingCallExample) {
+                            Text("Stop Call")
+                                .font(.largeTitle)
+                                .foregroundColor(Color.white)
+                                .frame(width: 180.0, height: 42.0)
+                                .background(Color.red)
+                        }
+                        .padding(.top, 10.0)
+                        HStack {
+                            Text("Call State : ")
+                                .font(.footnote)
+                            Text(tutorialContext.callRunning ? "Ongoing" : "Stopped")
+                                .font(.footnote)
+                                .foregroundColor(tutorialContext.callRunning ? Color.green : Color.black)
+                        }
+                    }
+                    .padding(.top, 10.0)
                 }
             }
             Spacer()
@@ -351,7 +406,7 @@ struct ContentView: View {
                         Text("Chat Login")
                             .font(.largeTitle)
                             .foregroundColor(Color.white)
-                            .frame(width: 190.0, height: 50.0)
+                            .frame(width: 190.0, height: 42.0)
                             .background(Color.gray)
                     }.disabled(tutorialContext.proxyConfigBRegistered && tutorialContext.proxyConfigBRegistered)
                     VStack{
@@ -371,7 +426,7 @@ struct ContentView: View {
                             Text("Basic Chat")
                                 .font(.largeTitle)
                                 .foregroundColor(Color.white)
-                                .frame(width: 170.0, height: 50.0)
+                                .frame(width: 170.0, height: 42.0)
                                 .background(Color.gray)
                         }.disabled(!tutorialContext.proxyConfigBRegistered || !tutorialContext.proxyConfigBRegistered)
                         HStack {
@@ -388,7 +443,7 @@ struct ContentView: View {
                             Text("Flexisip Chat")
                                 .font(.largeTitle)
                                 .foregroundColor(Color.white)
-                                .frame(width: 200.0, height: 50.0)
+                                .frame(width: 200.0, height: 42.0)
                                 .background(Color.gray)
                         }.disabled(!tutorialContext.proxyConfigBRegistered || !tutorialContext.proxyConfigBRegistered)
                         HStack {
