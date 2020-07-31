@@ -14,6 +14,6 @@ java/.externalNativeBuild
 java/.cxx
 swift/*/Podfile.lock
 swift/*/Pods/
-swift/*/HelloLinphone.xcodeproj/project.xcworkspace/xcuserdata/
-swift/*/HelloLinphone.xcodeproj/xcuserdata/
-swift/*/HelloLinphone.xcworkspace/xcuserdata/
+swift/*/*.xcodeproj/project.xcworkspace/xcuserdata/
+swift/*/*.xcodeproj/xcuserdata/
+swift/*/*.xcworkspace/xcuserdata/
