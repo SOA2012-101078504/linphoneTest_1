@@ -50,6 +50,8 @@ class LinphoneTutorialContext : ObservableObject
     /*------------ Call tutorial related variables ---------------*/
     let mPhoneStateTracer = LinconePhoneStateTracker()
     var mCall: Call!
+    var mVideoDevices : [String] = []
+    var mUsedVideoDeviceId : Int = 0
     
     @Published var videoEnabled : Bool = false
     @Published var speakerEnabled : Bool = false
@@ -108,12 +110,14 @@ class LinphoneTutorialContext : ObservableObject
         mCore.autoIterateEnabled = true
         try? mCore.start()
         
+        mVideoDevices = mCore.videoDevicesList
         // Important ! Will notify when config are registered so that we can proceed with the chatroom creations
         mCore.addDelegate(delegate: mRegistrationConfirmDelegate)
         
         // Handle chat message reception
         mCore.addDelegate(delegate: mCoreChatDelegate)
         
+        mVideoDevices = mCore.videoDevicesList
     }
     
     
@@ -222,6 +226,17 @@ class LinphoneTutorialContext : ObservableObject
                 speakerEnabled ?
                 AVAudioSession.PortOverride.speaker : AVAudioSession.PortOverride.none
             )
+        } catch {
+            print(error)
+        }
+    }
+    
+    func changeVideoDevice()
+    {
+        mUsedVideoDeviceId = (mUsedVideoDeviceId + 1) % mVideoDevices.count
+
+        do {
+            try mCore.setVideodevice(newValue: mVideoDevices[mUsedVideoDeviceId])
         } catch {
             print(error)
         }
@@ -354,6 +369,17 @@ struct ContentView: View {
                     VStack(alignment: .leading) {
                         Toggle(isOn: $tutorialContext.videoEnabled) {
                             Text("Video")
+                        }
+                        HStack {
+                            Button(action: tutorialContext.changeVideoDevice)
+                            {
+                                Text("Camera")
+                                    .font(.title)
+                                    .foregroundColor(Color.white)
+                                    .frame(width: 120.0, height: 35.0)
+                                    .background(Color.gray)
+                            }
+                            .padding(.bottom, 5.0)
                         }
                         HStack {
                             Text("Speaker :")
