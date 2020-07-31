@@ -53,6 +53,7 @@ class LinphoneTutorialContext : ObservableObject
     var mVideoDevices : [String] = []
     var mUsedVideoDeviceId : Int = 0
     
+    @Published var audioEnabled : Bool = true
     @Published var videoEnabled : Bool = false
     @Published var speakerEnabled : Bool = false
     @Published var callRunning : Bool = false
@@ -166,7 +167,7 @@ class LinphoneTutorialContext : ObservableObject
         do {
             let callParams = try mCore.createCallParams(call: nil)
             callParams.videoEnabled = videoEnabled;
-            mCore.videoCaptureEnabled = callParams.videoEnabled;
+            callParams.audioEnabled = audioEnabled;
             
             if (!callRunning)
             {
@@ -198,13 +199,14 @@ class LinphoneTutorialContext : ObservableObject
     {
         if (callRunning)
         {
+            callRunning = false
             if (mCall.state != Call.State.End){
                 // terminate the call
                 print("Terminating the call...\n")
                 do {
                     try mCall.terminate()
-                    callRunning = false
                 } catch {
+                    callRunning = true
                     print(error)
                 }
              }
@@ -367,16 +369,18 @@ struct ContentView: View {
                 }
                 HStack {
                     VStack(alignment: .leading) {
+                        Toggle(isOn: $tutorialContext.audioEnabled) {
+                            Text("Audio")
+                        }
                         Toggle(isOn: $tutorialContext.videoEnabled) {
                             Text("Video")
                         }
                         HStack {
                             Button(action: tutorialContext.changeVideoDevice)
                             {
-                                Text("Camera")
+                                Text("Change camera")
                                     .font(.title)
                                     .foregroundColor(Color.white)
-                                    .frame(width: 120.0, height: 35.0)
                                     .background(Color.gray)
                             }
                             .padding(.bottom, 5.0)
