@@ -12,18 +12,73 @@ struct ContentView: View {
     
     @ObservedObject var tutorialContext = CallExampleContext()
     
+    func getCallButtonText() -> String
+    {
+        if (tutorialContext.isCallIncoming) {
+            return "Answer"
+        }
+        else if (tutorialContext.callRunning) {
+            return "Update Call"
+        }
+        else {
+            return "Call"
+        }
+    }
+    
+    func callStateString() -> String
+    {
+        if (tutorialContext.isCallIncoming) {
+            return "Incoming call"
+        }
+        else if (tutorialContext.callRunning) {
+            return "Call running"
+        }
+        else {
+            return "No Call"
+        }
+    }
+    
     var body: some View {
-        
         VStack(alignment: .leading) {
+            Group {
+                HStack {
+                    Text("Identity :")
+                        .font(.subheadline)
+                    TextField("", text : $tutorialContext.id)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                }
+                HStack {
+                    Text("Password :")
+                        .font(.subheadline)
+                    TextField("", text : $tutorialContext.passwd)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                }
+                HStack {
+                    Button(action:  tutorialContext.registrationExample)
+                    {
+                        Text("Login")
+                            .font(.largeTitle)
+                            .foregroundColor(Color.white)
+                            .frame(width: 90.0, height: 42.0)
+                            .background(Color.gray)
+                    }
+                    Text("Login State : ")
+                        .font(.footnote)
+                    Text(tutorialContext.loggedIn ? "Looged in" : "Unregistered")
+                        .font(.footnote)
+                        .foregroundColor(tutorialContext.loggedIn ? Color.green : Color.black)
+                }
+            }
             VStack(spacing: 0.0) {
                 Text("Call Settings")
                     .font(.largeTitle)
+                    .padding(.top, 5)
                 HStack {
                     Text("Call destination :")
                     TextField("", text : $tutorialContext.dest)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
-                .padding(.top)
+                .padding(.top, 5)
             }
             VStack(alignment: .leading) {
                 Toggle(isOn: $tutorialContext.audioEnabled) {
@@ -56,15 +111,22 @@ struct ContentView: View {
             Spacer()
             VStack {
                 HStack {
-                    Button(action: tutorialContext.outgoingCallExample)
+                    Button(action: {
+                        if (self.tutorialContext.isCallIncoming) {
+                            self.tutorialContext.acceptCall()
+                        }
+                        else {
+                            self.tutorialContext.outgoingCallExample()
+                        }
+                    })
                     {
-                        Text(tutorialContext.callRunning ? "Update Call" : "Call")
+                        Text(getCallButtonText())
                             .font(.largeTitle)
                             .foregroundColor(Color.white)
                             .frame(width: 180.0, height: 42.0)
                             .background(Color.green)
                     }
-                    Button(action: tutorialContext.stopOutgoingCallExample) {
+                    Button(action: tutorialContext.stopCall) {
                         Text("Stop Call")
                             .font(.largeTitle)
                             .foregroundColor(Color.white)
@@ -73,11 +135,9 @@ struct ContentView: View {
                     }
                 }
                 HStack {
-                    Text("Call State : ")
+                    Text(callStateString())
                         .font(.footnote)
-                    Text(tutorialContext.callRunning ? "Ongoing" : "Stopped")
-                        .font(.footnote)
-                        .foregroundColor(tutorialContext.callRunning ? Color.green : Color.black)
+                        .foregroundColor(tutorialContext.callRunning || tutorialContext.isCallIncoming ? Color.green : Color.black)
                 }
                 .padding(.top)
             }

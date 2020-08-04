@@ -84,11 +84,11 @@
 			children = (
 				6604165624D451F10064FC6C /* AppDelegate.swift */,
 				6604165824D451F10064FC6C /* SceneDelegate.swift */,
+				6604166A24D453240064FC6C /* CallExample.swift */,
 				6604165A24D451F10064FC6C /* ContentView.swift */,
 				6604165C24D451F40064FC6C /* Assets.xcassets */,
 				6604166124D451F40064FC6C /* LaunchScreen.storyboard */,
 				6604166424D451F40064FC6C /* Info.plist */,
-				6604166A24D453240064FC6C /* CallExample.swift */,
 				6604165E24D451F40064FC6C /* Preview Content */,
 			);
 			path = CallTutorial;
