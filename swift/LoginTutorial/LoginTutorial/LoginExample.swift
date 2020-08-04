@@ -27,6 +27,7 @@ class LoginTutorialContext : ObservableObject
     
     init()
     {
+        mRegistrationDelegate.tutorialContext = self
         let factory = Factory.Instance // Instanciate
         
         logManager = LinphoneLoggingServiceManager()
@@ -66,7 +67,6 @@ class LoginTutorialContext : ObservableObject
                 // IMPORTANT : default proxy config setting MUST be done AFTER adding the config to the core !
                 mCore.defaultProxyConfig = proxy_cfg
             }
-            loggedIn = true
             
         } catch {
             print(error)
@@ -88,7 +88,14 @@ class LinphoneLoggingServiceManager: LoggingServiceDelegate {
 }
 
 class LinphoneRegistrationDelegate: CoreDelegate {
+    
+    var tutorialContext : LoginTutorialContext!
+    
     override func onRegistrationStateChanged(lc: Core, cfg: ProxyConfig, cstate: RegistrationState, message: String?) {
         print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
+        if (cstate == .Ok)
+        {
+            tutorialContext.loggedIn = true
+        }
     }
 }
