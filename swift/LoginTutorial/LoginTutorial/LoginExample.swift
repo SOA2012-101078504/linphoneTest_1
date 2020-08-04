@@ -45,35 +45,6 @@ class LoginTutorialContext : ObservableObject
       
     }
     
-    
-    func createProxyConfigAndRegister(identity sId : String, password sPwd : String, factoryUri fUri : String) -> ProxyConfig?
-    {
-        let factory = Factory.Instance
-        do {
-            let proxy_cfg = try mCore.createProxyConfig()
-            let address = try factory.createAddress(addr: sId)
-            let info = try factory.createAuthInfo(username: address.username, userid: "", passwd: sPwd, ha1: "", realm: "", domain: address.domain)
-            mCore.addAuthInfo(info: info)
-            
-            try proxy_cfg.setIdentityaddress(newValue: address)
-            let server_addr = "sip:" + address.domain + ";transport=tls"
-            try proxy_cfg.setServeraddr(newValue: server_addr)
-            proxy_cfg.registerEnabled = true
-            proxy_cfg.conferenceFactoryUri = fUri
-            try mCore.addProxyConfig(config: proxy_cfg)
-            if ( mCore.defaultProxyConfig == nil)
-            {
-                // IMPORTANT : default proxy config setting MUST be done AFTER adding the config to the core !
-                mCore.defaultProxyConfig = proxy_cfg
-            }
-            return proxy_cfg
-            
-        } catch {
-            print(error)
-        }
-        return nil
-    }
-    
     func registrationExample()
     {
         mCore.addDelegate(delegate: mRegistrationDelegate) // Add registration specific logs
