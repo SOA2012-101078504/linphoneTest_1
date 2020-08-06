@@ -17,6 +17,9 @@ class CallKitProviderDelegate : NSObject
     private let provider: CXProvider
     let mCallController = CXCallController()
     var tutorialContext : CallExampleContext!
+
+    var incomingCallUUID : UUID!
+    var outgoingCallUUID : UUID!
     
     init(context : CallExampleContext)
     {
@@ -34,27 +37,32 @@ class CallKitProviderDelegate : NSObject
         
     }
     
-    func reportIncomingCall(call:Call?, uuid: UUID, handle: String, hasVideo: Bool) {
+    func incomingCall() {
+        incomingCallUUID = UUID()
         let update = CXCallUpdate()
-        update.remoteHandle = CXHandle(type:.generic, value: handle)
-        update.hasVideo = hasVideo
+        update.remoteHandle = CXHandle(type:.generic, value: tutorialContext.incomingCallName)
+        update.hasVideo = tutorialContext.videoEnabled
         
-        provider.reportNewIncomingCall(with: uuid, update: update) { error in
-            
-        }
+        provider.reportNewIncomingCall(with: incomingCallUUID, update: update, completion: { error in })
     }
     
-    func outgoingCall(uuid : UUID)
+    func outgoingCall()
     {
-        let handle = CXHandle(type: .generic, value: "Outgoing Call")
-        let startCallAction = CXStartCallAction(call: uuid, handle: handle)
+        outgoingCallUUID = UUID()
+        let handle = CXHandle(type: .generic, value: tutorialContext.outgoingCallName)
+        let startCallAction = CXStartCallAction(call: outgoingCallUUID, handle: handle)
         let transaction = CXTransaction(action: startCallAction)
         
-        mCallController.request(transaction, completion: { error in
-            print("lalalalala")
-        })
+        mCallController.request(transaction, completion: { error in })
     }
     
+    func stopCall()
+    {
+        let endCallAction = CXEndCallAction(call: incomingCallUUID)
+        let transaction = CXTransaction(action: endCallAction)
+        
+        mCallController.request(transaction, completion: { error in })
+    }
 }
 
 
@@ -62,7 +70,10 @@ class CallKitProviderDelegate : NSObject
 extension CallKitProviderDelegate: CXProviderDelegate {
     
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
-        tutorialContext.stopCall()
+        if (tutorialContext.mCall.state != Call.State.End)
+        {
+            try? tutorialContext.mCall.terminate()
+        }
         action.fulfill()
     }
 

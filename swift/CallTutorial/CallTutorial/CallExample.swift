@@ -37,7 +37,10 @@ class CallExampleContext : ObservableObject
     @Published var passwd : String = "peche5"
     @Published var loggedIn: Bool = false
 
-    var providerDelegate : CallKitProviderDelegate!
+    var mProviderDelegate : CallKitProviderDelegate!
+    let outgoingCallName = "Outgoing call example"
+    let incomingCallName = "Incoming call example"
+    
     @Published var enableCallKit = false;
     
     init()
@@ -67,7 +70,7 @@ class CallExampleContext : ObservableObject
         mCore.addDelegate(delegate: mCallStateTracer)
         mCore.addDelegate(delegate: mRegistrationDelegate)
         
-        providerDelegate = CallKitProviderDelegate(context : self)
+        mProviderDelegate = CallKitProviderDelegate(context : self)
     }
 
     func registrationExample()
@@ -95,19 +98,25 @@ class CallExampleContext : ObservableObject
         }
     }
     
+    
+    func createCallParams() throws -> CallParams
+    {
+        let callParams = try mCore.createCallParams(call: nil)
+        callParams.videoEnabled = videoEnabled;
+        callParams.audioEnabled = audioEnabled;
+        
+        return callParams
+    }
+    
     // Initiate a call
     func outgoingCallExample()
     {
         do {
-            let callParams = try mCore.createCallParams(call: nil)
-            callParams.videoEnabled = videoEnabled;
-            callParams.audioEnabled = audioEnabled;
-            
             if (!callRunning)
             {
                 let callDest = try Factory.Instance.createAddress(addr: dest)
                 // Place an outgoing call
-                mCall = mCore.inviteAddressWithParams(addr: callDest, params: callParams)
+                mCall = mCore.inviteAddressWithParams(addr: callDest, params: try createCallParams())
                 
                 if (mCall == nil) {
                     print("Could not place call to \(dest)\n")
@@ -117,18 +126,12 @@ class CallExampleContext : ObservableObject
             }
             else
             {
-                try mCall.update(params: callParams)
+                try mCall.update(params: createCallParams())
             }
         } catch {
             print(error)
         }
                 
-    }
-    
-    // Initiate a call
-    func outgoingCallKitCallExample()
-    {
-        providerDelegate.outgoingCall(uuid: UUID())
     }
     
     // Terminate a call
@@ -139,7 +142,14 @@ class CallExampleContext : ObservableObject
             // terminate the call
             print("Terminating the call...\n")
             do {
-                try mCall.terminate()
+                if (enableCallKit)
+                {
+                    mProviderDelegate.stopCall()
+                }
+                else
+                {
+                    try mCall.terminate()
+                }
             } catch {
                 print(error)
             }
@@ -220,15 +230,14 @@ class CallStateDelegate: CoreDelegate {
         if (cstate == .IncomingReceived) {
             tutorialContext.mCall = call
             tutorialContext.isCallIncoming = true
-            if (tutorialContext.enableCallKit)
-            {
-                tutorialContext.providerDelegate.reportIncomingCall(call: call, uuid: UUID(), handle: "Incoming Test Call", hasVideo: false)
-            }
+            if (tutorialContext.enableCallKit) { tutorialContext.mProviderDelegate.incomingCall() }
+            
         } else if (cstate == .OutgoingRinging) {
             tutorialContext.callRunning = true
         } else if (cstate == .End) {
             tutorialContext.callRunning = false
             tutorialContext.isCallIncoming = false;
+            if (tutorialContext.enableCallKit) { tutorialContext.mProviderDelegate.stopCall() }
         }
     }
 }

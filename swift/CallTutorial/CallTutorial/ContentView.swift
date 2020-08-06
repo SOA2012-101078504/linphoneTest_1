@@ -143,7 +143,7 @@ struct ContentView: View {
             }
 
             VStack(alignment: .leading) {
-                Button(action: tutorialContext.outgoingCallKitCallExample) {
+                Button(action: tutorialContext.mProviderDelegate.outgoingCall) {
                     Text("CallKit Call")
                         .font(.largeTitle)
                         .foregroundColor(Color.white)
