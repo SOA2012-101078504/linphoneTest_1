@@ -194,6 +194,7 @@ class CallExampleContext : ObservableObject
     
 }
 
+// Callback for actions when a change in the Registration State happens
 class LinphoneRegistrationDelegate: CoreDelegate {
     
     var tutorialContext : CallExampleContext!
@@ -220,7 +221,8 @@ class LinphoneLoggingServiceManager: LoggingServiceDelegate {
     }
 }
 
-    let mCallStateTracer = CallStateDelegate()
+
+// Callback for actions when a change in the Call State happens
 class CallStateDelegate: CoreDelegate {
     
     var tutorialContext : CallExampleContext!
