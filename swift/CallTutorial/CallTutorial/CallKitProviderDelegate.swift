@@ -28,8 +28,8 @@ class CallKitProviderDelegate : NSObject
         providerConfiguration.supportsVideo = true
         providerConfiguration.supportedHandleTypes = [.generic]
 
-        providerConfiguration.maximumCallsPerCallGroup = 10
-        providerConfiguration.maximumCallGroups = 2
+        providerConfiguration.maximumCallsPerCallGroup = 1
+        providerConfiguration.maximumCallGroups = 1
         
         provider = CXProvider(configuration: providerConfiguration)
         super.init()
