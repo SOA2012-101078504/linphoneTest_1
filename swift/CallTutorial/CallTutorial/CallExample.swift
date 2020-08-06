@@ -180,13 +180,10 @@ class CallExampleContext : ObservableObject
         }
     }
     
-    
     func acceptCall()
     {
         do {
             try mCall.accept()
-            callRunning = true
-            isCallIncoming = false
         } catch {
             print(error)
         }
@@ -230,16 +227,32 @@ class CallStateDelegate: CoreDelegate {
     override func onCallStateChanged(lc: Core, call: Call, cstate: Call.State, message: String) {
         print("CallTrace - \(cstate)")
         if (cstate == .IncomingReceived) {
+            // We're being called by someone
             tutorialContext.mCall = call
             tutorialContext.isCallIncoming = true
-            if (tutorialContext.enableCallKit) { tutorialContext.mProviderDelegate.incomingCall() }
+            if (tutorialContext.enableCallKit)
+            {
+                // Report the incoming call for CallKit
+                tutorialContext.mProviderDelegate.incomingCall()
+            }
             
         } else if (cstate == .OutgoingRinging) {
+            // We're calling someone
             tutorialContext.callRunning = true
         } else if (cstate == .End) {
+            // Call has been terminated by any side
             tutorialContext.callRunning = false
             tutorialContext.isCallIncoming = false;
-            if (tutorialContext.enableCallKit) { tutorialContext.mProviderDelegate.stopCall() }
+            if (tutorialContext.enableCallKit)
+            {
+                // Report to CallKit that the call is over
+                tutorialContext.mProviderDelegate.stopCall()
+            }
+        } else if (cstate == .StreamsRunning)
+        {
+            // Call has successfully began
+            tutorialContext.callRunning = true
+            tutorialContext.isCallIncoming = false
         }
     }
 }
