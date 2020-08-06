@@ -83,10 +83,10 @@ struct ContentView: View {
             VStack(alignment: .leading) {
                 Toggle(isOn: $tutorialContext.audioEnabled) {
                     Text("Audio")
-                }.frame(width : 120.0)
+                }.frame(width : 140.0)
                 Toggle(isOn: $tutorialContext.videoEnabled) {
                     Text("Video")
-                }.frame(width : 120.0)
+                }.frame(width : 140.0)
                 Button(action: tutorialContext.changeVideoDevice)
                 {
                     Text(" Change camera ")
@@ -127,7 +127,7 @@ struct ContentView: View {
                             .background(Color.green)
                     }
                     Button(action: tutorialContext.stopCall) {
-                        Text("Stop Call")
+                        Text(tutorialContext.isCallIncoming ? "Decline" : "Stop Call")
                             .font(.largeTitle)
                             .foregroundColor(Color.white)
                             .frame(width: 180.0, height: 42.0)
@@ -141,6 +141,19 @@ struct ContentView: View {
                 }
                 .padding(.top)
             }
+
+            VStack(alignment: .leading) {
+                Button(action: tutorialContext.outgoingCallKitCallExample) {
+                    Text("CallKit Call")
+                        .font(.largeTitle)
+                        .foregroundColor(Color.white)
+                        .frame(width: 180.0, height: 42.0)
+                        .background(Color.green)
+                }
+                Toggle(isOn: $tutorialContext.enableCallKit) {
+                    Text("CallKit incoming Call detection")
+                }.frame(width : 290.0)
+            }.padding(.top, 10.0)
             Spacer()
             Group {
                 Toggle(isOn: $tutorialContext.logsEnabled) {

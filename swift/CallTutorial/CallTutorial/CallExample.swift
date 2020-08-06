@@ -37,6 +37,9 @@ class CallExampleContext : ObservableObject
     @Published var passwd : String = "peche5"
     @Published var loggedIn: Bool = false
 
+    var providerDelegate : CallKitProviderDelegate!
+    @Published var enableCallKit = false;
+    
     init()
     {
         mCallStateTracer.tutorialContext = self
@@ -56,17 +59,19 @@ class CallExampleContext : ObservableObject
 
         // main loop for receiving notifications and doing background linphonecore work:
         mCore.autoIterateEnabled = true
+        mCore.callkitEnabled = true
         try? mCore.start()
         
         mVideoDevices = mCore.videoDevicesList
 
         mCore.addDelegate(delegate: mCallStateTracer)
         mCore.addDelegate(delegate: mRegistrationDelegate)
+        
+        providerDelegate = CallKitProviderDelegate(context : self)
     }
 
     func registrationExample()
     {
-        
         let factory = Factory.Instance
         do {
             let proxy_cfg = try mCore.createProxyConfig()
@@ -120,20 +125,24 @@ class CallExampleContext : ObservableObject
                 
     }
     
+    // Initiate a call
+    func outgoingCallKitCallExample()
+    {
+        providerDelegate.outgoingCall(uuid: UUID())
+    }
+    
     // Terminate a call
     func stopCall()
     {
-        if (callRunning)
+        if ((callRunning || isCallIncoming) && mCall.state != Call.State.End)
         {
-            if (mCall.state != Call.State.End){
-                // terminate the call
-                print("Terminating the call...\n")
-                do {
-                    try mCall.terminate()
-                } catch {
-                    print(error)
-                }
-             }
+            // terminate the call
+            print("Terminating the call...\n")
+            do {
+                try mCall.terminate()
+            } catch {
+                print(error)
+            }
         }
     }
     
@@ -211,10 +220,15 @@ class CallStateDelegate: CoreDelegate {
         if (cstate == .IncomingReceived) {
             tutorialContext.mCall = call
             tutorialContext.isCallIncoming = true
+            if (tutorialContext.enableCallKit)
+            {
+                tutorialContext.providerDelegate.reportIncomingCall(call: call, uuid: UUID(), handle: "Incoming Test Call", hasVideo: false)
+            }
         } else if (cstate == .OutgoingRinging) {
             tutorialContext.callRunning = true
         } else if (cstate == .End) {
             tutorialContext.callRunning = false
+            tutorialContext.isCallIncoming = false;
         }
     }
 }
