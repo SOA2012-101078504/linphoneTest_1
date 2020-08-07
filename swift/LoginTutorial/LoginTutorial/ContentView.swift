@@ -29,13 +29,23 @@ struct ContentView: View {
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
                 VStack {
-                    Button(action:  tutorialContext.registrationExample)
-                    {
-                        Text("Login")
-                            .font(.largeTitle)
-                            .foregroundColor(Color.white)
-                            .frame(width: 100.0, height: 42.0)
-                            .background(Color.gray)
+                    HStack {
+                        Button(action:  {
+                            if (self.tutorialContext.loggedIn)
+                            {
+                                self.tutorialContext.logoutExample()
+                            } else {
+                                self.tutorialContext.registrationExample()
+                            }
+                        })
+                        {
+                            Text(tutorialContext.loggedIn ? "Log out" : "Log in")
+                                .font(.largeTitle)
+                                .foregroundColor(Color.white)
+                                .frame(width: 125.0, height: 42.0)
+                                .background(Color.gray)
+                        }
+                        
                     }
                     HStack {
                         Text("Login State : ")
@@ -43,7 +53,7 @@ struct ContentView: View {
                         Text(tutorialContext.loggedIn ? "Looged in" : "Unregistered")
                             .font(.footnote)
                             .foregroundColor(tutorialContext.loggedIn ? Color.green : Color.black)
-                    }
+                    }.padding(.top, 10.0)
                 }
             }
             Group {

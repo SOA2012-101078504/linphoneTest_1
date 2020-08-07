@@ -19,7 +19,7 @@ class LoginTutorialContext : ObservableObject
     @Published var logsEnabled : Bool = true
     
     /*------------ Login tutorial related variables -------*/
-    var proxy_cfg: ProxyConfig!
+    var proxy_cfg: ProxyConfig?
     let mRegistrationDelegate = LinphoneRegistrationDelegate()
     @Published var id : String = "sip:peche5@sip.linphone.org"
     @Published var passwd : String = "peche5"
@@ -43,35 +43,60 @@ class LoginTutorialContext : ObservableObject
         // main loop for receiving notifications and doing background linphonecore work:
         mCore.autoIterateEnabled = true
         try? mCore.start()
-      
+        
+        mCore.addDelegate(delegate: mRegistrationDelegate) // Add registration specific logs
     }
     
     func registrationExample()
     {
-        mCore.addDelegate(delegate: mRegistrationDelegate) // Add registration specific logs
-        
-        let factory = Factory.Instance
-        do {
-            let proxy_cfg = try mCore.createProxyConfig()
-            let address = try factory.createAddress(addr: id)
-            let info = try factory.createAuthInfo(username: address.username, userid: "", passwd: passwd, ha1: "", realm: "", domain: address.domain)
-            mCore.addAuthInfo(info: info)
+        if (!loggedIn)
+        {
             
-            try proxy_cfg.setIdentityaddress(newValue: address)
-            let server_addr = "sip:" + address.domain + ";transport=tls"
-            try proxy_cfg.setServeraddr(newValue: server_addr)
-            proxy_cfg.registerEnabled = true
-            try mCore.addProxyConfig(config: proxy_cfg)
-            if ( mCore.defaultProxyConfig == nil)
-            {
-                // IMPORTANT : default proxy config setting MUST be done AFTER adding the config to the core !
-                mCore.defaultProxyConfig = proxy_cfg
+            do {
+                
+                if (proxy_cfg == nil) {
+                    let factory = Factory.Instance
+                    proxy_cfg = try mCore.createProxyConfig()
+                    let address = try factory.createAddress(addr: id)
+                    let info = try factory.createAuthInfo(username: address.username, userid: "", passwd: passwd, ha1: "", realm: "", domain: address.domain)
+                    mCore.addAuthInfo(info: info)
+                    
+                    try proxy_cfg!.setIdentityaddress(newValue: address)
+                    let server_addr = "sip:" + address.domain + ";transport=tls"
+                    try proxy_cfg!.setServeraddr(newValue: server_addr)
+                    proxy_cfg!.registerEnabled = true
+                    try mCore.addProxyConfig(config: proxy_cfg!)
+                    if ( mCore.defaultProxyConfig == nil)
+                    {
+                        // IMPORTANT : default proxy config setting MUST be done AFTER adding the config to the core !
+                        mCore.defaultProxyConfig = proxy_cfg
+                    }
+                }
+                else {
+                    proxy_cfg!.edit() /*start editing proxy configuration*/
+                    proxy_cfg!.registerEnabled = true /*de-activate registration for this proxy config*/
+                    try proxy_cfg!.done()
+                }
+            } catch {
+                print(error)
             }
             
-        } catch {
-            print(error)
         }
     }
+
+    func logoutExample()
+    {
+        if (loggedIn) {
+            proxy_cfg!.edit() /*start editing proxy configuration*/
+            proxy_cfg!.registerEnabled = false /*de-activate registration for this proxy config*/
+            do {
+                try proxy_cfg!.done()
+            } catch {
+                print(error)
+            }
+        }
+    }
+
     
 }
 
@@ -96,6 +121,10 @@ class LinphoneRegistrationDelegate: CoreDelegate {
         if (cstate == .Ok)
         {
             tutorialContext.loggedIn = true
+        }
+        else if (cstate == .Cleared)
+        {
+            tutorialContext.loggedIn = false
         }
     }
 }
