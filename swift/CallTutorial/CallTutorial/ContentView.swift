@@ -14,11 +14,11 @@ struct ContentView: View {
     
     func getCallButtonText() -> String
     {
-        if (tutorialContext.isCallIncoming) {
-            return "Answer"
-        }
-        else if (tutorialContext.callRunning) {
+        if (tutorialContext.callRunning) {
             return "Update Call"
+        }
+        else if (tutorialContext.isCallIncoming) {
+            return "Answer"
         }
         else {
             return "Call"
@@ -27,11 +27,11 @@ struct ContentView: View {
     
     func callStateString() -> String
     {
-        if (tutorialContext.isCallIncoming) {
-            return "Incoming call"
-        }
-        else if (tutorialContext.callRunning) {
+        if (tutorialContext.callRunning) {
             return "Call running"
+        }
+        else if (tutorialContext.isCallIncoming) {
+            return "Incoming call"
         }
         else {
             return "No Call"
@@ -64,7 +64,7 @@ struct ContentView: View {
                     }
                     Text("Login State : ")
                         .font(.footnote)
-                    Text(tutorialContext.loggedIn ? "Looged in" : "Unregistered")
+                    Text(tutorialContext.loggedIn ? "Logged in" : "Unregistered")
                         .font(.footnote)
                         .foregroundColor(tutorialContext.loggedIn ? Color.green : Color.black)
                 }
@@ -116,7 +116,7 @@ struct ContentView: View {
                             self.tutorialContext.acceptCall()
                         }
                         else {
-                            self.tutorialContext.outgoingCallExample()
+                            self.tutorialContext.mProviderDelegate.outgoingCall()
                         }
                     })
                     {
@@ -141,19 +141,6 @@ struct ContentView: View {
                 }
                 .padding(.top)
             }
-
-            VStack(alignment: .leading) {
-                Button(action: tutorialContext.mProviderDelegate.outgoingCall) {
-                    Text("CallKit Call")
-                        .font(.largeTitle)
-                        .foregroundColor(Color.white)
-                        .frame(width: 180.0, height: 42.0)
-                        .background(Color.green)
-                }
-                Toggle(isOn: $tutorialContext.enableCallKit) {
-                    Text("CallKit incoming Call detection")
-                }.frame(width : 290.0)
-            }.padding(.top, 10.0)
             Spacer()
             Group {
                 Toggle(isOn: $tutorialContext.logsEnabled) {

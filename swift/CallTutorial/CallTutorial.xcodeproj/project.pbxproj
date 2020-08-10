@@ -29,6 +29,7 @@
 		6604166224D451F40064FC6C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		6604166424D451F40064FC6C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6604166A24D453240064FC6C /* CallExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallExample.swift; sourceTree = "<group>"; };
+		66A3B37A24E138ED00E94540 /* CallTutorial.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CallTutorial.entitlements; sourceTree = "<group>"; };
 		66B14FBA24DAF68E0041952F /* CallKitProviderDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitProviderDelegate.swift; sourceTree = "<group>"; };
 		79CE65CD0070AF94E21BFCE7 /* Pods-CallTutorial.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CallTutorial.debug.xcconfig"; path = "Target Support Files/Pods-CallTutorial/Pods-CallTutorial.debug.xcconfig"; sourceTree = "<group>"; };
 		C26219FCE26251F1C3C2E96E /* Pods-CallTutorial.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CallTutorial.release.xcconfig"; path = "Target Support Files/Pods-CallTutorial/Pods-CallTutorial.release.xcconfig"; sourceTree = "<group>"; };
@@ -84,6 +85,7 @@
 		6604165524D451F10064FC6C /* CallTutorial */ = {
 			isa = PBXGroup;
 			children = (
+				66A3B37A24E138ED00E94540 /* CallTutorial.entitlements */,
 				6604165624D451F10064FC6C /* AppDelegate.swift */,
 				6604165824D451F10064FC6C /* SceneDelegate.swift */,
 				66B14FBA24DAF68E0041952F /* CallKitProviderDelegate.swift */,
@@ -361,6 +363,7 @@
 			baseConfigurationReference = 79CE65CD0070AF94E21BFCE7 /* Pods-CallTutorial.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CallTutorial/CallTutorial.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"CallTutorial/Preview Content\"";
 				DEVELOPMENT_TEAM = Z2V957B3D6;
@@ -370,7 +373,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = BC.CallTutorial;
+				PRODUCT_BUNDLE_IDENTIFIER = com.belledonne.Wtest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -382,6 +385,7 @@
 			baseConfigurationReference = C26219FCE26251F1C3C2E96E /* Pods-CallTutorial.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CallTutorial/CallTutorial.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_ASSET_PATHS = "\"CallTutorial/Preview Content\"";
 				DEVELOPMENT_TEAM = Z2V957B3D6;
@@ -391,7 +395,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = BC.CallTutorial;
+				PRODUCT_BUNDLE_IDENTIFIER = com.belledonne.Wtest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

@@ -22,8 +22,10 @@ class CallExampleContext : ObservableObject
     /*------------ Call tutorial related variables ---------------*/
     let mCallStateTracer = CallStateDelegate()
     var mCall: Call!
+    var proxy_cfg : ProxyConfig!
     var mVideoDevices : [String] = []
     var mUsedVideoDeviceId : Int = 0
+    var callAlreadyStopped = false;
     
     @Published var audioEnabled : Bool = true
     @Published var videoEnabled : Bool = false
@@ -41,10 +43,9 @@ class CallExampleContext : ObservableObject
     let outgoingCallName = "Outgoing call example"
     let incomingCallName = "Incoming call example"
     
-    @Published var enableCallKit = false;
-    
     init()
     {
+        mProviderDelegate = CallKitProviderDelegate(context : self)
         mCallStateTracer.tutorialContext = self
         mRegistrationDelegate.tutorialContext = self
         
@@ -63,6 +64,7 @@ class CallExampleContext : ObservableObject
         // main loop for receiving notifications and doing background linphonecore work:
         mCore.autoIterateEnabled = true
         mCore.callkitEnabled = true
+        mCore.pushNotificationEnabled = true
         try? mCore.start()
         
         mVideoDevices = mCore.videoDevicesList
@@ -70,14 +72,13 @@ class CallExampleContext : ObservableObject
         mCore.addDelegate(delegate: mCallStateTracer)
         mCore.addDelegate(delegate: mRegistrationDelegate)
         
-        mProviderDelegate = CallKitProviderDelegate(context : self)
     }
 
     func registrationExample()
     {
         let factory = Factory.Instance
         do {
-            let proxy_cfg = try mCore.createProxyConfig()
+            proxy_cfg = try mCore.createProxyConfig()
             let address = try factory.createAddress(addr: id)
             let info = try factory.createAuthInfo(username: address.username, userid: "", passwd: passwd, ha1: "", realm: "", domain: address.domain)
             mCore.addAuthInfo(info: info)
@@ -122,6 +123,7 @@ class CallExampleContext : ObservableObject
                     print("Could not place call to \(dest)\n")
                 } else {
                     print("Call to  \(dest) is in progress...")
+                    mProviderDelegate.outgoingCallUUID = UUID()
                 }
             }
             else
@@ -139,20 +141,10 @@ class CallExampleContext : ObservableObject
     {
         if ((callRunning || isCallIncoming) && mCall.state != Call.State.End)
         {
+            callAlreadyStopped = true;
             // terminate the call
             print("Terminating the call...\n")
-            do {
-                if (enableCallKit)
-                {
-                    mProviderDelegate.stopCall()
-                }
-                else
-                {
-                    try mCall.terminate()
-                }
-            } catch {
-                print(error)
-            }
+            mProviderDelegate.stopCall()
         }
     }
     
@@ -200,6 +192,10 @@ class LinphoneRegistrationDelegate: CoreDelegate {
         print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
         if (cstate == .Ok)
         {
+            if (!tutorialContext.loggedIn)
+            {
+                tutorialContext.mProviderDelegate.registerForVoIPPushes()
+            }
             tutorialContext.loggedIn = true
         }
     }
@@ -230,29 +226,27 @@ class CallStateDelegate: CoreDelegate {
             // We're being called by someone
             tutorialContext.mCall = call
             tutorialContext.isCallIncoming = true
-            if (tutorialContext.enableCallKit)
-            {
-                // Report the incoming call for CallKit
-                tutorialContext.mProviderDelegate.incomingCall()
-            }
             
         } else if (cstate == .OutgoingRinging) {
             // We're calling someone
             tutorialContext.callRunning = true
         } else if (cstate == .End) {
             // Call has been terminated by any side
-            tutorialContext.callRunning = false
-            tutorialContext.isCallIncoming = false;
-            if (tutorialContext.enableCallKit)
+            if (!tutorialContext.callAlreadyStopped)
             {
                 // Report to CallKit that the call is over
                 tutorialContext.mProviderDelegate.stopCall()
+                tutorialContext.callAlreadyStopped = false
             }
+            tutorialContext.callRunning = false
+            tutorialContext.isCallIncoming = false
         } else if (cstate == .StreamsRunning)
         {
             // Call has successfully began
             tutorialContext.callRunning = true
-            tutorialContext.isCallIncoming = false
+        } else if (cstate == .PushIncomingReceived)
+        {
+            print("PushTrace -- push incoming")
         }
     }
 }
