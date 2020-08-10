@@ -39,15 +39,6 @@ class CallKitProviderDelegate : NSObject
         
     }
     
-    func incomingCall() {
-        incomingCallUUID = UUID()
-        let update = CXCallUpdate()
-        update.remoteHandle = CXHandle(type:.generic, value: tutorialContext.incomingCallName)
-        update.hasVideo = tutorialContext.videoEnabled
-        
-        provider.reportNewIncomingCall(with: incomingCallUUID, update: update, completion: { error in })
-    }
-    
     func outgoingCall()
     {
         outgoingCallUUID = UUID()
@@ -137,17 +128,11 @@ extension CallKitProviderDelegate: CXProviderDelegate {
 extension CallKitProviderDelegate: PKPushRegistryDelegate {
 
     func pushRegistry(_ registry: PKPushRegistry, didUpdate pushCredentials: PKPushCredentials, for type: PKPushType) {
-        print("PushTrace -- pushRegistry 1")
 
-        /*
         let deviceTokenString = pushCredentials.token.map { String(format: "%02x", $0) }.joined() /*convert push tocken into hex string to be compliant with  flexisip format*/
         let aStr = String(format: "pn-provider=apns.dev;pn-prid=%@:voip;pn-param=Z2V957B3D6.org.linphone.tutorials.callkit.voip"
             ,deviceTokenString)
- */
-        let deviceTokenString = pushCredentials.token.map { String(format: "%02x", $0) }.joined() /*convert push tocken into hex string to be compliant with  flexisip format*/
-        let aStr = String(format: "pn-provider=apns.dev;pn-prid=%@:voip;pn-param=Z2V957B3D6.com.belledonne.Wtest.voip"
-            ,deviceTokenString)
-        
+
         tutorialContext.proxy_cfg.edit()
         tutorialContext.proxy_cfg.pushNotificationAllowed = true
         tutorialContext.proxy_cfg.contactUriParameters = aStr
@@ -160,12 +145,11 @@ extension CallKitProviderDelegate: PKPushRegistryDelegate {
     }
     
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
-        print("PushTrace -- pushRegistry 2")
-        incomingCall();
-    }
-    
-    func pushRegistry(_ registry: PKPushRegistry, didInvalidatePushTokenFor: PKPushType)
-    {
-        print("PushTrace -- pushRegistry 3")
+        incomingCallUUID = UUID()
+        let update = CXCallUpdate()
+        update.remoteHandle = CXHandle(type:.generic, value: tutorialContext.incomingCallName)
+        update.hasVideo = tutorialContext.videoEnabled
+        
+        provider.reportNewIncomingCall(with: incomingCallUUID, update: update, completion: { error in })
     }
 }
