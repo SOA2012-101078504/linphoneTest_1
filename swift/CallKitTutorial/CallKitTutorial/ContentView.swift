@@ -112,11 +112,11 @@ struct ContentView: View {
             VStack {
                 HStack {
                     Button(action: {
-                        if (self.tutorialContext.isCallIncoming) {
+                        if (self.tutorialContext.isCallIncoming && !self.tutorialContext.callRunning) {
                             self.tutorialContext.acceptCall()
                         }
                         else {
-                            self.tutorialContext.mProviderDelegate.outgoingCall()
+                            self.tutorialContext.outgoingCallExample()
                         }
                     })
                     {
