@@ -46,7 +46,7 @@ class CallKitProviderDelegate : NSObject
         let startCallAction = CXStartCallAction(call: outgoingCallUUID, handle: handle)
         let transaction = CXTransaction(action: startCallAction)
         
-        provider.reportOutgoingCall(with: outgoingCallUUID, connectedAt: nil)
+        provider.reportOutgoingCall(with: outgoingCallUUID, startedConnectingAt: nil)
         mCallController.request(transaction, completion: { error in })
     }
     
@@ -94,7 +94,15 @@ extension CallKitProviderDelegate: CXProviderDelegate {
     }
 
     func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
-        tutorialContext.outgoingCallExample()
+
+        do {
+            let callDest = try Factory.Instance.createAddress(addr: tutorialContext.dest)
+            // Place an outgoing call
+            tutorialContext.mCall = tutorialContext.mCore.inviteAddressWithParams(addr: callDest, params: try tutorialContext.createCallParams())
+        } catch {
+            print(error)
+        }
+        
         action.fulfill()
     }
 

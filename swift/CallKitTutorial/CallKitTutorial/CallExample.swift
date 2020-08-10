@@ -115,16 +115,7 @@ class CallExampleContext : ObservableObject
         do {
             if (!callRunning)
             {
-                let callDest = try Factory.Instance.createAddress(addr: dest)
-                // Place an outgoing call
-                mCall = mCore.inviteAddressWithParams(addr: callDest, params: try createCallParams())
-                
-                if (mCall == nil) {
-                    print("Could not place call to \(dest)\n")
-                } else {
-                    print("Call to  \(dest) is in progress...")
-                    mProviderDelegate.outgoingCallUUID = UUID()
-                }
+                mProviderDelegate.outgoingCall()
             }
             else
             {
@@ -152,10 +143,7 @@ class CallExampleContext : ObservableObject
     {
         speakerEnabled = !speakerEnabled
         do {
-            try AVAudioSession.sharedInstance().overrideOutputAudioPort(
-                speakerEnabled ?
-                AVAudioSession.PortOverride.speaker : AVAudioSession.PortOverride.none
-            )
+            try AVAudioSession.sharedInstance().overrideOutputAudioPort(speakerEnabled ? AVAudioSession.PortOverride.speaker : AVAudioSession.PortOverride.none )
         } catch {
             print(error)
         }
