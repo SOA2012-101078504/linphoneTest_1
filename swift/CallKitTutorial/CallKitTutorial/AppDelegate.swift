@@ -1,8 +1,8 @@
 //
 //  AppDelegate.swift
-//  CallTutorial
+//  CallKitTutorial
 //
-//  Created by QuentinArguillere on 31/07/2020.
+//  Created by QuentinArguillere on 10/08/2020.
 //  Copyright © 2020 BelledonneCommunications. All rights reserved.
 //
 
