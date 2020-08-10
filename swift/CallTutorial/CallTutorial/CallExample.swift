@@ -39,13 +39,9 @@ class CallExampleContext : ObservableObject
     @Published var passwd : String = "peche5"
     @Published var loggedIn: Bool = false
 
-    var mProviderDelegate : CallKitProviderDelegate!
-    let outgoingCallName = "Outgoing call example"
-    let incomingCallName = "Incoming call example"
     
     init()
     {
-        mProviderDelegate = CallKitProviderDelegate(context : self)
         mCallStateTracer.tutorialContext = self
         mRegistrationDelegate.tutorialContext = self
         
@@ -123,7 +119,6 @@ class CallExampleContext : ObservableObject
                     print("Could not place call to \(dest)\n")
                 } else {
                     print("Call to  \(dest) is in progress...")
-                    mProviderDelegate.outgoingCallUUID = UUID()
                 }
             }
             else
@@ -144,7 +139,12 @@ class CallExampleContext : ObservableObject
             callAlreadyStopped = true;
             // terminate the call
             print("Terminating the call...\n")
-            mProviderDelegate.stopCall()
+            do {
+                try mCall.terminate()
+            } catch
+            {
+                print(error)
+            }
         }
     }
     
@@ -192,10 +192,6 @@ class LinphoneRegistrationDelegate: CoreDelegate {
         print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
         if (cstate == .Ok)
         {
-            if (!tutorialContext.loggedIn)
-            {
-                tutorialContext.mProviderDelegate.registerForVoIPPushes()
-            }
             tutorialContext.loggedIn = true
         }
     }
@@ -232,12 +228,6 @@ class CallStateDelegate: CoreDelegate {
             tutorialContext.callRunning = true
         } else if (cstate == .End) {
             // Call has been terminated by any side
-            if (!tutorialContext.callAlreadyStopped)
-            {
-                // Report to CallKit that the call is over
-                tutorialContext.mProviderDelegate.stopCall()
-                tutorialContext.callAlreadyStopped = false
-            }
             tutorialContext.callRunning = false
             tutorialContext.isCallIncoming = false
         } else if (cstate == .StreamsRunning)
@@ -246,7 +236,6 @@ class CallStateDelegate: CoreDelegate {
             tutorialContext.callRunning = true
         } else if (cstate == .PushIncomingReceived)
         {
-            print("PushTrace -- push incoming")
         }
     }
 }

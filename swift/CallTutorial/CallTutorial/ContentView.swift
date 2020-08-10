@@ -116,7 +116,7 @@ struct ContentView: View {
                             self.tutorialContext.acceptCall()
                         }
                         else {
-                            self.tutorialContext.mProviderDelegate.outgoingCall()
+                            self.tutorialContext.outgoingCallExample()
                         }
                     })
                     {

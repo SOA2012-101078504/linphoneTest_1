@@ -14,7 +14,6 @@
 		6604166024D451F40064FC6C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6604165F24D451F40064FC6C /* Preview Assets.xcassets */; };
 		6604166324D451F40064FC6C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6604166124D451F40064FC6C /* LaunchScreen.storyboard */; };
 		6604166B24D453240064FC6C /* CallExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6604166A24D453240064FC6C /* CallExample.swift */; };
-		66B14FBB24DAF68E0041952F /* CallKitProviderDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B14FBA24DAF68E0041952F /* CallKitProviderDelegate.swift */; };
 		E1569C6E0564D0FD3FF9B4AF /* Pods_CallTutorial.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DC1D5CBF786F45B5E0D811F /* Pods_CallTutorial.framework */; };
 /* End PBXBuildFile section */
 
@@ -30,7 +29,6 @@
 		6604166424D451F40064FC6C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6604166A24D453240064FC6C /* CallExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallExample.swift; sourceTree = "<group>"; };
 		66A3B37A24E138ED00E94540 /* CallTutorial.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CallTutorial.entitlements; sourceTree = "<group>"; };
-		66B14FBA24DAF68E0041952F /* CallKitProviderDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKitProviderDelegate.swift; sourceTree = "<group>"; };
 		79CE65CD0070AF94E21BFCE7 /* Pods-CallTutorial.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CallTutorial.debug.xcconfig"; path = "Target Support Files/Pods-CallTutorial/Pods-CallTutorial.debug.xcconfig"; sourceTree = "<group>"; };
 		C26219FCE26251F1C3C2E96E /* Pods-CallTutorial.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CallTutorial.release.xcconfig"; path = "Target Support Files/Pods-CallTutorial/Pods-CallTutorial.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -88,7 +86,6 @@
 				66A3B37A24E138ED00E94540 /* CallTutorial.entitlements */,
 				6604165624D451F10064FC6C /* AppDelegate.swift */,
 				6604165824D451F10064FC6C /* SceneDelegate.swift */,
-				66B14FBA24DAF68E0041952F /* CallKitProviderDelegate.swift */,
 				6604166A24D453240064FC6C /* CallExample.swift */,
 				6604165A24D451F10064FC6C /* ContentView.swift */,
 				6604165C24D451F40064FC6C /* Assets.xcassets */,
@@ -226,7 +223,6 @@
 				6604165724D451F10064FC6C /* AppDelegate.swift in Sources */,
 				6604165924D451F10064FC6C /* SceneDelegate.swift in Sources */,
 				6604165B24D451F10064FC6C /* ContentView.swift in Sources */,
-				66B14FBB24DAF68E0041952F /* CallKitProviderDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -373,7 +369,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.belledonne.Wtest;
+				PRODUCT_BUNDLE_IDENTIFIER = BC.CallTutorial;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -395,7 +391,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.belledonne.Wtest;
+				PRODUCT_BUNDLE_IDENTIFIER = BC.CallTutorial;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
