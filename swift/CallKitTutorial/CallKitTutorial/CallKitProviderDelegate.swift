@@ -138,8 +138,9 @@ extension CallKitProviderDelegate: PKPushRegistryDelegate {
     func pushRegistry(_ registry: PKPushRegistry, didUpdate pushCredentials: PKPushCredentials, for type: PKPushType) {
 
         let deviceTokenString = pushCredentials.token.map { String(format: "%02x", $0) }.joined() /*convert push tocken into hex string to be compliant with  flexisip format*/
-        let aStr = String(format: "pn-provider=apns.dev;pn-prid=%@:voip;pn-param=Z2V957B3D6.org.linphone.tutorials.callkit.voip"
-            ,deviceTokenString)
+        let sBundleID = "org.linphone.tutorials.callkit"
+        let aStr = String(format: "pn-provider=apns.dev;pn-prid=%@:voip;pn-param=Z2V957B3D6.%@.voip"
+            ,deviceTokenString, sBundleID)
 
         tutorialContext.proxy_cfg.edit()
         tutorialContext.proxy_cfg.pushNotificationAllowed = true
