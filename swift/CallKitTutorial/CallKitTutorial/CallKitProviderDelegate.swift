@@ -8,14 +8,12 @@
 
 import Foundation
 import CallKit
-import PushKit
 import linphonesw
 import AVFoundation
 
 
 class CallKitProviderDelegate : NSObject
 {
-    private var voipRegistry: PKPushRegistry!
     private let provider: CXProvider
     let mCallController = CXCallController()
     var tutorialContext : CallExampleContext!
@@ -49,6 +47,16 @@ class CallKitProviderDelegate : NSObject
         provider.reportOutgoingCall(with: outgoingCallUUID, startedConnectingAt: nil)
         mCallController.request(transaction, completion: { error in })
     }
+
+    func incomingCall()
+    {
+        incomingCallUUID = UUID()
+        let update = CXCallUpdate()
+        update.remoteHandle = CXHandle(type:.generic, value: tutorialContext.incomingCallName)
+        update.hasVideo = tutorialContext.videoEnabled
+        
+        provider.reportNewIncomingCall(with: incomingCallUUID, update: update, completion: { error in })
+    }
     
     func stopCall()
     {
@@ -62,12 +70,6 @@ class CallKitProviderDelegate : NSObject
         let transaction = CXTransaction(action: endCallAction)
         
         mCallController.request(transaction, completion: { error in })
-    }
-    
-    func registerForVoIPPushes() {
-        voipRegistry = PKPushRegistry(queue: nil)
-        voipRegistry.delegate = self
-        voipRegistry.desiredPushTypes = [PKPushType.voIP]
     }
 
 }
@@ -85,7 +87,13 @@ extension CallKitProviderDelegate: CXProviderDelegate {
     }
 
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
-        tutorialContext.acceptCall()
+        
+        do {
+            try tutorialContext.mCall.accept()
+            tutorialContext.callRunning = true
+        } catch {
+            print(error)
+        }
         action.fulfill()
     }
 
@@ -129,36 +137,5 @@ extension CallKitProviderDelegate: CXProviderDelegate {
 
     func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
         tutorialContext.mCore.activateAudioSession(actived: false)
-    }
-}
-
-
-extension CallKitProviderDelegate: PKPushRegistryDelegate {
-
-    func pushRegistry(_ registry: PKPushRegistry, didUpdate pushCredentials: PKPushCredentials, for type: PKPushType) {
-
-        let deviceTokenString = pushCredentials.token.map { String(format: "%02x", $0) }.joined() /*convert push tocken into hex string to be compliant with  flexisip format*/
-        let sBundleID = "org.linphone.tutorials.callkit"
-        let aStr = String(format: "pn-provider=apns.dev;pn-prid=%@:voip;pn-param=Z2V957B3D6.%@.voip"
-            ,deviceTokenString, sBundleID)
-
-        tutorialContext.proxy_cfg.edit()
-        tutorialContext.proxy_cfg.pushNotificationAllowed = true
-        tutorialContext.proxy_cfg.contactUriParameters = aStr
-        
-        do {
-            try tutorialContext.proxy_cfg.done()
-        } catch {
-            print(error)
-        }
-    }
-    
-    func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for type: PKPushType, completion: @escaping () -> Void) {
-        incomingCallUUID = UUID()
-        let update = CXCallUpdate()
-        update.remoteHandle = CXHandle(type:.generic, value: tutorialContext.incomingCallName)
-        update.hasVideo = tutorialContext.videoEnabled
-        
-        provider.reportNewIncomingCall(with: incomingCallUUID, update: update, completion: { error in })
     }
 }

@@ -111,14 +111,7 @@ struct ContentView: View {
             Spacer()
             VStack {
                 HStack {
-                    Button(action: {
-                        if (self.tutorialContext.isCallIncoming && !self.tutorialContext.callRunning) {
-                            self.tutorialContext.acceptCall()
-                        }
-                        else {
-                            self.tutorialContext.outgoingCallExample()
-                        }
-                    })
+                    Button(action: tutorialContext.outgoingCallExample)
                     {
                         Text(getCallButtonText())
                             .font(.largeTitle)
@@ -127,7 +120,7 @@ struct ContentView: View {
                             .background(Color.green)
                     }
                     Button(action: tutorialContext.stopCall) {
-                        Text(tutorialContext.isCallIncoming ? "Decline" : "Stop Call")
+                        Text("Stop Call")
                             .font(.largeTitle)
                             .foregroundColor(Color.white)
                             .frame(width: 180.0, height: 42.0)

@@ -59,19 +59,24 @@ class CallExampleContext : ObservableObject
         factory.enableLogCollection(state: LogCollectionState.Enabled)
         
         // Initialize Linphone Core
-        try? mCore = factory.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
+        
+        try? mCore = factory.createCore(configPath: "MyConfig", factoryConfigPath: "", systemContext: nil)
 
         // main loop for receiving notifications and doing background linphonecore work:
         mCore.autoIterateEnabled = true
         mCore.callkitEnabled = true
         mCore.pushNotificationEnabled = true
+
+        
+        let pushConfig = mCore.pushNotificationConfig!
+        pushConfig.provider = "apns.dev"
+        
         try? mCore.start()
         
         mVideoDevices = mCore.videoDevicesList
 
         mCore.addDelegate(delegate: mCallStateTracer)
         mCore.addDelegate(delegate: mRegistrationDelegate)
-        
     }
 
     func registrationExample()
@@ -87,13 +92,15 @@ class CallExampleContext : ObservableObject
             let server_addr = "sip:" + address.domain + ";transport=tls"
             try proxy_cfg.setServeraddr(newValue: server_addr)
             proxy_cfg.registerEnabled = true
+            proxy_cfg.pushNotificationAllowed = true
+            
             try mCore.addProxyConfig(config: proxy_cfg)
             if ( mCore.defaultProxyConfig == nil)
             {
                 // IMPORTANT : default proxy config setting MUST be done AFTER adding the config to the core !
                 mCore.defaultProxyConfig = proxy_cfg
             }
-            
+
         } catch {
             print(error)
         }
@@ -160,15 +167,6 @@ class CallExampleContext : ObservableObject
         }
     }
     
-    func acceptCall()
-    {
-        do {
-            try mCall.accept()
-        } catch {
-            print(error)
-        }
-    }
-    
 }
 
 // Callback for actions when a change in the Registration State happens
@@ -176,14 +174,10 @@ class LinphoneRegistrationDelegate: CoreDelegate {
     
     var tutorialContext : CallExampleContext!
     
-    override func onRegistrationStateChanged(lc: Core, cfg: ProxyConfig, cstate: RegistrationState, message: String?) {
+    override func onRegistrationStateChanged(core lc: Core, proxyConfig cfg: ProxyConfig, state cstate: RegistrationState, message: String?) {
         print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
         if (cstate == .Ok)
         {
-            if (!tutorialContext.loggedIn)
-            {
-                tutorialContext.mProviderDelegate.registerForVoIPPushes()
-            }
             tutorialContext.loggedIn = true
         }
     }
@@ -194,7 +188,7 @@ class LinphoneLoggingServiceManager: LoggingServiceDelegate {
     
     var tutorialContext : CallExampleContext!
     
-    override func onLogMessageWritten(logService: LoggingService, domain: String, lev: LogLevel, message: String) {
+    override func onLogMessageWritten(logService: LoggingService, domain: String, level lev: LogLevel, message: String) {
         if (tutorialContext.logsEnabled)
         {
             print("Logging service log: \(message)s\n")
@@ -208,12 +202,23 @@ class CallStateDelegate: CoreDelegate {
     
     var tutorialContext : CallExampleContext!
     
-    override func onCallStateChanged(lc: Core, call: Call, cstate: Call.State, message: String) {
+    override func onCallStateChanged(core lc: Core, call: Call, state cstate: Call.State, message: String) {
         print("CallTrace - \(cstate)")
-        if (cstate == .IncomingReceived) {
-            // We're being called by someone
-            tutorialContext.mCall = call
-            tutorialContext.isCallIncoming = true
+        
+        let initIncomingCall = {
+            self.tutorialContext.mCall = call
+            self.tutorialContext.isCallIncoming = true
+            self.tutorialContext.mProviderDelegate.incomingCall()
+        }
+        
+        if (cstate == .PushIncomingReceived)
+        {
+            // We're being called by someone (and app is in background)
+            initIncomingCall()
+        }
+        else if (cstate == .IncomingReceived && !tutorialContext.isCallIncoming) {
+            // We're being called by someone (and app is in foreground, so call hasn't been initialized yet)
+            initIncomingCall()
             
         } else if (cstate == .OutgoingRinging) {
             // We're calling someone
@@ -222,7 +227,7 @@ class CallStateDelegate: CoreDelegate {
             // Call has been terminated by any side
             if (!tutorialContext.callAlreadyStopped)
             {
-                // Report to CallKit that the call is over
+                // Report to CallKit that the call is over, if the terminate action was initiated by other end of the call
                 tutorialContext.mProviderDelegate.stopCall()
                 tutorialContext.callAlreadyStopped = false
             }
@@ -232,9 +237,6 @@ class CallStateDelegate: CoreDelegate {
         {
             // Call has successfully began
             tutorialContext.callRunning = true
-        } else if (cstate == .PushIncomingReceived)
-        {
-            print("PushTrace -- push incoming")
         }
     }
 }
