@@ -43,6 +43,7 @@ class CallExampleContext : ObservableObject
     let outgoingCallName = "Outgoing call example"
     let incomingCallName = "Incoming call example"
     
+    
     init()
     {
         mProviderDelegate = CallKitProviderDelegate(context : self)
@@ -60,13 +61,12 @@ class CallExampleContext : ObservableObject
         
         // Initialize Linphone Core
         
-        try? mCore = factory.createCore(configPath: "MyConfig", factoryConfigPath: "", systemContext: nil)
+        try? mCore = factory.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
 
         // main loop for receiving notifications and doing background linphonecore work:
         mCore.autoIterateEnabled = true
         mCore.callkitEnabled = true
         mCore.pushNotificationEnabled = true
-
         
         let pushConfig = mCore.pushNotificationConfig!
         pushConfig.provider = "apns.dev"
@@ -104,6 +104,12 @@ class CallExampleContext : ObservableObject
         } catch {
             print(error)
         }
+    }
+    
+    func clearRegistrations()
+    {
+        mCore.clearProxyConfig()
+        loggedIn = false
     }
     
     
@@ -213,6 +219,11 @@ class CallStateDelegate: CoreDelegate {
         
         if (cstate == .PushIncomingReceived)
         {
+            if (!tutorialContext.loggedIn)
+            {
+                // Cannot properly answer call if not registered. If the app was launched from a push notification, register.
+                tutorialContext.registrationExample()
+            }
             // We're being called by someone (and app is in background)
             initIncomingCall()
         }

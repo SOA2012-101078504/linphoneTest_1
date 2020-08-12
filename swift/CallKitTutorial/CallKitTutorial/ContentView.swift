@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
     
-    @ObservedObject var tutorialContext = CallExampleContext()
+    @ObservedObject var tutorialContext : CallExampleContext
     
     func getCallButtonText() -> String
     {
@@ -62,11 +62,21 @@ struct ContentView: View {
                             .frame(width: 90.0, height: 42.0)
                             .background(Color.gray)
                     }
-                    Text("Login State : ")
+                    Spacer()
+                    Text("Login State :")
                         .font(.footnote)
                     Text(tutorialContext.loggedIn ? "Logged in" : "Unregistered")
                         .font(.footnote)
                         .foregroundColor(tutorialContext.loggedIn ? Color.green : Color.black)
+                    Spacer()
+                    Button(action:  tutorialContext.clearRegistrations)
+                    {
+                        Text("Clear")
+                            .font(.largeTitle)
+                            .foregroundColor(Color.white)
+                            .frame(width: 90.0, height: 42.0)
+                            .background(Color.gray)
+                    }
                 }
             }
             VStack(spacing: 0.0) {
@@ -150,6 +160,6 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        ContentView(tutorialContext: CallExampleContext())
     }
 }
