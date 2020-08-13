@@ -9,7 +9,7 @@
 import linphonesw
 import AVFoundation
 
-class CallExampleContext : ObservableObject
+class CallKitExampleContext : ObservableObject
 {
     var mCore: Core! // We need a Core for... anything, basically
     @Published var coreVersion: String = Core.getVersion
@@ -59,50 +59,59 @@ class CallExampleContext : ObservableObject
         log!.logLevel = LogLevel.Debug
         factory.enableLogCollection(state: LogCollectionState.Enabled)
         
-        // Initialize Linphone Core
-        
-        try? mCore = factory.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
+        // Initialize Linphone Core.
+        // IMPORTANT : In this tutorial, we require the use of a core configuration file.
+        // This way, once the registration is done, and until it is cleared, it will return to the LoggedIn state on launch.
+        // This allows us to have a functional call when the app was closed and is started by a VOIP push notification (incoming call)
+        let configDir = factory.getConfigDir(context: nil)
+        try? mCore = factory.createCore(configPath: "\(configDir)/MyConfig", factoryConfigPath: "", systemContext: nil)
 
         // main loop for receiving notifications and doing background linphonecore work:
         mCore.autoIterateEnabled = true
         mCore.callkitEnabled = true
         mCore.pushNotificationEnabled = true
         
+        // This is necessary to register to the server and handle push Notifications. Make sure you have a certificate to match your app's bundle ID.
         let pushConfig = mCore.pushNotificationConfig!
         pushConfig.provider = "apns.dev"
         
         try? mCore.start()
         
-        mVideoDevices = mCore.videoDevicesList
-
+        // Callbacks on registration and call events
         mCore.addDelegate(delegate: mCallStateTracer)
         mCore.addDelegate(delegate: mRegistrationDelegate)
+        
+        // Available video devices that can be selected to be used in video calls
+        mVideoDevices = mCore.videoDevicesList
     }
 
     func registrationExample()
     {
-        let factory = Factory.Instance
-        do {
-            proxy_cfg = try mCore.createProxyConfig()
-            let address = try factory.createAddress(addr: id)
-            let info = try factory.createAuthInfo(username: address.username, userid: "", passwd: passwd, ha1: "", realm: "", domain: address.domain)
-            mCore.addAuthInfo(info: info)
-            
-            try proxy_cfg.setIdentityaddress(newValue: address)
-            let server_addr = "sip:" + address.domain + ";transport=tls"
-            try proxy_cfg.setServeraddr(newValue: server_addr)
-            proxy_cfg.registerEnabled = true
-            proxy_cfg.pushNotificationAllowed = true
-            
-            try mCore.addProxyConfig(config: proxy_cfg)
-            if ( mCore.defaultProxyConfig == nil)
-            {
-                // IMPORTANT : default proxy config setting MUST be done AFTER adding the config to the core !
-                mCore.defaultProxyConfig = proxy_cfg
-            }
+        if (!loggedIn) // Do not allow multiple registrations for this tutorial
+        {
+            let factory = Factory.Instance
+            do {
+                proxy_cfg = try mCore.createProxyConfig()
+                let address = try factory.createAddress(addr: id)
+                let info = try factory.createAuthInfo(username: address.username, userid: "", passwd: passwd, ha1: "", realm: "", domain: address.domain)
+                mCore.addAuthInfo(info: info)
+                
+                try proxy_cfg.setIdentityaddress(newValue: address)
+                let server_addr = "sip:" + address.domain + ";transport=tls"
+                try proxy_cfg.setServeraddr(newValue: server_addr)
+                proxy_cfg.registerEnabled = true
+                proxy_cfg.pushNotificationAllowed = true
+                
+                try mCore.addProxyConfig(config: proxy_cfg)
+                if ( mCore.defaultProxyConfig == nil)
+                {
+                    // IMPORTANT : default proxy config setting MUST be done AFTER adding the config to the core !
+                    mCore.defaultProxyConfig = proxy_cfg
+                }
 
-        } catch {
-            print(error)
+            } catch {
+                print(error)
+            }
         }
     }
     
@@ -111,7 +120,6 @@ class CallExampleContext : ObservableObject
         mCore.clearProxyConfig()
         loggedIn = false
     }
-    
     
     func createCallParams() throws -> CallParams
     {
@@ -178,7 +186,7 @@ class CallExampleContext : ObservableObject
 // Callback for actions when a change in the Registration State happens
 class LinphoneRegistrationDelegate: CoreDelegate {
     
-    var tutorialContext : CallExampleContext!
+    var tutorialContext : CallKitExampleContext!
     
     override func onRegistrationStateChanged(core lc: Core, proxyConfig cfg: ProxyConfig, state cstate: RegistrationState, message: String?) {
         print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
@@ -192,7 +200,7 @@ class LinphoneRegistrationDelegate: CoreDelegate {
 
 class LinphoneLoggingServiceManager: LoggingServiceDelegate {
     
-    var tutorialContext : CallExampleContext!
+    var tutorialContext : CallKitExampleContext!
     
     override func onLogMessageWritten(logService: LoggingService, domain: String, level lev: LogLevel, message: String) {
         if (tutorialContext.logsEnabled)
@@ -206,7 +214,7 @@ class LinphoneLoggingServiceManager: LoggingServiceDelegate {
 // Callback for actions when a change in the Call State happens
 class CallStateDelegate: CoreDelegate {
     
-    var tutorialContext : CallExampleContext!
+    var tutorialContext : CallKitExampleContext!
     
     override func onCallStateChanged(core lc: Core, call: Call, state cstate: Call.State, message: String) {
         print("CallTrace - \(cstate)")
@@ -219,11 +227,6 @@ class CallStateDelegate: CoreDelegate {
         
         if (cstate == .PushIncomingReceived)
         {
-            if (!tutorialContext.loggedIn)
-            {
-                // Cannot properly answer call if not registered. If the app was launched from a push notification, register.
-                tutorialContext.registrationExample()
-            }
             // We're being called by someone (and app is in background)
             initIncomingCall()
         }

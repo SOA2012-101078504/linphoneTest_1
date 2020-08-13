@@ -12,7 +12,7 @@ import SwiftUI
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-    @ObservedObject var tutorialContext = CallExampleContext()
+    @ObservedObject var tutorialContext = CallKitExampleContext()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.

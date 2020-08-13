@@ -16,12 +16,12 @@ class CallKitProviderDelegate : NSObject
 {
     private let provider: CXProvider
     let mCallController = CXCallController()
-    var tutorialContext : CallExampleContext!
+    var tutorialContext : CallKitExampleContext!
 
     var incomingCallUUID : UUID!
     var outgoingCallUUID : UUID!
     
-    init(context : CallExampleContext)
+    init(context: CallKitExampleContext)
     {
         tutorialContext = context
         let providerConfiguration = CXProviderConfiguration(localizedName: Bundle.main.infoDictionary!["CFBundleName"] as! String)
@@ -33,7 +33,7 @@ class CallKitProviderDelegate : NSObject
         
         provider = CXProvider(configuration: providerConfiguration)
         super.init()
-        provider.setDelegate(self, queue: nil)
+        provider.setDelegate(self, queue: nil) // The CXProvider delegate will trigger CallKit related callbacks
         
     }
     
@@ -44,7 +44,7 @@ class CallKitProviderDelegate : NSObject
         let startCallAction = CXStartCallAction(call: outgoingCallUUID, handle: handle)
         let transaction = CXTransaction(action: startCallAction)
         
-        provider.reportOutgoingCall(with: outgoingCallUUID, startedConnectingAt: nil)
+        provider.reportOutgoingCall(with: outgoingCallUUID, startedConnectingAt: nil) // Report to CallKit a call is starting
         mCallController.request(transaction, completion: { error in })
     }
 
@@ -55,7 +55,7 @@ class CallKitProviderDelegate : NSObject
         update.remoteHandle = CXHandle(type:.generic, value: tutorialContext.incomingCallName)
         update.hasVideo = tutorialContext.videoEnabled
         
-        provider.reportNewIncomingCall(with: incomingCallUUID, update: update, completion: { error in })
+        provider.reportNewIncomingCall(with: incomingCallUUID, update: update, completion: { error in }) // Report to CallKit a call is incoming
     }
     
     func stopCall()
@@ -69,13 +69,14 @@ class CallKitProviderDelegate : NSObject
         let endCallAction = CXEndCallAction(call: callId)
         let transaction = CXTransaction(action: endCallAction)
         
-        mCallController.request(transaction, completion: { error in })
+        mCallController.request(transaction, completion: { error in }) // Report to CallKit a call is incoming
     }
 
 }
 
 
-
+// In this extension, we implement the action we want to be done when CallKit is notified of something.
+// This can happen through the CallKit GUI in the app, or directly in the code (see outgoingCall(), incomingCall(), stopCall() functions above)
 extension CallKitProviderDelegate: CXProviderDelegate {
     
     func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
