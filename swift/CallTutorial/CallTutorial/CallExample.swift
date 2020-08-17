@@ -148,6 +148,14 @@ class CallExampleContext : ObservableObject
         }
     }
     
+    func microphoneMuteToggle()
+    {
+        if (callRunning)
+        {
+            mCall.microphoneMuted = !mCall.microphoneMuted
+        }
+    }
+    
     func speaker()
     {
         speakerEnabled = !speakerEnabled
@@ -188,7 +196,7 @@ class LinphoneRegistrationDelegate: CoreDelegate {
     
     var tutorialContext : CallExampleContext!
     
-    override func onRegistrationStateChanged(lc: Core, cfg: ProxyConfig, cstate: RegistrationState, message: String?) {
+    override func onRegistrationStateChanged(core lc: Core, proxyConfig cfg: ProxyConfig, state cstate: RegistrationState, message: String?) {
         print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
         if (cstate == .Ok)
         {
@@ -202,7 +210,7 @@ class LinphoneLoggingServiceManager: LoggingServiceDelegate {
     
     var tutorialContext : CallExampleContext!
     
-    override func onLogMessageWritten(logService: LoggingService, domain: String, lev: LogLevel, message: String) {
+    override func onLogMessageWritten(logService: LoggingService, domain: String, level lev: LogLevel, message: String) {
         if (tutorialContext.logsEnabled)
         {
             print("Logging service log: \(message)s\n")
@@ -216,7 +224,7 @@ class CallStateDelegate: CoreDelegate {
     
     var tutorialContext : CallExampleContext!
     
-    override func onCallStateChanged(lc: Core, call: Call, cstate: Call.State, message: String) {
+    override func onCallStateChanged(core lc: Core, call: Call, state cstate: Call.State, message: String) {
         print("CallTrace - \(cstate)")
         if (cstate == .IncomingReceived) {
             // We're being called by someone

@@ -105,6 +105,14 @@ struct ContentView: View {
                             .frame(width: 60.0, height: 30.0)
                             .background(Color.gray)
                     }
+                    Spacer()
+                    Button(action: tutorialContext.microphoneMuteToggle) {
+                        Text("Mute Mic")
+                            .font(.largeTitle)
+                            .foregroundColor(Color.white)
+                            .frame(width: 180.0, height: 42.0)
+                            .background(Color.red)
+                    }
                 }
             }
             .padding(.top, 5.0)
