@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -15,6 +15,7 @@
 		6604168224D4606B0064FC6C /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6604168124D4606B0064FC6C /* Preview Assets.xcassets */; };
 		6604168524D4606B0064FC6C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6604168324D4606B0064FC6C /* LaunchScreen.storyboard */; };
 		6604168D24D4607A0064FC6C /* LoginExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6604168C24D4607A0064FC6C /* LoginExample.swift */; };
+		669AF4C124EA67BF00DA6512 /* commons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669AF4C024EA67BF00DA6512 /* commons.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 		6604168424D4606B0064FC6C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		6604168624D4606B0064FC6C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6604168C24D4607A0064FC6C /* LoginExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginExample.swift; sourceTree = "<group>"; };
+		669AF4C024EA67BF00DA6512 /* commons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = commons.swift; sourceTree = "<group>"; };
 		86EBE739D84760246FCA17F1 /* Pods-LoginTutorial.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LoginTutorial.debug.xcconfig"; path = "Target Support Files/Pods-LoginTutorial/Pods-LoginTutorial.debug.xcconfig"; sourceTree = "<group>"; };
 		A3C6682B4C89F9C91835CCC0 /* Pods-LoginTutorial.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LoginTutorial.release.xcconfig"; path = "Target Support Files/Pods-LoginTutorial/Pods-LoginTutorial.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -50,7 +52,6 @@
 				86EBE739D84760246FCA17F1 /* Pods-LoginTutorial.debug.xcconfig */,
 				A3C6682B4C89F9C91835CCC0 /* Pods-LoginTutorial.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -65,6 +66,7 @@
 		6604166C24D4606A0064FC6C = {
 			isa = PBXGroup;
 			children = (
+				669AF4BF24EA679F00DA6512 /* TutorialCommons */,
 				6604167724D4606A0064FC6C /* LoginTutorial */,
 				6604167624D4606A0064FC6C /* Products */,
 				0A22ADFA8AED8923D454874F /* Pods */,
@@ -101,6 +103,15 @@
 				6604168124D4606B0064FC6C /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		669AF4BF24EA679F00DA6512 /* TutorialCommons */ = {
+			isa = PBXGroup;
+			children = (
+				669AF4C024EA67BF00DA6512 /* commons.swift */,
+			);
+			name = TutorialCommons;
+			path = ../TutorialCommons;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -221,6 +232,7 @@
 				6604167924D4606A0064FC6C /* AppDelegate.swift in Sources */,
 				6604167B24D4606A0064FC6C /* SceneDelegate.swift in Sources */,
 				6604168D24D4607A0064FC6C /* LoginExample.swift in Sources */,
+				669AF4C124EA67BF00DA6512 /* commons.swift in Sources */,
 				6604167D24D4606A0064FC6C /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

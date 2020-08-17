@@ -14,9 +14,7 @@ class LoginTutorialContext : ObservableObject
     @Published var coreVersion: String = Core.getVersion
     
     /*------------ Logs related variables ------------------------*/
-    var log : LoggingService?
-    var logManager : LinphoneLoggingServiceManager?
-    @Published var logsEnabled : Bool = true
+    var loggingUnit = LoggingUnit()
     
     /*------------ Login tutorial related variables -------*/
     var proxy_cfg: ProxyConfig?
@@ -27,23 +25,14 @@ class LoginTutorialContext : ObservableObject
     
     init()
     {
-        mRegistrationDelegate.tutorialContext = self
-        let factory = Factory.Instance // Instanciate
-        
-        logManager = LinphoneLoggingServiceManager()
-        logManager!.tutorialContext = self;
-        log = LoggingService.Instance
-        log!.addDelegate(delegate: logManager!)
-        log!.logLevel = LogLevel.Debug
-        factory.enableLogCollection(state: LogCollectionState.Enabled)
-        
         // Initialize Linphone Core
-        try? mCore = factory.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
+        try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
 
         // main loop for receiving notifications and doing background linphonecore work:
         mCore.autoIterateEnabled = true
         try? mCore.start()
         
+        mRegistrationDelegate.tutorialContext = self
         mCore.addDelegate(delegate: mRegistrationDelegate) // Add registration specific logs
     }
     
@@ -51,20 +40,10 @@ class LoginTutorialContext : ObservableObject
     {
         if (!loggedIn)
         {
-            
             do {
-                
                 if (proxy_cfg == nil) {
-                    let factory = Factory.Instance
-                    proxy_cfg = try mCore.createProxyConfig()
-                    let address = try factory.createAddress(addr: id)
-                    let info = try factory.createAuthInfo(username: address.username, userid: "", passwd: passwd, ha1: "", realm: "", domain: address.domain)
-                    mCore.addAuthInfo(info: info)
                     
-                    try proxy_cfg!.setIdentityaddress(newValue: address)
-                    let server_addr = "sip:" + address.domain + ";transport=tls"
-                    try proxy_cfg!.setServeraddr(newValue: server_addr)
-                    proxy_cfg!.registerEnabled = true
+                    proxy_cfg = try createAndInitializeProxyConfig(core : mCore, identity: id, password: passwd)
                     try mCore.addProxyConfig(config: proxy_cfg!)
                     if ( mCore.defaultProxyConfig == nil)
                     {
@@ -100,17 +79,6 @@ class LoginTutorialContext : ObservableObject
     
 }
 
-class LinphoneLoggingServiceManager: LoggingServiceDelegate {
-    
-    var tutorialContext : LoginTutorialContext!
-    
-    override func onLogMessageWritten(logService: LoggingService, domain: String, lev: LogLevel, message: String) {
-        if (tutorialContext.logsEnabled)
-        {
-            print("Logging service log: \(message)s\n")
-        }
-    }
-}
 
 class LinphoneRegistrationDelegate: CoreDelegate {
     

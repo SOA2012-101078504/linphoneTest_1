@@ -58,7 +58,7 @@ struct ContentView: View {
             }
             Group {
                 Spacer()
-                Toggle(isOn: $tutorialContext.logsEnabled) {
+                Toggle(isOn: $tutorialContext.loggingUnit.logsEnabled.value) {
                     Text("Logs collection")
                         .multilineTextAlignment(.trailing)
                 }
