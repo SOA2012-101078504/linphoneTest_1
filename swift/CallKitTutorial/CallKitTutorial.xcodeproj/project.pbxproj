@@ -16,6 +16,7 @@
 		6608A97224E197D5006E6C68 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6608A97024E197D5006E6C68 /* LaunchScreen.storyboard */; };
 		6608A97A24E19817006E6C68 /* CallExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6608A97924E19817006E6C68 /* CallExample.swift */; };
 		6608A97C24E1981E006E6C68 /* CallKitProviderDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6608A97B24E1981E006E6C68 /* CallKitProviderDelegate.swift */; };
+		66FEF91A24EA8CF2008B4067 /* commons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66FEF91924EA8CF2008B4067 /* commons.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 		6608A97924E19817006E6C68 /* CallExample.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CallExample.swift; sourceTree = "<group>"; };
 		6608A97B24E1981E006E6C68 /* CallKitProviderDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CallKitProviderDelegate.swift; sourceTree = "<group>"; };
 		6608A97D24E19852006E6C68 /* CallKitTutorial.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CallKitTutorial.entitlements; sourceTree = "<group>"; };
+		66FEF91924EA8CF2008B4067 /* commons.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = commons.swift; sourceTree = "<group>"; };
 		C87B170DFD4D3072825B25EF /* Pods-CallKitTutorial.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CallKitTutorial.release.xcconfig"; path = "Target Support Files/Pods-CallKitTutorial/Pods-CallKitTutorial.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -67,6 +69,7 @@
 		6608A95924E197D5006E6C68 = {
 			isa = PBXGroup;
 			children = (
+				66FEF91824EA8CDA008B4067 /* TutorialCommons */,
 				6608A96424E197D5006E6C68 /* CallKitTutorial */,
 				6608A96324E197D5006E6C68 /* Products */,
 				38284A71627D413A7ACC2F07 /* Pods */,
@@ -105,6 +108,15 @@
 				6608A96E24E197D5006E6C68 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		66FEF91824EA8CDA008B4067 /* TutorialCommons */ = {
+			isa = PBXGroup;
+			children = (
+				66FEF91924EA8CF2008B4067 /* commons.swift */,
+			);
+			name = TutorialCommons;
+			path = ../TutorialCommons;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -224,6 +236,7 @@
 			files = (
 				6608A97A24E19817006E6C68 /* CallExample.swift in Sources */,
 				6608A96624E197D5006E6C68 /* AppDelegate.swift in Sources */,
+				66FEF91A24EA8CF2008B4067 /* commons.swift in Sources */,
 				6608A96824E197D5006E6C68 /* SceneDelegate.swift in Sources */,
 				6608A96A24E197D5006E6C68 /* ContentView.swift in Sources */,
 				6608A97C24E1981E006E6C68 /* CallKitProviderDelegate.swift in Sources */,

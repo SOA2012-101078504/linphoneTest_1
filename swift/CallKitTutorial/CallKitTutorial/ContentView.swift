@@ -146,7 +146,7 @@ struct ContentView: View {
             }
             Spacer()
             Group {
-                Toggle(isOn: $tutorialContext.logsEnabled) {
+                Toggle(isOn: $tutorialContext.loggingUnit.logsEnabled.value) {
                     Text("Logs collection")
                         .multilineTextAlignment(.trailing)
                 }
