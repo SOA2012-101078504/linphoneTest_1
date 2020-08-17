@@ -84,7 +84,7 @@ class LinphoneRegistrationDelegate: CoreDelegate {
     
     var tutorialContext : LoginTutorialContext!
     
-    override func onRegistrationStateChanged(lc: Core, cfg: ProxyConfig, cstate: RegistrationState, message: String?) {
+    override func onRegistrationStateChanged(core lc: Core, proxyConfig cfg: ProxyConfig, state cstate: RegistrationState, message: String?) {
         print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
         if (cstate == .Ok)
         {
