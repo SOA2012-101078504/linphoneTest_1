@@ -25,9 +25,7 @@ class VideoCallExample : ObservableObject
 	var mUsedVideoDeviceId : Int = 0
 	var callAlreadyStopped = false;
 
-	@Published var audioEnabled : Bool = true
 	@Published var videoEnabled : Bool = false
-	@Published var speakerEnabled : Bool = false
 	@Published var callRunning : Bool = false
 	@Published var isCallIncoming : Bool = false
 	@Published var dest : String = "sip:arguillq@sip.linphone.org"
@@ -92,7 +90,6 @@ class VideoCallExample : ObservableObject
     {
         let callParams = try mCore.createCallParams(call: nil)
         callParams.videoEnabled = videoEnabled;
-        callParams.audioEnabled = audioEnabled;
         
         return callParams
     }
