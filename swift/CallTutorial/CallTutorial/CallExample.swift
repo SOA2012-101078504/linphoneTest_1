@@ -21,20 +21,17 @@ class CallExampleContext : ObservableObject
 	let mCallStateTracer = CallStateDelegate()
 	var mCall: Call!
 	var proxy_cfg : ProxyConfig!
-	var mVideoDevices : [String] = []
-	var mUsedVideoDeviceId : Int = 0
 	var callAlreadyStopped = false;
 
-	@Published var audioEnabled : Bool = true
-	@Published var videoEnabled : Bool = false
 	@Published var speakerEnabled : Bool = false
+	@Published var microphoneMuted : Bool = false
 	@Published var callRunning : Bool = false
 	@Published var isCallIncoming : Bool = false
 	@Published var dest : String = "sip:arguillq@sip.linphone.org"
 
 	let mRegistrationDelegate = LinphoneRegistrationDelegate()
-	@Published var id : String = "sip:peche5@sip.linphone.org"
-	@Published var passwd : String = "peche5"
+	@Published var id : String = "sip:quetindev@sip.linphone.org"
+	@Published var passwd : String = "dev"
 	@Published var loggedIn: Bool = false
 
 
@@ -48,16 +45,10 @@ class CallExampleContext : ObservableObject
 
 	// main loop for receiving notifications and doing background linphonecore work:
 	mCore.autoIterateEnabled = true
-	mCore.callkitEnabled = true
-	mCore.pushNotificationEnabled = true
-	mCore.disableRecordOnMute = true
 	try? mCore.start()
-
-	mVideoDevices = mCore.videoDevicesList
 
 	mCore.addDelegate(delegate: mCallStateTracer)
 	mCore.addDelegate(delegate: mRegistrationDelegate)
-
 	}
 
 	func registrationExample()
@@ -78,14 +69,6 @@ class CallExampleContext : ObservableObject
 	}
 
 
-	func createCallParams() throws -> CallParams {
-		let callParams = try mCore.createCallParams(call: nil)
-		callParams.videoEnabled = videoEnabled;
-		callParams.audioEnabled = audioEnabled;
-
-		return callParams
-	}
-
 	// Initiate a call
 	func outgoingCallExample() {
 		do {
@@ -93,17 +76,13 @@ class CallExampleContext : ObservableObject
 			{
 				let callDest = try Factory.Instance.createAddress(addr: dest)
 				// Place an outgoing call
-				mCall = mCore.inviteAddressWithParams(addr: callDest, params: try createCallParams())
+				mCall = mCore.inviteAddressWithParams(addr: callDest, params: try mCore.createCallParams(call: nil))
 
 				if (mCall == nil) {
 					print("Could not place call to \(dest)\n")
 				} else {
 					print("Call to  \(dest) is in progress...")
 				}
-			}
-			else
-			{
-				try mCall.update(params: createCallParams())
 			}
 		} catch {
 			print(error)
@@ -128,6 +107,7 @@ class CallExampleContext : ObservableObject
 	{
 		if (callRunning) {
 			mCall.microphoneMuted = !mCall.microphoneMuted
+			microphoneMuted = mCall.microphoneMuted
 		}
 	}
 
@@ -138,16 +118,6 @@ class CallExampleContext : ObservableObject
 			try AVAudioSession.sharedInstance().overrideOutputAudioPort(
 				speakerEnabled ?
 					AVAudioSession.PortOverride.speaker : AVAudioSession.PortOverride.none)
-		} catch {
-			print(error)
-		}
-	}
-
-	func changeVideoDevice()
-	{
-		mUsedVideoDeviceId = (mUsedVideoDeviceId + 1) % mVideoDevices.count
-		do {
-			try mCore.setVideodevice(newValue: mVideoDevices[mUsedVideoDeviceId])
 		} catch {
 			print(error)
 		}

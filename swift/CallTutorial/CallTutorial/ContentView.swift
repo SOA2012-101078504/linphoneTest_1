@@ -67,32 +67,13 @@ struct ContentView: View {
 					.foregroundColor(tutorialContext.loggedIn ? Color.green : Color.black)
 				}
 			}
-			VStack(spacing: 0.0) {
-				Text("Call Settings")
-				.font(.largeTitle)
-				.padding(.top, 5)
-				HStack {
-					Text("Call destination :")
-					TextField("", text : $tutorialContext.dest)
-					.textFieldStyle(RoundedBorderTextFieldStyle())
-				}
-				.padding(.top, 5)
+			HStack {
+				Text("Call destination :")
+				TextField("", text : $tutorialContext.dest)
+				.textFieldStyle(RoundedBorderTextFieldStyle())
 			}
-			VStack(alignment: .leading) {
-				Toggle(isOn: $tutorialContext.audioEnabled) {
-				Text("Audio")
-				}.frame(width : 140.0)
-				Toggle(isOn: $tutorialContext.videoEnabled) {
-				Text("Video")
-				}.frame(width : 140.0)
-				Button(action: tutorialContext.changeVideoDevice)
-				{
-					Text(" Change camera ")
-						.font(.title)
-						.foregroundColor(Color.white)
-						.background(Color.gray)
-				}
-				.padding(.vertical)
+			.padding(.top, 5)
+			VStack {
 				HStack {
 					Text("Speaker :")
 					Button(action: tutorialContext.speaker)
@@ -103,17 +84,19 @@ struct ContentView: View {
 						.frame(width: 60.0, height: 30.0)
 						.background(Color.gray)
 					}
-					Spacer()
-					Button(action: tutorialContext.microphoneMuteToggle) {
-						Text("Mute Mic")
-						.font(.largeTitle)
-						.foregroundColor(Color.white)
-						.frame(width: 180.0, height: 42.0)
-						.background(Color.red)
-					}
 				}
+				HStack {
+					Text("Microphone :")
+					Button(action: tutorialContext.microphoneMuteToggle)
+					{
+						Text(tutorialContext.microphoneMuted ? "Unmute" : "Mute")
+						.font(.title)
+						.foregroundColor(Color.white)
+						.frame(width: 110.0, height: 30.0)
+						.background(Color.gray)
+					}
+				}.padding(.top)
 			}
-			.padding(.top, 5.0)
 			Spacer()
 			VStack {
 				HStack {
