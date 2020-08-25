@@ -116,7 +116,11 @@ struct ContentView: View {
                 }
                 .padding(.top)
             }
-			tutorialContext.videoView
+			HStack {
+				Spacer()
+				tutorialContext.videoView.frame(width : 150)
+				Spacer()
+			}
             Spacer()
             Group {
                 Toggle(isOn: $tutorialContext.loggingUnit.logsEnabled.value) {
