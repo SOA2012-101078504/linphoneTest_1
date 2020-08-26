@@ -7,7 +7,7 @@
 //
 
 import linphonesw
-import SwiftUI
+
 
 class VideoCallExample : ObservableObject
 {
@@ -34,20 +34,6 @@ class VideoCallExample : ObservableObject
 	@Published var id : String = "sip:quentindev@sip.linphone.org"
 	@Published var passwd : String = "dev"
 	@Published var loggedIn: Bool = false
-
-	/*--- Wrapper to incorporate the video chat view into a SwiftUI gui ---*/
-	struct VideoView: UIViewRepresentable {
-		let videoAsUIView = UIView()
-
-		func makeUIView(context: Context) -> UIView {
-			videoAsUIView.backgroundColor = .black
-			return videoAsUIView
-		}
-
-		func updateUIView(_ uiView: UIView, context: Context) {}
-	}
-	let videoView = VideoView()
-	
 	
 	init()
 	{
@@ -60,8 +46,6 @@ class VideoCallExample : ObservableObject
 		// main loop for receiving notifications and doing background linphonecore work:
 		mCore.autoIterateEnabled = true
 		
-		// Give the UIView in which the video will be rendered to the Linphone Core
-		mCore.nativeVideoWindowId = UnsafeMutableRawPointer(Unmanaged.passRetained(videoView.videoAsUIView).toOpaque())
 		try? mCore.start()
 		
 		mVideoDevices = mCore.videoDevicesList

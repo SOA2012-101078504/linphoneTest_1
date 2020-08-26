@@ -7,6 +7,31 @@
 //
 
 import SwiftUI
+import linphonesw
+
+struct LinphoneVideoView: UIViewRepresentable {
+	var core:Core
+    private let _view = UIView()
+
+    func makeUIView(context: Context) -> UIView {
+        core.nativeVideoWindowId = UnsafeMutableRawPointer(Unmanaged.passRetained(_view).toOpaque())
+        return _view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {}
+}
+
+struct LinphoneVideoPreview: UIViewRepresentable {
+	var core:Core
+    private let _view = UIView()
+
+    func makeUIView(context: Context) -> UIView {
+        core.nativePreviewWindowId = UnsafeMutableRawPointer(Unmanaged.passRetained(_view).toOpaque())
+        return _view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {}
+}
 
 struct ContentView: View {
     
@@ -117,9 +142,9 @@ struct ContentView: View {
                 .padding(.top)
             }
 			HStack {
+				LinphoneVideoView(core: tutorialContext.mCore).frame(width: 150, height: 210).border(Color.gray).padding(.leading)
 				Spacer()
-				tutorialContext.videoView.frame(width : 150)
-				Spacer()
+				LinphoneVideoPreview(core: tutorialContext.mCore).frame(width: 120, height:  160).border(Color.gray).padding(.horizontal)
 			}
             Spacer()
             Group {
