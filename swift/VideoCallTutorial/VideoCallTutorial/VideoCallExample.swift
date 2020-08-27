@@ -8,7 +8,6 @@
 
 import linphonesw
 
-
 class VideoCallExample : ObservableObject
 {
 	var mCore: Core! // We need a Core for... anything, basically
@@ -25,7 +24,7 @@ class VideoCallExample : ObservableObject
 	var mUsedVideoDeviceId : Int = 0
 	var callAlreadyStopped = false;
 
-	@Published var videoEnabled : Bool = false
+	@Published var videoEnabled : Bool = true
 	@Published var callRunning : Bool = false
 	@Published var isCallIncoming : Bool = false
 	@Published var dest : String = "sip:arguillq@sip.linphone.org"
@@ -52,6 +51,7 @@ class VideoCallExample : ObservableObject
 
 		mCore.addDelegate(delegate: mCallStateTracer)
 		mCore.addDelegate(delegate: mRegistrationDelegate)
+		
 	}
 
 	func registrationExample()
