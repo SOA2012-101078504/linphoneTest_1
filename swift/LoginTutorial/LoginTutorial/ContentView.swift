@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
     
-    @ObservedObject var tutorialContext = LoginTutorialContext()
+	@ObservedObject var tutorialContext : LoginTutorialContext
     
     var body: some View {
         
@@ -71,6 +71,6 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        ContentView(tutorialContext: LoginTutorialContext())
     }
 }

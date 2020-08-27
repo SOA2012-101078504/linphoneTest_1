@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
 
-	@ObservedObject var tutorialContext = CallExampleContext()
+	@ObservedObject var tutorialContext : CallExampleContext
 
 	func getCallButtonText() -> String {
 		if (tutorialContext.callRunning) {
@@ -144,6 +144,6 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
 	static var previews: some View {
-		ContentView()
+		ContentView(tutorialContext: CallExampleContext())
 	}
 }
