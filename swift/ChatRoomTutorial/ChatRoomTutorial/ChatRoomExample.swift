@@ -6,8 +6,6 @@
 //  Copyright © 2020 BelledonneCommunications. All rights reserved.
 
 import linphonesw
-import SwiftUI
-    
 
 enum ChatroomExampleState
 {
@@ -33,9 +31,7 @@ class ChatRoomExampleContext : ObservableObject
     @Published var coreVersion: String = Core.getVersion
     
     /*------------ Logs related variables ------------------------*/
-    var log : LoggingService?
-    var logManager : LinphoneLoggingServiceManager?
-    @Published var logsEnabled : Bool = true
+    var loggingUnit = LoggingUnit()
     
     /*--- Variable shared between Basic and FlexiSip chatrooms ----
       -------- "A" always initiates the chat, "B" answers --------*/
@@ -72,17 +68,8 @@ class ChatRoomExampleContext : ObservableObject
         mCoreChatDelegate.tutorialContext = self
         mRegistrationConfirmDelegate.tutorialContext = self
         
-        let factory = Factory.Instance // Instanciate
-        
-        logManager = LinphoneLoggingServiceManager()
-        logManager!.tutorialContext = self;
-        log = LoggingService.Instance
-        log!.addDelegate(delegate: logManager!)
-        log!.logLevel = LogLevel.Debug
-        factory.enableLogCollection(state: LogCollectionState.Enabled)
-        
         // Initialize Linphone Core
-        try? mCore = factory.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
+        try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
 
         // main loop for receiving notifications and doing background linphonecore work:
         mCore.autoIterateEnabled = true
@@ -141,9 +128,9 @@ class ChatRoomExampleContext : ObservableObject
             if (isBasicChatroom && mBasicChatRoom == nil)
             {
                 chatParams.backend = ChatRoomBackend.Basic
+				
                 mBasicChatRoom = try mCore.createChatRoom(params: chatParams
                     , localAddr: mProxyConfigA.contact!
-                    , subject: "Basic ChatRoom"
                     , participants: chatDest)
                 // Basic chatroom do not require setup time
                 basicChatRoomState = ChatroomExampleState.Started
@@ -156,7 +143,6 @@ class ChatRoomExampleContext : ObservableObject
                 chatParams.groupEnabled = false
                 mChatRoomA = try mCore.createChatRoom(params: chatParams
                     , localAddr: mProxyConfigA.contact!
-                    , subject: "Flexisip ChatRoom"
                     , participants: chatDest)
                     mChatRoomA!.addDelegate(delegate: mChatRoomDelegate)
                 // Flexisip chatroom requires a setup time. The delegate will set the state to started when it is ready.
@@ -206,24 +192,11 @@ class ChatRoomExampleContext : ObservableObject
     
 }
 
-
-class LinphoneLoggingServiceManager: LoggingServiceDelegate {
-    
-    var tutorialContext : ChatRoomExampleContext!
-    
-    override func onLogMessageWritten(logService: LoggingService, domain: String, lev: LogLevel, message: String) {
-        if (tutorialContext.logsEnabled)
-        {
-            print("Logging service log: \(message)s\n")
-        }
-    }
-}
-
 class LinphoneRegistrationConfirmDelegate: CoreDelegate {
     
     var tutorialContext : ChatRoomExampleContext!
     
-    override func onRegistrationStateChanged(lc: Core, cfg: ProxyConfig, cstate: RegistrationState, message: String?) {
+    override func onRegistrationStateChanged(core lc: Core, proxyConfig cfg: ProxyConfig, state cstate: RegistrationState, message: String?) {
         print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
         if (cstate == RegistrationState.Ok)
         {
@@ -245,7 +218,7 @@ class LinphoneRegistrationConfirmDelegate: CoreDelegate {
 
 class LinphoneCoreChatDelegate: CoreDelegate {
     var tutorialContext : ChatRoomExampleContext!
-    override func onMessageReceived(lc: Core, room: ChatRoom, message: ChatMessage) {
+	override func onMessageReceived(core lc: Core, chatRoom room: ChatRoom, message: ChatMessage) {
             
         if (tutorialContext.mChatRoomB == nil)
         {
@@ -262,7 +235,7 @@ class LinphoneChatRoomStateTracker: ChatRoomDelegate {
     
     var tutorialContext : ChatRoomExampleContext!
     
-    override func onStateChanged(cr: ChatRoom, newState: ChatRoom.State) {
+	override func onStateChanged(chatRoom cr: ChatRoom, newState: ChatRoom.State) {
         if (newState == ChatRoom.State.Created)
         {
             print("ChatRoomTrace - Chatroom ready to start")
@@ -279,7 +252,7 @@ class LinphoneChatRoomStateTracker: ChatRoomDelegate {
 }
 
 class LinphoneChatMessageTracker: ChatMessageDelegate {
-    override func onMsgStateChanged(msg: ChatMessage, state: ChatMessage.State) {
+	override func onMsgStateChanged(message msg: ChatMessage, state: ChatMessage.State) {
         print("MessageTrace - msg state changed: \(state)\n")
     }
 }

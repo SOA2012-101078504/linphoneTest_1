@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
     
-    @ObservedObject var tutorialContext = ChatRoomExampleContext()
+	@ObservedObject var tutorialContext : ChatRoomExampleContext
     
     var body: some View {
         
@@ -87,7 +87,7 @@ struct ContentView: View {
             }
             Group {
                 Spacer()
-                Toggle(isOn: $tutorialContext.logsEnabled) {
+				Toggle(isOn: $tutorialContext.loggingUnit.logsEnabled.value) {
                     Text("Logs collection")
                         .multilineTextAlignment(.trailing)
                 }
@@ -99,6 +99,6 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        ContentView(tutorialContext: ChatRoomExampleContext())
     }
 }

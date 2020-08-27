@@ -14,6 +14,7 @@
 		66B14F6A24D945B30041952F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 66B14F6924D945B30041952F /* Preview Assets.xcassets */; };
 		66B14F6D24D945B30041952F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 66B14F6B24D945B30041952F /* LaunchScreen.storyboard */; };
 		66B14F7524D94A8B0041952F /* ChatRoomExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66B14F7424D94A8B0041952F /* ChatRoomExample.swift */; };
+		66E0886524F7D9FD00399387 /* commons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E0886424F7D9FD00399387 /* commons.swift */; };
 		F6D7663413A00C7D71C9256A /* Pods_ChatRoomTutorial.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DA7659F911FB1269A70609BD /* Pods_ChatRoomTutorial.framework */; };
 /* End PBXBuildFile section */
 
@@ -29,6 +30,7 @@
 		66B14F6C24D945B30041952F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		66B14F6E24D945B30041952F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		66B14F7424D94A8B0041952F /* ChatRoomExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatRoomExample.swift; sourceTree = "<group>"; };
+		66E0886424F7D9FD00399387 /* commons.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = commons.swift; sourceTree = "<group>"; };
 		DA7659F911FB1269A70609BD /* Pods_ChatRoomTutorial.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ChatRoomTutorial.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -47,6 +49,7 @@
 		66B14F5424D945B10041952F = {
 			isa = PBXGroup;
 			children = (
+				66E0886324F7D9E200399387 /* TutorialCommons */,
 				66B14F5F24D945B10041952F /* ChatRoomTutorial */,
 				66B14F5E24D945B10041952F /* Products */,
 				7803BAE55D29633EC66FF288 /* Pods */,
@@ -83,6 +86,15 @@
 				66B14F6924D945B30041952F /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		66E0886324F7D9E200399387 /* TutorialCommons */ = {
+			isa = PBXGroup;
+			children = (
+				66E0886424F7D9FD00399387 /* commons.swift */,
+			);
+			name = TutorialCommons;
+			path = ../TutorialCommons;
 			sourceTree = "<group>";
 		};
 		7803BAE55D29633EC66FF288 /* Pods */ = {
@@ -220,6 +232,7 @@
 				66B14F6124D945B10041952F /* AppDelegate.swift in Sources */,
 				66B14F7524D94A8B0041952F /* ChatRoomExample.swift in Sources */,
 				66B14F6324D945B10041952F /* SceneDelegate.swift in Sources */,
+				66E0886524F7D9FD00399387 /* commons.swift in Sources */,
 				66B14F6524D945B10041952F /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
