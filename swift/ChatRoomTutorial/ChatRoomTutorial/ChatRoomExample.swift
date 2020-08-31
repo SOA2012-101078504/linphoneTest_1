@@ -14,16 +14,6 @@ enum ChatroomExampleState
     case Started
 }
 
-func toString(tutorialState state : ChatroomExampleState) -> String
-{
-    switch (state)
-    {
-        case ChatroomExampleState.Unstarted : return "Unstarted"
-        case ChatroomExampleState.Starting: return "Starting"
-        case ChatroomExampleState.Started: return "Started"
-    }
-}
-
 
 class ChatRoomExampleContext : ObservableObject
 {
@@ -33,10 +23,11 @@ class ChatRoomExampleContext : ObservableObject
     /*------------ Logs related variables ------------------------*/
     var loggingUnit = LoggingUnit()
     
-    /*--- Variable shared between Basic and FlexiSip chatrooms ----
+    /*-------- Chatroom tutorial related variables ---------------
       -------- "A" always initiates the chat, "B" answers --------*/
     let mIdA = "sip:peche5@sip.linphone.org", mIdB = "sip:jehan-iphone@sip.linphone.org"
     var mPasswordA = "peche5", mPasswordB = "cotcot"
+    let mFactoryUri = "sip:conference-factory@sip.linphone.org"
     var mProxyConfigA, mProxyConfigB : ProxyConfig!
     var mChatMessage : ChatMessage?
     
@@ -45,22 +36,27 @@ class ChatRoomExampleContext : ObservableObject
     let mChatRoomDelegate = LinphoneChatRoomStateTracker()
     let mRegistrationConfirmDelegate = LinphoneRegistrationConfirmDelegate()
     
+    var mChatRoomA, mChatRoomB : ChatRoom?
+    @Published var chatroomState = ChatroomExampleState.Unstarted
+	
     @Published var proxyConfigARegistered : Bool = false
     @Published var proxyConfigBRegistered : Bool = false
-    @Published var sLastReceivedText : String = ""
-    @Published var sReplyText: String = ""
+    @Published var isFlexiSip : Bool = true
+	@Published var textToSend: String = "msg to send"
+    @Published var sReplyText: String = "msg to reply"
+    @Published var sReceivedMessagesA : String = ""
+    @Published var sReceivedMessagesB: String = ""
     
-    
-    /*---- FlexiSip Group Chatroom tutorial related variables ----*/
-    let mFactoryUri = "sip:conference-factory@sip.linphone.org"
-    var mChatRoomA, mChatRoomB : ChatRoom?
-    @Published var chatroomAState = ChatroomExampleState.Unstarted
-    
-    /*---- Basic Chatroom tutorial related variables ----*/
-    var mBasicChatRoom : ChatRoom?
-    var mBasicChatroomProxyConfigRegistered : Bool = false
-    @Published var basicChatRoomState = ChatroomExampleState.Unstarted
-    
+
+	func getStateAsString() -> String
+	{
+		switch (chatroomState)
+		{
+			case ChatroomExampleState.Unstarted : return "Unstarted"
+			case ChatroomExampleState.Starting: return "Starting"
+			case ChatroomExampleState.Started: return "Started"
+		}
+	}
     
     init()
     {
@@ -110,43 +106,61 @@ class ChatRoomExampleContext : ObservableObject
         }
         return nil
     }
+	/*
+    func createProxyConfigAndRegister(identity sId : String, password sPwd : String, factoryUri fUri : String) -> ProxyConfig?
+    {
+        do {
+			let proxy_cfg = try createAndInitializeProxyConfig(core : mCore, identity: sId, password: sPwd)
+            proxy_cfg.conferenceFactoryUri = fUri
+			try mCore.addProxyConfig(config: proxy_cfg)
+			if ( mCore.defaultProxyConfig == nil) {
+				// IMPORTANT : default proxy config setting MUST be done AFTER adding the config to the core !
+				mCore.defaultProxyConfig = proxy_cfg
+			}
+			return proxy_cfg
+        } catch {
+            print(error)
+        }
+        return nil
+    }*/
     
     func registerChatRoomsProxyConfigurations()
     {
+		
         mProxyConfigA = createProxyConfigAndRegister(identity : mIdA, password : mPasswordA, factoryUri: mFactoryUri)!
         mProxyConfigB = createProxyConfigAndRegister(identity : mIdB, password : mPasswordB, factoryUri: mFactoryUri)!
     }
     
-    func createChatRoom(isBasic isBasicChatroom : Bool)
+    func createChatRoom()
     {
         // proxy configuration must first be initialized and registered
-        if (!proxyConfigARegistered || !proxyConfigBRegistered) { return }
+        if (!proxyConfigARegistered || !proxyConfigBRegistered || mChatRoomA != nil) { return }
         
         do {
             let chatDest = [mProxyConfigB.contact!]
             let chatParams = try mCore.createDefaultChatRoomParams()
-            if (isBasicChatroom && mBasicChatRoom == nil)
-            {
-                chatParams.backend = ChatRoomBackend.Basic
-				
-                mBasicChatRoom = try mCore.createChatRoom(params: chatParams
-                    , localAddr: mProxyConfigA.contact!
-                    , participants: chatDest)
-                // Basic chatroom do not require setup time
-                basicChatRoomState = ChatroomExampleState.Started
-                
-            }
-            else if (!isBasicChatroom && mChatRoomA == nil)
+            if (isFlexiSip)
             {
                 chatParams.backend = ChatRoomBackend.FlexisipChat
                 chatParams.encryptionEnabled = false
                 chatParams.groupEnabled = false
+				chatParams.subject = "Tutorial Chatroom"
                 mChatRoomA = try mCore.createChatRoom(params: chatParams
                     , localAddr: mProxyConfigA.contact!
                     , participants: chatDest)
-                    mChatRoomA!.addDelegate(delegate: mChatRoomDelegate)
+				mChatRoomA!.addDelegate(delegate: mChatRoomDelegate)
                 // Flexisip chatroom requires a setup time. The delegate will set the state to started when it is ready.
-                    chatroomAState = ChatroomExampleState.Starting
+				chatroomState = ChatroomExampleState.Starting
+            }
+            else
+            {
+                chatParams.backend = ChatRoomBackend.Basic
+                mChatRoomA = try mCore.createChatRoom(params: chatParams
+                    , localAddr: mProxyConfigA.contact!
+                    , participants: chatDest)
+                // Basic chatroom do not require setup time
+                chatroomState = ChatroomExampleState.Started
+                
             }
             
         } catch {
@@ -155,15 +169,18 @@ class ChatRoomExampleContext : ObservableObject
         
         DispatchQueue.global(qos: .userInitiated).async {
             // Wait until we're sure that the chatroom is ready to send messages
-            while((isBasicChatroom ? self.basicChatRoomState : self.chatroomAState) != ChatroomExampleState.Started){
-                usleep(1000000)
+			if (!self.isFlexiSip) {
+				return
+			}
+			while(self.chatroomState != ChatroomExampleState.Started){
+                usleep(100000)
             }
             
-            if let chatRoom = (isBasicChatroom) ? self.mBasicChatRoom : self.mChatRoomA
+            if let chatRoom = self.mChatRoomA
             {
                 do
                 {
-                    self.mChatMessage = try chatRoom.createMessage(message: "Hello, \((isBasicChatroom) ? "Basic" : "Flexisip") World !")
+					self.mChatMessage = try chatRoom.createMessage(message: "Hello, \((self.isFlexiSip) ? "Flexisip" : "Basic") World !")
                     self.mChatMessage!.addDelegate(delegate: self.mChatMessageDelegate)
                     self.mChatMessage!.send()
                 } catch {
@@ -173,21 +190,27 @@ class ChatRoomExampleContext : ObservableObject
         }
     }
     
-    func groupChatReply()
+	func send(room : ChatRoom, msg : String)
+	{
+		do
+		{
+			self.mChatMessage = try room.createMessage(message: msg)
+			self.mChatMessage!.send()
+		} catch {
+			print(error)
+		}
+	}
+    func sendMsg()
+    {
+        if let chatRoom = mChatRoomA {
+			send(room: chatRoom, msg: textToSend)
+        }
+    }
+    func sendReply()
     {
         if let chatRoom = mChatRoomB {
-            do
-            {
-                self.mChatMessage = try chatRoom.createMessage(message: sReplyText)
-                self.mChatMessage!.send()
-            } catch {
-                print(error)
-            }
+			send(room: chatRoom, msg: sReplyText)
         }
-        else {
-            sLastReceivedText = "Initialize chat first !"
-        }
-        
     }
     
 }
@@ -208,10 +231,6 @@ class LinphoneRegistrationConfirmDelegate: CoreDelegate {
             {
                 tutorialContext.proxyConfigBRegistered = true
             }
-            else if (cfg === tutorialContext.mBasicChatRoom)
-            {
-                tutorialContext.mBasicChatroomProxyConfigRegistered = true
-            }
         }
     }
 }
@@ -226,7 +245,11 @@ class LinphoneCoreChatDelegate: CoreDelegate {
         }
         if (message.contentType == "text/plain")
         {
-            tutorialContext.sLastReceivedText = message.textContent
+			if (room === tutorialContext.mChatRoomA) {
+				tutorialContext.sReceivedMessagesA += "\n\(message.textContent)"
+			} else {
+				tutorialContext.sReceivedMessagesB += "\n\(message.textContent)"
+			}
         }
     }
 }
@@ -239,14 +262,7 @@ class LinphoneChatRoomStateTracker: ChatRoomDelegate {
         if (newState == ChatRoom.State.Created)
         {
             print("ChatRoomTrace - Chatroom ready to start")
-            if (cr === tutorialContext.mChatRoomA)
-            {
-                tutorialContext.chatroomAState = ChatroomExampleState.Started
-            }
-            else if (cr === tutorialContext.mBasicChatRoom)
-            {
-                tutorialContext.basicChatRoomState = ChatroomExampleState.Started
-            }
+			tutorialContext.chatroomState = ChatroomExampleState.Started
         }
     }
 }
