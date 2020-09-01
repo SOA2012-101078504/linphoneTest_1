@@ -120,14 +120,14 @@ struct ContentView: View {
             }
 			HStack {
 				LinphoneVideoViewHolder()	{ view in
-					self.tutorialContext.mCore.nativeVideoWindowId = view
+					self.tutorialContext.mCore.nativeVideoWindow = view
 				}
 				.frame(width: 150, height: 210)
 				.border(Color.gray)
 				.padding(.leading)
 				Spacer()
 				LinphoneVideoViewHolder()	{ view in
-					self.tutorialContext.mCore.nativePreviewWindowId = view
+					self.tutorialContext.mCore.nativePreviewWindow = view
 				}
 				.frame(width: 90, height:  120)
 				.border(Color.gray)
