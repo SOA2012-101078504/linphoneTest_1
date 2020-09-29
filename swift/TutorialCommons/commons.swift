@@ -34,7 +34,7 @@ class LoggingUnit
 
 	class LinphoneLoggingServiceImpl: LoggingServiceDelegate {
 		var logsEnabled : BoolHolder!
-		override func onLogMessageWritten(logService: LoggingService, domain: String, level: LogLevel, message: String) {
+		func onLogMessageWritten(logService: LoggingService, domain: String, level: LogLevel, message: String) {
 			if (logsEnabled.value) {
 				print("Linphone logs: \(message)\n")
 			}
