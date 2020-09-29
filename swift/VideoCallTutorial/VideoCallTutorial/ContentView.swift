@@ -118,6 +118,19 @@ struct ContentView: View {
                 }
                 .padding(.top)
             }
+
+			HStack {
+				Text("Audio Device :")
+				Button(action: tutorialContext.changeAudioDevice)
+				{
+					Text("Change")
+					.font(.title)
+					.foregroundColor(Color.white)
+					.frame(width: 110.0, height: 30.0)
+					.background(Color.gray)
+				}
+			}.padding(.top)
+			/*
 			HStack {
 				LinphoneVideoViewHolder()	{ view in
 					self.tutorialContext.mCore.nativeVideoWindow = view
@@ -132,7 +145,7 @@ struct ContentView: View {
 				.frame(width: 90, height:  120)
 				.border(Color.gray)
 				.padding(.horizontal)
-			}
+			}*/
             Group {
                 Toggle(isOn: $tutorialContext.loggingUnit.logsEnabled.value) {
                     Text("Logs collection")

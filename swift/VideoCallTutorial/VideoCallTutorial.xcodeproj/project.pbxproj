@@ -375,6 +375,7 @@
 				DEVELOPMENT_TEAM = Z2V957B3D6;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = VideoCallTutorial/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -396,6 +397,7 @@
 				DEVELOPMENT_TEAM = Z2V957B3D6;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = VideoCallTutorial/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

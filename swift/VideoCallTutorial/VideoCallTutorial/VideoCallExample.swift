@@ -34,6 +34,8 @@ class VideoCallExample : ObservableObject
 	@Published var passwd : String = "dev"
 	@Published var loggedIn: Bool = false
 	
+	var audioDeviceId : Int = 0
+	
 	init()
 	{
 		mCallStateTracer.tutorialContext = self
@@ -53,7 +55,26 @@ class VideoCallExample : ObservableObject
 		mCore.addDelegate(delegate: mRegistrationDelegate)
 		
 	}
-
+	func changeAudioDevice()
+	{
+		let devices = mCore.audioDevices
+		audioDeviceId = (audioDeviceId + 1) % devices.count
+		let previousDevice : String = mCore.outputAudioDevice!.deviceName
+		let newDevice : String = devices[audioDeviceId].deviceName
+		print("Core Device change : \(previousDevice) => \(newDevice)")
+		
+		var previousCallDevice : String = ""
+		if (mCall != nil)	{
+			previousCallDevice = mCall!.outputAudioDevice!.deviceName
+		}
+		mCore.outputAudioDevice = devices[audioDeviceId]
+		
+		if (mCall != nil){
+			let newCallDevice : String = mCall!.outputAudioDevice!.deviceName
+			print("Call Device change ? : \(previousCallDevice) => \(newCallDevice)")
+		}
+	}
+	
 	func registrationExample()
 	{
 		if (!loggedIn) {
@@ -125,13 +146,14 @@ class VideoCallExample : ObservableObject
 	func changeVideoDevice()
 	{
 		mUsedVideoDeviceId = (mUsedVideoDeviceId + 1) % mVideoDevices.count
+		let test = mVideoDevices[mUsedVideoDeviceId]
 		do {
 			try mCore.setVideodevice(newValue: mVideoDevices[mUsedVideoDeviceId])
 		} catch {
 			print(error)
 		}
 	}
-
+	
 	func acceptCall()
 	{
 		do {
@@ -147,12 +169,16 @@ class LinphoneRegistrationDelegate: CoreDelegate {
     
     var tutorialContext : VideoCallExample!
     
-    override func onRegistrationStateChanged(core lc: Core, proxyConfig cfg: ProxyConfig, state cstate: RegistrationState, message: String?) {
+	func onRegistrationStateChanged(core lc: Core, proxyConfig cfg: ProxyConfig, state cstate: RegistrationState, message: String?) {
         print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
         if (cstate == .Ok) {
             tutorialContext.loggedIn = true
         }
     }
+	
+	func onAudioDevicesListUpdated(core : Core) {
+		print ("device list updated")
+	}
 }
 
 
@@ -160,21 +186,21 @@ class LinphoneRegistrationDelegate: CoreDelegate {
 class CallStateDelegate: CoreDelegate {
     
     var tutorialContext : VideoCallExample!
-    
-    override func onCallStateChanged(core lc: Core, call: Call, state cstate: Call.State, message: String) {
-        print("CallTrace - \(cstate)")
-        if (cstate == .IncomingReceived) {
+	
+	func onCallStateChanged(core: Core, call: Call, state: Call.State, message: String) {
+        print("CallTrace - \(state)")
+        if (state == .IncomingReceived) {
             // We're being called by someone
             tutorialContext.mCall = call
             tutorialContext.isCallIncoming = true
-        } else if (cstate == .OutgoingRinging) {
+        } else if (state == .OutgoingRinging) {
             // We're calling someone
             tutorialContext.callRunning = true
-        } else if (cstate == .End) {
+        } else if (state == .End) {
             // Call has been terminated by any side
             tutorialContext.callRunning = false
             tutorialContext.isCallIncoming = false
-        } else if (cstate == .StreamsRunning) {
+        } else if (state == .StreamsRunning) {
             // Call has successfully began
             tutorialContext.callRunning = true
         }
