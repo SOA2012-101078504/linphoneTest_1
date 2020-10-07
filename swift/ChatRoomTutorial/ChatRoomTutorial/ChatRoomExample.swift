@@ -25,29 +25,28 @@ class ChatRoomExampleContext : ObservableObject
     
     /*-------- Chatroom tutorial related variables ---------------
       -------- "A" always initiates the chat, "B" answers --------*/
-    let mIdA = "sip:peche5@sip.linphone.org", mIdB = "sip:jehan-iphone@sip.linphone.org"
-    var mPasswordA = "peche5", mPasswordB = "cotcot"
+	
+	
     let mFactoryUri = "sip:conference-factory@sip.linphone.org"
-    var mProxyConfigA, mProxyConfigB : ProxyConfig!
+    var mProxyConfig : ProxyConfig!
     var mChatMessage : ChatMessage?
-    
-    let mCoreChatDelegate = LinphoneCoreChatDelegate()
+	let mLinphoneCoreDelegate = LinphoneCoreDelegate()
     let mChatMessageDelegate =  LinphoneChatMessageTracker()
     let mChatRoomDelegate = LinphoneChatRoomStateTracker()
-    let mRegistrationConfirmDelegate = LinphoneRegistrationConfirmDelegate()
-    
-    var mChatRoomA, mChatRoomB : ChatRoom?
-    @Published var chatroomState = ChatroomExampleState.Unstarted
+    var mChatRoom : ChatRoom?
 	
-    @Published var proxyConfigARegistered : Bool = false
-    @Published var proxyConfigBRegistered : Bool = false
+    @Published var chatroomState = ChatroomExampleState.Unstarted
     @Published var isFlexiSip : Bool = true
 	@Published var textToSend: String = "msg to send"
-    @Published var sReplyText: String = "msg to reply"
-    @Published var sReceivedMessagesA : String = ""
-    @Published var sReceivedMessagesB: String = ""
-    
-
+    @Published var sReceivedMessages : String = ""
+	@Published var dest : String = "sip:arguillq@sip.linphone.org"
+	@Published var id : String = "sip:quentindev@sip.linphone.org"
+	@Published var passwd : String = "dev"
+	@Published var loggedIn: Bool = false
+	
+	//var fileFolderUrl : URL?
+	//var fileUrl : URL?
+	
 	func getStateAsString() -> String
 	{
 		switch (chatroomState)
@@ -61,8 +60,7 @@ class ChatRoomExampleContext : ObservableObject
     init()
     {
         mChatRoomDelegate.tutorialContext = self
-        mCoreChatDelegate.tutorialContext = self
-        mRegistrationConfirmDelegate.tutorialContext = self
+		mLinphoneCoreDelegate.tutorialContext = self
         
         // Initialize Linphone Core
         try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
@@ -72,97 +70,61 @@ class ChatRoomExampleContext : ObservableObject
         try? mCore.start()
         
         // Important ! Will notify when config are registered so that we can proceed with the chatroom creations
-        mCore.addDelegate(delegate: mRegistrationConfirmDelegate)
-        
-        // Handle chat message reception
-        mCore.addDelegate(delegate: mCoreChatDelegate)
+		// Also handles chat message reception
+        mCore.addDelegate(delegate: mLinphoneCoreDelegate)
+		
+		/*
+		let documentsPath = NSURL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0])
+		let myFiles = documentsPath.appendingPathComponent("TutorialFiles")
+		fileUrl = myFiles?.appendingPathComponent("file_to_transfer.txt")
+		do{
+			try FileManager.default.createDirectory(atPath: myFiles!.path, withIntermediateDirectories: true, attributes: nil)
+			try String("My file content").write(to: fileUrl!, atomically: false, encoding: .utf8)
+		}catch let error as NSError{
+			print("Unable to create directory",error)
+		}
+		*/
     }
     
-    
-    func createProxyConfigAndRegister(identity sId : String, password sPwd : String, factoryUri fUri : String) -> ProxyConfig?
-    {
-        let factory = Factory.Instance
-        do {
-            let proxy_cfg = try mCore.createProxyConfig()
-            let address = try factory.createAddress(addr: sId)
-            let info = try factory.createAuthInfo(username: address.username, userid: "", passwd: sPwd, ha1: "", realm: "", domain: address.domain)
-            mCore.addAuthInfo(info: info)
-            
-            try proxy_cfg.setIdentityaddress(newValue: address)
-            let server_addr = "sip:" + address.domain + ";transport=tls"
-            try proxy_cfg.setServeraddr(newValue: server_addr)
-            proxy_cfg.registerEnabled = true
-            proxy_cfg.conferenceFactoryUri = fUri
-            try mCore.addProxyConfig(config: proxy_cfg)
-            if ( mCore.defaultProxyConfig == nil)
-            {
-                // IMPORTANT : default proxy config setting MUST be done AFTER adding the config to the core !
-                mCore.defaultProxyConfig = proxy_cfg
-            }
-            return proxy_cfg
-            
-        } catch {
-            print(error)
-        }
-        return nil
-    }
-	/*
-    func createProxyConfigAndRegister(identity sId : String, password sPwd : String, factoryUri fUri : String) -> ProxyConfig?
+    func createProxyConfigAndRegister()
     {
         do {
-			let proxy_cfg = try createAndInitializeProxyConfig(core : mCore, identity: sId, password: sPwd)
-            proxy_cfg.conferenceFactoryUri = fUri
-			try mCore.addProxyConfig(config: proxy_cfg)
+			mProxyConfig = try createAndInitializeProxyConfig(core : mCore, identity: id, password: passwd)
+			mProxyConfig.conferenceFactoryUri = mFactoryUri
+			try mCore.addProxyConfig(config: mProxyConfig)
 			if ( mCore.defaultProxyConfig == nil) {
 				// IMPORTANT : default proxy config setting MUST be done AFTER adding the config to the core !
-				mCore.defaultProxyConfig = proxy_cfg
+				mCore.defaultProxyConfig = mProxyConfig
 			}
-			return proxy_cfg
         } catch {
             print(error)
         }
-        return nil
-    }*/
-    
-    func registerChatRoomsProxyConfigurations()
-    {
-		
-        mProxyConfigA = createProxyConfigAndRegister(identity : mIdA, password : mPasswordA, factoryUri: mFactoryUri)!
-        mProxyConfigB = createProxyConfigAndRegister(identity : mIdB, password : mPasswordB, factoryUri: mFactoryUri)!
     }
     
     func createChatRoom()
     {
         // proxy configuration must first be initialized and registered
-        if (!proxyConfigARegistered || !proxyConfigBRegistered || mChatRoomA != nil) { return }
+        if (!loggedIn || mChatRoom != nil) { return }
         
         do {
-            let chatDest = [mProxyConfigB.contact!]
+			let chatDest = [try Factory.Instance.createAddress(addr: dest)]
             let chatParams = try mCore.createDefaultChatRoomParams()
-            if (isFlexiSip)
-            {
+            if (isFlexiSip) {
                 chatParams.backend = ChatRoomBackend.FlexisipChat
                 chatParams.encryptionEnabled = false
                 chatParams.groupEnabled = false
 				chatParams.subject = "Tutorial Chatroom"
-                mChatRoomA = try mCore.createChatRoom(params: chatParams
-                    , localAddr: mProxyConfigA.contact!
-                    , participants: chatDest)
-				mChatRoomA!.addDelegate(delegate: mChatRoomDelegate)
+                mChatRoom = try mCore.createChatRoom(params: chatParams, localAddr: mProxyConfig.contact!, participants: chatDest)
+				mChatRoom!.addDelegate(delegate: mChatRoomDelegate)
                 // Flexisip chatroom requires a setup time. The delegate will set the state to started when it is ready.
 				chatroomState = ChatroomExampleState.Starting
             }
-            else
-            {
+            else {
                 chatParams.backend = ChatRoomBackend.Basic
-                mChatRoomA = try mCore.createChatRoom(params: chatParams
-                    , localAddr: mProxyConfigA.contact!
-                    , participants: chatDest)
+                mChatRoom = try mCore.createChatRoom(params: chatParams, localAddr: mProxyConfig.contact!, participants: chatDest)
                 // Basic chatroom do not require setup time
                 chatroomState = ChatroomExampleState.Started
-                
             }
-            
         } catch {
             print(error)
         }
@@ -176,7 +138,7 @@ class ChatRoomExampleContext : ObservableObject
                 usleep(100000)
             }
             
-            if let chatRoom = self.mChatRoomA
+            if let chatRoom = self.mChatRoom
             {
                 do
                 {
@@ -200,67 +162,60 @@ class ChatRoomExampleContext : ObservableObject
 			print(error)
 		}
 	}
+	
     func sendMsg()
     {
-        if let chatRoom = mChatRoomA {
+        if let chatRoom = mChatRoom {
 			send(room: chatRoom, msg: textToSend)
         }
     }
-    func sendReply()
-    {
-        if let chatRoom = mChatRoomB {
-			send(room: chatRoom, msg: sReplyText)
-        }
-    }
+	/*
+	func sendFile()
+	{
+		do {
+			let content = try mCore.createContent()
+			content.filePath = fileUrl!.absoluteString
+			
+			//mChatRoomA?.createFileTransferMessage(initialContent: <#T##Content#>)
+			print(try String(contentsOf: fileUrl!, encoding: .utf8))
+		}catch let error as NSError {
+			print("Unable to create directory",error)
+		}
+	}*/
     
 }
 
-class LinphoneRegistrationConfirmDelegate: CoreDelegate {
+class LinphoneCoreDelegate: CoreDelegate {
     
     var tutorialContext : ChatRoomExampleContext!
-    
-    override func onRegistrationStateChanged(core lc: Core, proxyConfig cfg: ProxyConfig, state cstate: RegistrationState, message: String?) {
-        print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
-        if (cstate == RegistrationState.Ok)
-        {
-            if (cfg === tutorialContext.mProxyConfigA)
-            {
-                tutorialContext.proxyConfigARegistered = true
-            }
-            else if (cfg === tutorialContext.mProxyConfigB)
-            {
-                tutorialContext.proxyConfigBRegistered = true
-            }
-        }
+	
+	func onRegistrationStateChanged(core: Core, proxyConfig: ProxyConfig, state: RegistrationState, message: String) {
+		print("New registration state \(state) for user id \( String(describing: proxyConfig.identityAddress?.asString()))\n")
+        if (state == RegistrationState.Ok) {
+			tutorialContext.loggedIn = true
+		}
     }
-}
-
-class LinphoneCoreChatDelegate: CoreDelegate {
-    var tutorialContext : ChatRoomExampleContext!
-	override func onMessageReceived(core lc: Core, chatRoom room: ChatRoom, message: ChatMessage) {
-            
-        if (tutorialContext.mChatRoomB == nil)
-        {
-            tutorialContext.mChatRoomB = room
-        }
-        if (message.contentType == "text/plain")
-        {
-			if (room === tutorialContext.mChatRoomA) {
-				tutorialContext.sReceivedMessagesA += "\n\(message.textContent)"
-			} else {
-				tutorialContext.sReceivedMessagesB += "\n\(message.textContent)"
-			}
-        }
-    }
+	
+	func onMessageReceived(core lc: Core, chatRoom room: ChatRoom, message: ChatMessage) {
+		if (tutorialContext.mChatRoom == nil) {
+			tutorialContext.mChatRoom = room
+			tutorialContext.chatroomState = ChatroomExampleState.Started
+		}
+		if (message.contentType == "text/plain") {
+			tutorialContext.sReceivedMessages += "\n\(message.textContent)"
+		}
+		print(message.contents.count)
+	}
 }
 
 class LinphoneChatRoomStateTracker: ChatRoomDelegate {
     
     var tutorialContext : ChatRoomExampleContext!
     
-	override func onStateChanged(chatRoom cr: ChatRoom, newState: ChatRoom.State) {
+	func onStateChanged(chatRoom cr: ChatRoom, newState: ChatRoom.State) {
         if (newState == ChatRoom.State.Created)
         {
+			// This will only have sense when WE are creating a flexisip chatroom.
             print("ChatRoomTrace - Chatroom ready to start")
 			tutorialContext.chatroomState = ChatroomExampleState.Started
         }
@@ -268,7 +223,7 @@ class LinphoneChatRoomStateTracker: ChatRoomDelegate {
 }
 
 class LinphoneChatMessageTracker: ChatMessageDelegate {
-	override func onMsgStateChanged(message msg: ChatMessage, state: ChatMessage.State) {
+	func onMsgStateChanged(message msg: ChatMessage, state: ChatMessage.State) {
         print("MessageTrace - msg state changed: \(state)\n")
     }
 }
