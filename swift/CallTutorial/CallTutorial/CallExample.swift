@@ -18,7 +18,7 @@ class CallExampleContext : ObservableObject
 	var loggingUnit = LoggingUnit()
 
 	/*------------ Call tutorial related variables ---------------*/
-	let mCallStateTracer = CallStateDelegate()
+	let mCallTutorialDelegate = CallTutorialDelegate()
 	var mCall: Call!
 	var proxy_cfg : ProxyConfig!
 	var callAlreadyStopped = false;
@@ -27,28 +27,24 @@ class CallExampleContext : ObservableObject
 	@Published var microphoneMuted : Bool = false
 	@Published var callRunning : Bool = false
 	@Published var isCallIncoming : Bool = false
-	@Published var dest : String = "sip:arguillq@sip.linphone.org"
+	@Published var dest : String = "sip:targetphone@sip.linphone.org"
 
-	let mRegistrationDelegate = LinphoneRegistrationDelegate()
-	@Published var id : String = "sip:quetindev@sip.linphone.org"
-	@Published var passwd : String = "dev"
+	@Published var id : String = "sip:myphone@sip.linphone.org"
+	@Published var passwd : String = "mypassword"
 	@Published var loggedIn: Bool = false
 
 
-	init()
-	{
-	mCallStateTracer.tutorialContext = self
-	mRegistrationDelegate.tutorialContext = self
+	init() {
+		mCallTutorialDelegate.tutorialContext = self
 
-	// Initialize Linphone Core
-	try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
+		// Initialize Linphone Core
+		try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
 
-	// main loop for receiving notifications and doing background linphonecore work:
-	mCore.autoIterateEnabled = true
-	try? mCore.start()
+		// main loop for receiving notifications and doing background linphonecore work:
+		mCore.autoIterateEnabled = true
+		try? mCore.start()
 
-	mCore.addDelegate(delegate: mCallStateTracer)
-	mCore.addDelegate(delegate: mRegistrationDelegate)
+		mCore.addDelegate(delegate: mCallTutorialDelegate)
 	}
 
 	func registrationExample()
@@ -88,7 +84,7 @@ class CallExampleContext : ObservableObject
 			print(error)
 		}
 	}
-
+	
 	// Terminate a call
 	func stopCall() {
 		if ((callRunning || isCallIncoming) && mCall.state != Call.State.End) {
@@ -135,25 +131,18 @@ class CallExampleContext : ObservableObject
 }
 
 // Callback for actions when a change in the Registration State happens
-class LinphoneRegistrationDelegate: CoreDelegate {
+class CallTutorialDelegate: CoreDelegate {
 
 	var tutorialContext : CallExampleContext!
-
-	override func onRegistrationStateChanged(core lc: Core, proxyConfig cfg: ProxyConfig, state cstate: RegistrationState, message: String?) {
-		print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
-		if (cstate == .Ok) {
+	
+	func onRegistrationStateChanged(core: Core, proxyConfig: ProxyConfig, state: RegistrationState, message: String) {
+		print("New registration state \(state) for user id \( String(describing: proxyConfig.identityAddress?.asString()))\n")
+		if (state == .Ok) {
 			tutorialContext.loggedIn = true
 		}
 	}
-}
-
-
-// Callback for actions when a change in the Call State happens
-class CallStateDelegate: CoreDelegate {
-
-	var tutorialContext : CallExampleContext!
-
-	override func onCallStateChanged(core lc: Core, call: Call, state cstate: Call.State, message: String) {
+	
+	func onCallStateChanged(core lc: Core, call: Call, state cstate: Call.State, message: String) {
 		print("CallTrace - \(cstate)")
 		if (cstate == .IncomingReceived) {
 			// We're being called by someone
@@ -162,13 +151,13 @@ class CallStateDelegate: CoreDelegate {
 		} else if (cstate == .OutgoingRinging) {
 			// We're calling someone
 			tutorialContext.callRunning = true
-		} else if (cstate == .End) {
-			// Call has been terminated by any side
-			tutorialContext.callRunning = false
-			tutorialContext.isCallIncoming = false
 		} else if (cstate == .StreamsRunning) {
 			// Call has successfully began
 			tutorialContext.callRunning = true
+		} else if (cstate == .End || cstate == .Error) {
+			// Call has been terminated by any side, or an error occured
+			tutorialContext.callRunning = false
+			tutorialContext.isCallIncoming = false
 		}
 	}
 }
