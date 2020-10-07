@@ -17,7 +17,7 @@ class VideoCallExample : ObservableObject
 	var loggingUnit = LoggingUnit()
 
 	/*------------ Call tutorial related variables ---------------*/
-	let mCallStateTracer = CallStateDelegate()
+	let mVideoTutorialDelegate = VideoTutorialDelegate()
 	var mCall: Call!
 	var proxy_cfg : ProxyConfig!
 	var mVideoDevices : [String] = []
@@ -27,52 +27,27 @@ class VideoCallExample : ObservableObject
 	@Published var videoEnabled : Bool = true
 	@Published var callRunning : Bool = false
 	@Published var isCallIncoming : Bool = false
-	@Published var dest : String = "sip:arguillq@sip.linphone.org"
+	@Published var dest : String = "sip:targetphone@sip.linphone.org"
 
-	let mRegistrationDelegate = LinphoneRegistrationDelegate()
-	@Published var id : String = "sip:quentindev@sip.linphone.org"
-	@Published var passwd : String = "dev"
+	@Published var id : String = "sip:myphone@sip.linphone.org"
+	@Published var passwd : String = "mypassword"
 	@Published var loggedIn: Bool = false
-	
-	var audioDeviceId : Int = 0
 	
 	init()
 	{
-		mCallStateTracer.tutorialContext = self
-		mRegistrationDelegate.tutorialContext = self
+		mVideoTutorialDelegate.tutorialContext = self
 	    // linphone_call_params_get_used_video_codec
 		// Initialize Linphone Core
 		try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
 
 		// main loop for receiving notifications and doing background linphonecore work:
 		mCore.autoIterateEnabled = true
-		
 		try? mCore.start()
 		
 		mVideoDevices = mCore.videoDevicesList
 
-		mCore.addDelegate(delegate: mCallStateTracer)
-		mCore.addDelegate(delegate: mRegistrationDelegate)
+		mCore.addDelegate(delegate: mVideoTutorialDelegate)
 		
-	}
-	func changeAudioDevice()
-	{
-		let devices = mCore.audioDevices
-		audioDeviceId = (audioDeviceId + 1) % devices.count
-		let previousDevice : String = mCore.outputAudioDevice!.deviceName
-		let newDevice : String = devices[audioDeviceId].deviceName
-		print("Core Device change : \(previousDevice) => \(newDevice)")
-		
-		var previousCallDevice : String = ""
-		if (mCall != nil)	{
-			previousCallDevice = mCall!.outputAudioDevice!.deviceName
-		}
-		mCore.outputAudioDevice = devices[audioDeviceId]
-		
-		if (mCall != nil){
-			let newCallDevice : String = mCall!.outputAudioDevice!.deviceName
-			print("Call Device change ? : \(previousCallDevice) => \(newCallDevice)")
-		}
 	}
 	
 	func registrationExample()
@@ -165,44 +140,33 @@ class VideoCallExample : ObservableObject
 }
 
 // Callback for actions when a change in the Registration State happens
-class LinphoneRegistrationDelegate: CoreDelegate {
+class VideoTutorialDelegate: CoreDelegate {
     
     var tutorialContext : VideoCallExample!
-    
-	func onRegistrationStateChanged(core lc: Core, proxyConfig cfg: ProxyConfig, state cstate: RegistrationState, message: String?) {
-        print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
-        if (cstate == .Ok) {
-            tutorialContext.loggedIn = true
-        }
-    }
 	
-	func onAudioDevicesListUpdated(core : Core) {
-		print ("device list updated")
+	func onRegistrationStateChanged(core: Core, proxyConfig: ProxyConfig, state: RegistrationState, message: String) {
+		print("New registration state \(state) for user id \( String(describing: proxyConfig.identityAddress?.asString()))\n")
+		if (state == .Ok) {
+			tutorialContext.loggedIn = true
+		}
 	}
-}
-
-
-// Callback for actions when a change in the Call State happens
-class CallStateDelegate: CoreDelegate {
-    
-    var tutorialContext : VideoCallExample!
 	
-	func onCallStateChanged(core: Core, call: Call, state: Call.State, message: String) {
-        print("CallTrace - \(state)")
-        if (state == .IncomingReceived) {
-            // We're being called by someone
-            tutorialContext.mCall = call
-            tutorialContext.isCallIncoming = true
-        } else if (state == .OutgoingRinging) {
-            // We're calling someone
-            tutorialContext.callRunning = true
-        } else if (state == .End) {
-            // Call has been terminated by any side
-            tutorialContext.callRunning = false
-            tutorialContext.isCallIncoming = false
-        } else if (state == .StreamsRunning) {
-            // Call has successfully began
-            tutorialContext.callRunning = true
-        }
-    }
+	func onCallStateChanged(core lc: Core, call: Call, state cstate: Call.State, message: String) {
+		if (cstate == .IncomingReceived) {
+			// We're being called by someone
+			tutorialContext.mCall = call
+			tutorialContext.isCallIncoming = true
+		} else if (cstate == .OutgoingRinging) {
+			// We're calling someone
+			tutorialContext.callRunning = true
+		} else if (cstate == .StreamsRunning) {
+			// Call has successfully began
+			tutorialContext.callRunning = true
+		} else if (cstate == .End || cstate == .Error) {
+			// Call has been terminated by any side, or an error occured
+			tutorialContext.callRunning = false
+			tutorialContext.isCallIncoming = false
+		}
+	}
+
 }
