@@ -53,7 +53,6 @@ class CallKitProviderDelegate : NSObject
         incomingCallUUID = UUID()
         let update = CXCallUpdate()
         update.remoteHandle = CXHandle(type:.generic, value: tutorialContext.incomingCallName)
-        update.hasVideo = tutorialContext.videoEnabled
         
         provider.reportNewIncomingCall(with: incomingCallUUID, update: update, completion: { error in }) // Report to CallKit a call is incoming
     }
@@ -107,7 +106,7 @@ extension CallKitProviderDelegate: CXProviderDelegate {
         do {
             let callDest = try Factory.Instance.createAddress(addr: tutorialContext.dest)
             // Place an outgoing call
-            tutorialContext.mCall = tutorialContext.mCore.inviteAddressWithParams(addr: callDest, params: try tutorialContext.createCallParams())
+            tutorialContext.mCall = tutorialContext.mCore.inviteAddressWithParams(addr: callDest, params: try tutorialContext.mCore.createCallParams(call: nil))
         } catch {
             print(error)
         }

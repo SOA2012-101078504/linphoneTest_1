@@ -90,34 +90,6 @@ struct ContentView: View {
                 }
                 .padding(.top, 5)
             }
-            VStack(alignment: .leading) {
-                Toggle(isOn: $tutorialContext.audioEnabled) {
-                    Text("Audio")
-                }.frame(width : 140.0)
-                Toggle(isOn: $tutorialContext.videoEnabled) {
-                    Text("Video")
-                }.frame(width : 140.0)
-                Button(action: tutorialContext.changeVideoDevice)
-                {
-                    Text(" Change camera ")
-                        .font(.title)
-                        .foregroundColor(Color.white)
-                        .background(Color.gray)
-                }
-                .padding(.vertical)
-                HStack {
-                    Text("Speaker :")
-                    Button(action: tutorialContext.speaker)
-                    {
-                        Text(tutorialContext.speakerEnabled ? "ON" : "OFF")
-                            .font(.title)
-                            .foregroundColor(Color.white)
-                            .frame(width: 60.0, height: 30.0)
-                            .background(Color.gray)
-                    }
-                }
-            }
-            .padding(.top, 5.0)
             Spacer()
             VStack {
                 HStack {
