@@ -19,8 +19,8 @@ class LoginTutorialContext : ObservableObject
     /*------------ Login tutorial related variables -------*/
     var proxy_cfg: ProxyConfig?
     let mRegistrationDelegate = LinphoneRegistrationDelegate()
-    @Published var id : String = "sip:peche5@sip.linphone.org"
-    @Published var passwd : String = "peche5"
+    @Published var id : String = "sip:myphonesip.linphone.org"
+    @Published var passwd : String = "mypassword"
     @Published var loggedIn: Bool = false
     
     init()
@@ -83,14 +83,14 @@ class LoginTutorialContext : ObservableObject
 class LinphoneRegistrationDelegate: CoreDelegate {
     
     var tutorialContext : LoginTutorialContext!
-    
-    override func onRegistrationStateChanged(core lc: Core, proxyConfig cfg: ProxyConfig, state cstate: RegistrationState, message: String?) {
-        print("New registration state \(cstate) for user id \( String(describing: cfg.identityAddress?.asString()))\n")
-        if (cstate == .Ok)
+	
+	func onRegistrationStateChanged(core: Core, proxyConfig: ProxyConfig, state: RegistrationState, message: String) {
+        print("New registration state \(state) for user id \( String(describing: proxyConfig.identityAddress?.asString()))\n")
+        if (state == .Ok)
         {
             tutorialContext.loggedIn = true
         }
-        else if (cstate == .Cleared)
+        else if (state == .Cleared)
         {
             tutorialContext.loggedIn = false
         }
