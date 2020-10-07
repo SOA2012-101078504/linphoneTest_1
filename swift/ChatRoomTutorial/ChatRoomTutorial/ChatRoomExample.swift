@@ -39,9 +39,9 @@ class ChatRoomExampleContext : ObservableObject
     @Published var isFlexiSip : Bool = true
 	@Published var textToSend: String = "msg to send"
     @Published var sReceivedMessages : String = ""
-	@Published var dest : String = "sip:arguillq@sip.linphone.org"
-	@Published var id : String = "sip:quentindev@sip.linphone.org"
-	@Published var passwd : String = "dev"
+	@Published var dest : String = "sip:chatdest@sip.linphone.org"
+	@Published var id : String = "sip:thisphone@sip.linphone.org"
+	@Published var passwd : String = "mypassword"
 	@Published var loggedIn: Bool = false
 	
 	//var fileFolderUrl : URL?
