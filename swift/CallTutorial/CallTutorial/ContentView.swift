@@ -11,7 +11,7 @@ import SwiftUI
 struct ContentView: View {
 
 	@ObservedObject var tutorialContext : CallExampleContext
-
+	
 	func getCallButtonText() -> String {
 		if (tutorialContext.callRunning) {
 			return "Update Call"
@@ -35,7 +35,6 @@ struct ContentView: View {
 			return "No Call"
 		}
 	}
-
 	var body: some View {
 		VStack(alignment: .leading) {
 			Group {
@@ -75,27 +74,30 @@ struct ContentView: View {
 			.padding(.top, 5)
 			VStack {
 				HStack {
-					Text("Speaker :")
-					Button(action: tutorialContext.speaker)
-					{
-						Text(tutorialContext.speakerEnabled ? "ON" : "OFF")
-						.font(.title)
-						.foregroundColor(Color.white)
-						.frame(width: 60.0, height: 30.0)
-						.background(Color.gray)
-					}
-				}
-				HStack {
-					Text("Microphone :")
+					Text("Microphone :").frame(width: 200, height: 40.0)
 					Button(action: tutorialContext.microphoneMuteToggle)
 					{
 						Text(tutorialContext.microphoneMuted ? "Unmute" : "Mute")
 						.font(.title)
 						.foregroundColor(Color.white)
-						.frame(width: 110.0, height: 30.0)
+						.frame(width: 100.0, height: 40.0)
 						.background(Color.gray)
 					}
-				}.padding(.top)
+				}.padding()
+				HStack {
+					VStack {
+						Text("Audio device :")
+						Text("\(tutorialContext.currentAudioDevice.deviceName)")
+					}.frame(width: 200, height: 40.0)
+					Button(action: tutorialContext.changeAudioOutput)
+					{
+						Text("Change")
+						.font(.title)
+						.foregroundColor(Color.white)
+						.frame(width: 115.0, height: 40.0)
+						.background(Color.gray)
+					}
+				}.padding()
 			}
 			Spacer()
 			VStack {

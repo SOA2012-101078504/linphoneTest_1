@@ -32,7 +32,8 @@ class CallExampleContext : ObservableObject
 	@Published var id : String = "sip:myphone@sip.linphone.org"
 	@Published var passwd : String = "mypassword"
 	@Published var loggedIn: Bool = false
-
+	
+	@Published var currentAudioDevice : AudioDevice!
 
 	init() {
 		mCallTutorialDelegate.tutorialContext = self
@@ -44,11 +45,11 @@ class CallExampleContext : ObservableObject
 		mCore.autoIterateEnabled = true
 		try? mCore.start()
 
+		currentAudioDevice = mCore.audioDevices[0]
 		mCore.addDelegate(delegate: mCallTutorialDelegate)
 	}
 
-	func registrationExample()
-	{
+	func registrationExample() {
 		if (!loggedIn) {
 			do {
 				proxy_cfg = try createAndInitializeProxyConfig(core : mCore, identity: id, password: passwd)
@@ -99,24 +100,23 @@ class CallExampleContext : ObservableObject
 		}
 	}
 
-	func microphoneMuteToggle()
-	{
+	func microphoneMuteToggle() {
 		if (callRunning) {
 			mCall.microphoneMuted = !mCall.microphoneMuted
 			microphoneMuted = mCall.microphoneMuted
 		}
 	}
 
-	func speaker()
-	{
-		speakerEnabled = !speakerEnabled
-		do {
-			try AVAudioSession.sharedInstance().overrideOutputAudioPort(
-				speakerEnabled ?
-					AVAudioSession.PortOverride.speaker : AVAudioSession.PortOverride.none)
-		} catch {
-			print(error)
+	func changeAudioOutput() {
+		let devices = mCore.audioDevices
+		var newIdx = 0;
+		for i in 0...devices.count {
+			if (devices[i].deviceName == currentAudioDevice.deviceName) {
+				newIdx = (i + 1) % devices.count
+				break
+			}
 		}
+		mCore.outputAudioDevice =  devices[newIdx]
 	}
 
 	func acceptCall()
@@ -127,7 +127,6 @@ class CallExampleContext : ObservableObject
 			print(error)
 		}
 	}
-	
 }
 
 // Callback for actions when a change in the Registration State happens
@@ -158,6 +157,15 @@ class CallTutorialDelegate: CoreDelegate {
 			// Call has been terminated by any side, or an error occured
 			tutorialContext.callRunning = false
 			tutorialContext.isCallIncoming = false
+		}
+	}
+	
+	func onAudioDeviceChanged(core: Core, audioDevice: AudioDevice) {
+		tutorialContext.currentAudioDevice = audioDevice
+	}
+	func onAudioDevicesListUpdated(core: Core) {
+		if let outputDevice = core.outputAudioDevice {
+			
 		}
 	}
 }
