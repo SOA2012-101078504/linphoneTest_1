@@ -130,33 +130,32 @@ class ChatRoomExampleContext : ObservableObject
         }
         
         DispatchQueue.global(qos: .userInitiated).async {
-            // Wait until we're sure that the chatroom is ready to send messages
-			if (!self.isFlexiSip) {
-				return
+			if (self.isFlexiSip) {
+				// Wait until we're sure that the chatroom is ready to send messages
+				while(self.chatroomState != ChatroomExampleState.Started){
+					usleep(100000)
+				}
 			}
-			while(self.chatroomState != ChatroomExampleState.Started){
-                usleep(100000)
-            }
-            
-            if let chatRoom = self.mChatRoom
-            {
-                do
-                {
-					self.mChatMessage = try chatRoom.createMessage(message: "Hello, \((self.isFlexiSip) ? "Flexisip" : "Basic") World !")
-                    self.mChatMessage!.addDelegate(delegate: self.mChatMessageDelegate)
-                    self.mChatMessage!.send()
-                } catch {
-                    print(error)
-                }
-            }
+			if let chatRoom = self.mChatRoom {
+				self.send(room: chatRoom, msg: "Hello, \((self.isFlexiSip) ? "Flexisip" : "Basic") World !")
+			}
         }
     }
-    
+	
+	func reset() {
+		if let chatRoom = mChatRoom {
+			mCore.deleteChatRoom(chatRoom: chatRoom)
+			mChatRoom = nil;
+		}
+		chatroomState = ChatroomExampleState.Unstarted
+	}
+	
 	func send(room : ChatRoom, msg : String)
 	{
 		do
 		{
 			self.mChatMessage = try room.createMessage(message: msg)
+			self.mChatMessage!.addDelegate(delegate: self.mChatMessageDelegate)
 			self.mChatMessage!.send()
 		} catch {
 			print(error)

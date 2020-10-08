@@ -45,7 +45,7 @@ struct ContentView: View {
 				}
 			}
 			HStack {
-				Text("Call destination :")
+				Text("Chat destination :")
 				TextField("", text : $tutorialContext.dest)
 				.textFieldStyle(RoundedBorderTextFieldStyle())
 			}
@@ -64,14 +64,20 @@ struct ContentView: View {
 							.foregroundColor((tutorialContext.chatroomState == ChatroomExampleState.Started) ? Color.green : Color.black)
 					}
 				}
-				Button(action: { self.tutorialContext.createChatRoom() })
+				Button(action: {
+					if (self.tutorialContext.chatroomState == ChatroomExampleState.Started) {
+						self.tutorialContext.reset()
+					} else {
+						self.tutorialContext.createChatRoom()
+					}
+				})
 				{
-					Text("Start\nChat")
+					Text((tutorialContext.chatroomState == ChatroomExampleState.Started) ? "Reset" : "Start\nChat")
 						.font(.largeTitle)
 					   .foregroundColor(Color.white)
 					   .frame(width: 100.0, height: 82.0)
 					   .background(Color.gray)
-				}.disabled(!tutorialContext.loggedIn)
+				}
 			}
 			HStack {
 				VStack {
