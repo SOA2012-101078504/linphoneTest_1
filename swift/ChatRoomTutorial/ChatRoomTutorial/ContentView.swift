@@ -8,6 +8,16 @@
 
 import SwiftUI
 
+func getStateAsString(chatroomState : ChatroomExampleState) -> String
+{
+	switch (chatroomState)
+	{
+		case ChatroomExampleState.Unstarted : return "Unstarted"
+		case ChatroomExampleState.Starting: return "Starting"
+		case ChatroomExampleState.Started: return "Started"
+	}
+}
+
 struct ContentView: View {
     
 	@ObservedObject var tutorialContext : ChatRoomExampleContext
@@ -36,7 +46,7 @@ struct ContentView: View {
 						.foregroundColor(Color.white)
 						.frame(width: 90.0, height: 42.0)
 						.background(Color.gray)
-					}
+					}.disabled(tutorialContext.loggedIn)
 					Text("Login State : ")
 					.font(.footnote)
 					Text(tutorialContext.loggedIn ? "Logged in" : "Unregistered")
@@ -48,20 +58,28 @@ struct ContentView: View {
 				Text("Chat destination :")
 				TextField("", text : $tutorialContext.dest)
 				.textFieldStyle(RoundedBorderTextFieldStyle())
-			}
+			}.disabled(tutorialContext.chatroomState != ChatroomExampleState.Unstarted)
 			.padding(.top, 5)
 			HStack {
-				VStack() {
-					Toggle(isOn: $tutorialContext.isFlexiSip) {
-						Text("FlexiSip ChatRoom")
-					}.frame(width: 210).padding(.top)
-
+				VStack {
+					Toggle(isOn: $tutorialContext.groupChatEnabled) {
+						Text("Group ChatRoom")
+					}.frame(width: 210)
+					.padding(.top)
+					.disabled(tutorialContext.chatroomState != ChatroomExampleState.Unstarted)
+					Toggle(isOn: $tutorialContext.encryptionEnabled) {
+						VStack {
+							Text("Lime Encryption")
+							Text("(group chat only)").italic().font(.footnote)
+						}
+					}.frame(width: 210)
+					.disabled(tutorialContext.chatroomState != ChatroomExampleState.Unstarted)
 					HStack {
 						Text("Chatroom state: ")
 							.font(.footnote)
-						Text(tutorialContext.getStateAsString())
+						Text(getStateAsString(chatroomState: tutorialContext.chatroomState))
 							.font(.footnote)
-							.foregroundColor((tutorialContext.chatroomState == ChatroomExampleState.Started) ? Color.green : Color.black)
+							.foregroundColor((tutorialContext.chatroomState == ChatroomExampleState.Started) ? Color.green : Color	.black)
 					}
 				}
 				Button(action: {
@@ -74,9 +92,10 @@ struct ContentView: View {
 				{
 					Text((tutorialContext.chatroomState == ChatroomExampleState.Started) ? "Reset" : "Start\nChat")
 						.font(.largeTitle)
-					   .foregroundColor(Color.white)
-					   .frame(width: 100.0, height: 82.0)
-					   .background(Color.gray)
+						.foregroundColor(Color.white)
+						.frame(width: 140.0, height: 100.0)
+						.background(Color.gray)
+						.padding()
 				}
 			}
 			HStack {
@@ -98,6 +117,25 @@ struct ContentView: View {
 								.frame(width: 50.0, height: 30.0)
 								.background(Color.gray)
 						}.disabled(tutorialContext.chatroomState != ChatroomExampleState.Started)
+					}
+					HStack {
+						Button(action: tutorialContext.sendExampleFile)
+						{
+							Text("Send example \n file")
+							.foregroundColor(Color.white)
+							.multilineTextAlignment(.center)
+							.frame(width: 120.0, height: 50.0)
+							.background(Color.gray)
+						}.disabled(tutorialContext.chatroomState != ChatroomExampleState.Started)
+						
+						Button(action: tutorialContext.downloadLastFileMessage)
+						{
+							Text("Download last files \n received")
+							.foregroundColor(Color.white)
+							.multilineTextAlignment(.center)
+							.frame(width: 150.0, height: 50.0)
+							.background(Color.gray)
+						}.disabled(tutorialContext.mLastFileMessageReceived == nil)
 					}
 				}
 				Spacer()

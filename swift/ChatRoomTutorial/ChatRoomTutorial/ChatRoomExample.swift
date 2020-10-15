@@ -23,39 +23,30 @@ class ChatRoomExampleContext : ObservableObject
     /*------------ Logs related variables ------------------------*/
     var loggingUnit = LoggingUnit()
     
-    /*-------- Chatroom tutorial related variables ---------------
-      -------- "A" always initiates the chat, "B" answers --------*/
+    /*-------- Chatroom tutorial related variables ---------------*/
 	
+	@Published var dest : String = "sip:chatdest@sip.linphone.org"
+	@Published var id : String = "sip:thisphone@sip.linphone.org"
+	@Published var passwd : String = "thispassword"
+	@Published var loggedIn: Bool = false
 	
     let mFactoryUri = "sip:conference-factory@sip.linphone.org"
     var mProxyConfig : ProxyConfig!
     var mChatMessage : ChatMessage?
+	var mLastFileMessageReceived : ChatMessage?
 	let mLinphoneCoreDelegate = LinphoneCoreDelegate()
     let mChatMessageDelegate =  LinphoneChatMessageTracker()
     let mChatRoomDelegate = LinphoneChatRoomStateTracker()
     var mChatRoom : ChatRoom?
 	
+	@Published var encryptionEnabled : Bool = false
+	@Published var groupChatEnabled : Bool = true
     @Published var chatroomState = ChatroomExampleState.Unstarted
-    @Published var isFlexiSip : Bool = true
 	@Published var textToSend: String = "msg to send"
     @Published var sReceivedMessages : String = ""
-	@Published var dest : String = "sip:chatdest@sip.linphone.org"
-	@Published var id : String = "sip:thisphone@sip.linphone.org"
-	@Published var passwd : String = "mypassword"
-	@Published var loggedIn: Bool = false
 	
-	//var fileFolderUrl : URL?
-	//var fileUrl : URL?
-	
-	func getStateAsString() -> String
-	{
-		switch (chatroomState)
-		{
-			case ChatroomExampleState.Unstarted : return "Unstarted"
-			case ChatroomExampleState.Starting: return "Starting"
-			case ChatroomExampleState.Started: return "Started"
-		}
-	}
+	var fileFolderUrl : URL?
+	var fileUrl : URL?
     
     init()
     {
@@ -67,23 +58,24 @@ class ChatRoomExampleContext : ObservableObject
 
         // main loop for receiving notifications and doing background linphonecore work:
         mCore.autoIterateEnabled = true
+		mCore.limeX3DhEnabled = true;
+		mCore.limeX3DhServerUrl = "https://lime.linphone.org/lime-server/lime-server.php"
+		mCore.fileTransferServer = "https://www.linphone.org:444/lft.php"
         try? mCore.start()
         
-        // Important ! Will notify when config are registered so that we can proceed with the chatroom creations
-		// Also handles chat message reception
+        // Important ! Will notify when config logged in, or when a message is received
         mCore.addDelegate(delegate: mLinphoneCoreDelegate)
 		
-		/*
 		let documentsPath = NSURL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0])
-		let myFiles = documentsPath.appendingPathComponent("TutorialFiles")
-		fileUrl = myFiles?.appendingPathComponent("file_to_transfer.txt")
+		fileFolderUrl = documentsPath.appendingPathComponent("TutorialFiles")
+		fileUrl = fileFolderUrl?.appendingPathComponent("file_to_transfer.txt")
 		do{
-			try FileManager.default.createDirectory(atPath: myFiles!.path, withIntermediateDirectories: true, attributes: nil)
+			try FileManager.default.createDirectory(atPath: fileFolderUrl!.path, withIntermediateDirectories: true, attributes: nil)
 			try String("My file content").write(to: fileUrl!, atomically: false, encoding: .utf8)
 		}catch let error as NSError{
-			print("Unable to create directory",error)
+			print("Unable to create d)irectory",error)
 		}
-		*/
+		
     }
     
     func createProxyConfigAndRegister()
@@ -109,13 +101,15 @@ class ChatRoomExampleContext : ObservableObject
         do {
 			let chatDest = [try Factory.Instance.createAddress(addr: dest)]
             let chatParams = try mCore.createDefaultChatRoomParams()
-            if (isFlexiSip) {
+            if (groupChatEnabled) {
                 chatParams.backend = ChatRoomBackend.FlexisipChat
-                chatParams.encryptionEnabled = false
-                chatParams.groupEnabled = false
+                chatParams.encryptionEnabled = encryptionEnabled
+				if (encryptionEnabled) {
+					chatParams.encryptionBackend = ChatRoomEncryptionBackend.Lime
+				}
+                chatParams.groupEnabled = groupChatEnabled
 				chatParams.subject = "Tutorial Chatroom"
                 mChatRoom = try mCore.createChatRoom(params: chatParams, localAddr: mProxyConfig.contact!, participants: chatDest)
-				mChatRoom!.addDelegate(delegate: mChatRoomDelegate)
                 // Flexisip chatroom requires a setup time. The delegate will set the state to started when it is ready.
 				chatroomState = ChatroomExampleState.Starting
             }
@@ -127,17 +121,21 @@ class ChatRoomExampleContext : ObservableObject
             }
         } catch {
             print(error)
+			return;
         }
-        
+		
+		mChatRoom!.addDelegate(delegate: mChatRoomDelegate)
+		
+		
         DispatchQueue.global(qos: .userInitiated).async {
-			if (self.isFlexiSip) {
+			if (self.groupChatEnabled) {
 				// Wait until we're sure that the chatroom is ready to send messages
 				while(self.chatroomState != ChatroomExampleState.Started){
 					usleep(100000)
 				}
 			}
 			if let chatRoom = self.mChatRoom {
-				self.send(room: chatRoom, msg: "Hello, \((self.isFlexiSip) ? "Flexisip" : "Basic") World !")
+				self.send(room: chatRoom, msg: "Hello, \((self.groupChatEnabled) ? "Group" : "") World !")
 			}
         }
     }
@@ -154,7 +152,7 @@ class ChatRoomExampleContext : ObservableObject
 	{
 		do
 		{
-			self.mChatMessage = try room.createMessage(message: msg)
+			self.mChatMessage = try room.createMessageFromUtf8(message: msg)
 			self.mChatMessage!.addDelegate(delegate: self.mChatMessageDelegate)
 			self.mChatMessage!.send()
 		} catch {
@@ -168,19 +166,41 @@ class ChatRoomExampleContext : ObservableObject
 			send(room: chatRoom, msg: textToSend)
         }
     }
-	/*
-	func sendFile()
+	
+	func sendExampleFile()
 	{
 		do {
 			let content = try mCore.createContent()
-			content.filePath = fileUrl!.absoluteString
+			content.filePath = fileUrl!.path
+			content.name = "file_to_transfer.txt"
+			content.type = "text"
+			content.subtype = "plain"
 			
-			//mChatRoomA?.createFileTransferMessage(initialContent: <#T##Content#>)
-			print(try String(contentsOf: fileUrl!, encoding: .utf8))
+			mChatMessage = try mChatRoom!.createFileTransferMessage(initialContent: content)
+			mChatMessage!.addDelegate(delegate: self.mChatMessageDelegate)
+			mChatMessage!.send()
 		}catch let error as NSError {
 			print("Unable to create directory",error)
 		}
-	}*/
+	}
+	
+	func downloadLastFileMessage() {
+		if let message = mLastFileMessageReceived {
+			for content in message.contents {
+				if (content.isFileTransfer && content.filePath.isEmpty) {
+					let contentName = content.name
+					if (!contentName.isEmpty) {
+						content.filePath = fileFolderUrl!.appendingPathComponent(contentName).path
+						print("Start downloading \(content.name) into \(content.filePath)")
+						if (!message.downloadContent(content: content)) {
+							print ("Download of \(contentName) failed")
+						}
+					}
+				}
+			}
+		}
+		mLastFileMessageReceived = nil
+	}
     
 }
 
@@ -200,29 +220,37 @@ class LinphoneCoreDelegate: CoreDelegate {
 			tutorialContext.mChatRoom = room
 			tutorialContext.chatroomState = ChatroomExampleState.Started
 		}
-		if (message.contentType == "text/plain") {
-			tutorialContext.sReceivedMessages += "\n\(message.textContent)"
+		
+		if (message.hasTextContent()) {
+			tutorialContext.sReceivedMessages += "\n\(message.utf8Text)"
 		}
-		print(message.contents.count)
+		
+		for content in message.contents {
+			if (content.isFileTransfer) {
+				tutorialContext.mLastFileMessageReceived = message
+				tutorialContext.sReceivedMessages += "\n File(s) available(s) for download"
+				break;
+			}
+		}
 	}
 }
 
 class LinphoneChatRoomStateTracker: ChatRoomDelegate {
-    
+       
     var tutorialContext : ChatRoomExampleContext!
-    
-	func onStateChanged(chatRoom cr: ChatRoom, newState: ChatRoom.State) {
-        if (newState == ChatRoom.State.Created)
-        {
-			// This will only have sense when WE are creating a flexisip chatroom.
-            print("ChatRoomTrace - Chatroom ready to start")
-			tutorialContext.chatroomState = ChatroomExampleState.Started
-        }
-    }
+	
+	func onConferenceJoined(chatRoom: ChatRoom, eventLog: EventLog) {
+		print("ChatRoomTrace - Chatroom ready to start")
+		tutorialContext.chatroomState = ChatroomExampleState.Started
+	}
 }
 
 class LinphoneChatMessageTracker: ChatMessageDelegate {
 	func onMsgStateChanged(message msg: ChatMessage, state: ChatMessage.State) {
         print("MessageTrace - msg state changed: \(state)\n")
     }
+	
+	func onFileTransferRecv(message: ChatMessage, content: Content, buffer: Buffer) {
+		
+	}
 }
