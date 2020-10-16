@@ -44,7 +44,7 @@ class ChatRoomExampleContext : ObservableObject
     @Published var chatroomState = ChatroomExampleState.Unstarted
 	@Published var textToSend: String = "msg to send"
     @Published var sReceivedMessages : String = ""
-	
+	@Published var isDownloading : Bool = false
 	var fileFolderUrl : URL?
 	var fileUrl : URL?
     
@@ -52,7 +52,8 @@ class ChatRoomExampleContext : ObservableObject
     {
         mChatRoomDelegate.tutorialContext = self
 		mLinphoneCoreDelegate.tutorialContext = self
-        
+		mChatMessageDelegate.tutorialContext = self
+		
         // Initialize Linphone Core
         try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
 
@@ -177,7 +178,6 @@ class ChatRoomExampleContext : ObservableObject
 			content.subtype = "plain"
 			
 			mChatMessage = try mChatRoom!.createFileTransferMessage(initialContent: content)
-			mChatMessage!.addDelegate(delegate: self.mChatMessageDelegate)
 			mChatMessage!.send()
 		}catch let error as NSError {
 			print("Unable to create directory",error)
@@ -192,6 +192,7 @@ class ChatRoomExampleContext : ObservableObject
 					if (!contentName.isEmpty) {
 						content.filePath = fileFolderUrl!.appendingPathComponent(contentName).path
 						print("Start downloading \(content.name) into \(content.filePath)")
+						isDownloading = true
 						if (!message.downloadContent(content: content)) {
 							print ("Download of \(contentName) failed")
 						}
@@ -236,7 +237,6 @@ class LinphoneCoreDelegate: CoreDelegate {
 }
 
 class LinphoneChatRoomStateTracker: ChatRoomDelegate {
-       
     var tutorialContext : ChatRoomExampleContext!
 	
 	func onConferenceJoined(chatRoom: ChatRoom, eventLog: EventLog) {
@@ -246,11 +246,12 @@ class LinphoneChatRoomStateTracker: ChatRoomDelegate {
 }
 
 class LinphoneChatMessageTracker: ChatMessageDelegate {
+	var tutorialContext : ChatRoomExampleContext!
+	
 	func onMsgStateChanged(message msg: ChatMessage, state: ChatMessage.State) {
         print("MessageTrace - msg state changed: \(state)\n")
+		if (state == ChatMessage.State.FileTransferDone && tutorialContext.isDownloading == true) {
+			tutorialContext.isDownloading = false
+		}
     }
-	
-	func onFileTransferRecv(message: ChatMessage, content: Content, buffer: Buffer) {
-		
-	}
 }

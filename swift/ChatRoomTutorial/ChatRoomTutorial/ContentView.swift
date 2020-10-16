@@ -18,6 +18,18 @@ func getStateAsString(chatroomState : ChatroomExampleState) -> String
 	}
 }
 
+struct ActivityIndicator: UIViewRepresentable {
+	func makeUIView(context: UIViewRepresentableContext<ActivityIndicator>) -> UIActivityIndicatorView
+	{
+		return UIActivityIndicatorView(style: .medium)
+	}
+	
+	func updateUIView(_ uiView: UIActivityIndicatorView, context: UIViewRepresentableContext<ActivityIndicator>)
+	{
+		uiView.startAnimating()
+	}
+}
+
 struct ContentView: View {
     
 	@ObservedObject var tutorialContext : ChatRoomExampleContext
@@ -80,6 +92,9 @@ struct ContentView: View {
 						Text(getStateAsString(chatroomState: tutorialContext.chatroomState))
 							.font(.footnote)
 							.foregroundColor((tutorialContext.chatroomState == ChatroomExampleState.Started) ? Color.green : Color	.black)
+						if (tutorialContext.chatroomState == ChatroomExampleState.Starting) {
+							ActivityIndicator()
+						}
 					}
 				}
 				Button(action: {
@@ -127,7 +142,6 @@ struct ContentView: View {
 							.frame(width: 120.0, height: 50.0)
 							.background(Color.gray)
 						}.disabled(tutorialContext.chatroomState != ChatroomExampleState.Started)
-						
 						Button(action: tutorialContext.downloadLastFileMessage)
 						{
 							Text("Download last files \n received")
@@ -136,6 +150,9 @@ struct ContentView: View {
 							.frame(width: 150.0, height: 50.0)
 							.background(Color.gray)
 						}.disabled(tutorialContext.mLastFileMessageReceived == nil)
+						if (tutorialContext.isDownloading) {
+							ActivityIndicator()
+						}
 					}
 				}
 				Spacer()
