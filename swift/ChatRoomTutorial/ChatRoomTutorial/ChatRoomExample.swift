@@ -15,8 +15,13 @@ enum ChatroomExampleState
 }
 
 
-class ChatRoomExampleContext : ObservableObject
-{
+struct DisplayableUser : Identifiable {
+	var id = UUID()
+	var name : String
+	
+}
+
+class ChatRoomExampleContext : ObservableObject {
     var mCore: Core! // We need a Core for... anything, basically
     @Published var coreVersion: String = Core.getVersion
     
@@ -25,9 +30,9 @@ class ChatRoomExampleContext : ObservableObject
     
     /*-------- Chatroom tutorial related variables ---------------*/
 	
-	@Published var dest : String = "sip:chatdest@sip.linphone.org"
-	@Published var id : String = "sip:thisphone@sip.linphone.org"
-	@Published var passwd : String = "thispassword"
+	@Published var dest : String = "sip:arguillq@sip.linphone.org"
+	@Published var id : String = "sip:quentindev@sip.linphone.org"
+	@Published var passwd : String = "dev"
 	@Published var loggedIn: Bool = false
 	
     let mFactoryUri = "sip:conference-factory@sip.linphone.org"
@@ -42,14 +47,18 @@ class ChatRoomExampleContext : ObservableObject
 	@Published var encryptionEnabled : Bool = false
 	@Published var groupChatEnabled : Bool = true
     @Published var chatroomState = ChatroomExampleState.Unstarted
-	@Published var textToSend: String = "msg to send"
+	@Published var textToSend: String = "Hello"
     @Published var sReceivedMessages : String = ""
 	@Published var isDownloading : Bool = false
+	
+	@Published var displayableUsers = [DisplayableUser]()
+	
+	@Published var newUser : String = "sip:newuser@sip.linphone.org"
 	var fileFolderUrl : URL?
 	var fileUrl : URL?
     
-    init()
-    {
+	init() {
+
         mChatRoomDelegate.tutorialContext = self
 		mLinphoneCoreDelegate.tutorialContext = self
 		mChatMessageDelegate.tutorialContext = self
@@ -79,8 +88,7 @@ class ChatRoomExampleContext : ObservableObject
 		
     }
     
-    func createProxyConfigAndRegister()
-    {
+    func createProxyConfigAndRegister() {
         do {
 			mProxyConfig = try createAndInitializeProxyConfig(core : mCore, identity: id, password: passwd)
 			mProxyConfig.conferenceFactoryUri = mFactoryUri
@@ -94,8 +102,7 @@ class ChatRoomExampleContext : ObservableObject
         }
     }
     
-    func createChatRoom()
-    {
+    func createChatRoom() {
         // proxy configuration must first be initialized and registered
         if (!loggedIn || mChatRoom != nil) { return }
         
@@ -113,6 +120,7 @@ class ChatRoomExampleContext : ObservableObject
                 mChatRoom = try mCore.createChatRoom(params: chatParams, localAddr: mProxyConfig.contact!, participants: chatDest)
                 // Flexisip chatroom requires a setup time. The delegate will set the state to started when it is ready.
 				chatroomState = ChatroomExampleState.Starting
+				//displayableUsers.list.append(DisplayableUser(participant: mChatRoom!.participants[0]))
             }
             else {
                 chatParams.backend = ChatRoomBackend.Basic
@@ -147,10 +155,10 @@ class ChatRoomExampleContext : ObservableObject
 			mChatRoom = nil;
 		}
 		chatroomState = ChatroomExampleState.Unstarted
+		displayableUsers = []
 	}
 	
-	func send(room : ChatRoom, msg : String)
-	{
+	func send(room : ChatRoom, msg : String) {
 		do
 		{
 			self.mChatMessage = try room.createMessageFromUtf8(message: msg)
@@ -161,15 +169,13 @@ class ChatRoomExampleContext : ObservableObject
 		}
 	}
 	
-    func sendMsg()
-    {
+    func sendMsg() {
         if let chatRoom = mChatRoom {
 			send(room: chatRoom, msg: textToSend)
         }
     }
 	
-	func sendExampleFile()
-	{
+	func sendExampleFile() {
 		do {
 			let content = try mCore.createContent()
 			content.filePath = fileUrl!.path
@@ -200,7 +206,37 @@ class ChatRoomExampleContext : ObservableObject
 				}
 			}
 		}
-		mLastFileMessageReceived = nil
+	}
+	
+	func addParticipant() {
+		if let chatroom = mChatRoom {
+			do {
+				chatroom.addParticipant(addr: try Factory.Instance.createAddress(addr: newUser))
+				displayableUsers.append(DisplayableUser(name: newUser))
+			} catch let error as NSError {
+				print("Unable to create directory",error)
+			}
+		}
+	}
+	
+	func removeParticipant(user : DisplayableUser) {
+		
+		if let userAddr = try? Factory.Instance.createAddress(addr: user.name) {
+			for part in mChatRoom!.participants {
+				if (part.address!.equal(address2: userAddr))
+				{
+					mChatRoom!.removeParticipant(participant: part)
+				}
+			}
+		}
+		
+		for i in 0...displayableUsers.count {
+			if (displayableUsers[i].id == user.id) {
+				displayableUsers.remove(at: i)
+				break
+			}
+		}
+		
 	}
     
 }
@@ -241,6 +277,10 @@ class LinphoneChatRoomStateTracker: ChatRoomDelegate {
 	
 	func onConferenceJoined(chatRoom: ChatRoom, eventLog: EventLog) {
 		print("ChatRoomTrace - Chatroom ready to start")
+		tutorialContext.displayableUsers = []
+		for part in chatRoom.participants {
+			tutorialContext.displayableUsers.append(DisplayableUser(name: part.address!.asString()))
+		}
 		tutorialContext.chatroomState = ChatroomExampleState.Started
 	}
 }
