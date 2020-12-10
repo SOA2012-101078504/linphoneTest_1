@@ -12,3 +12,15 @@ java/build
 java/captures
 java/.externalNativeBuild
 java/.cxx
+
+
+# C# / UWP Files / VS Specifiq files
+.vs/
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+[Oo]bj/
+[Bb]in/
