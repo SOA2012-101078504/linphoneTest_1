@@ -1,0 +1,20 @@
+﻿<UserControl
+    x:Class="_06_GroupChat.Controls.ContentDisplay"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+	<Grid>
+		<StackPanel x:Name="TextStack" Orientation="Vertical" Visibility="Collapsed" Margin="0,0,0,10">
+			<TextBlock Text="Text :" />
+			<TextBlock x:Name="TextMessage" Text="" FontWeight="Bold" TextWrapping="Wrap" />
+		</StackPanel>
+
+		<StackPanel x:Name="FileStack" Orientation="Vertical" Visibility="Collapsed" Margin="0,0,0,10">
+			<TextBlock Text="File : " />
+			<TextBlock x:Name="FileName" Text="" FontWeight="Bold" />
+			<TextBlock x:Name="FileSize" Text="" />
+			<Button x:Name="Download" Content="Download" Click="Download_Click" Visibility="Collapsed" />
+			<Button x:Name="OpenFile" Content="Open file" Click="OpenFile_Click" Visibility="Collapsed" />
+		</StackPanel>
+	</Grid>
+</UserControl>

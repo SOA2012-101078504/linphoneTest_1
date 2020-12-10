@@ -1,0 +1,32 @@
+﻿<Page
+	x:Class="_02_IncomingCall.Views.NavigationRoot"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Loaded="Page_Loaded">
+
+	<Grid x:Name="NavRootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+		<NavigationView
+			x:Name="navview"
+			AlwaysShowHeader="False"
+			ItemInvoked="Navview_ItemInvoked"
+			PaneDisplayMode="Top"
+			IsBackButtonVisible="Collapsed">
+			<NavigationView.MenuItems>
+				<NavigationViewItem Content="Calls" IsSelected="True">
+					<NavigationViewItem.Icon>
+						<FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xF715;" />
+					</NavigationViewItem.Icon>
+				</NavigationViewItem>
+			</NavigationView.MenuItems>
+			<NavigationView.PaneFooter>
+				<NavigationViewItem Content="Sign out" Tapped="SignOut_Tapped">
+					<NavigationViewItem.Icon>
+						<FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xF3B1;" />
+					</NavigationViewItem.Icon>
+				</NavigationViewItem>
+			</NavigationView.PaneFooter>
+			<Frame x:Name="AppNavFrame" Navigated="AppNavFrame_Navigated" />
+		</NavigationView>
+	</Grid>
+</Page>

@@ -1,0 +1,34 @@
+﻿<Page
+	x:Class="_04_BasicChat.Views.LoginPage"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+	<Grid KeyUp="GridKeyUp">
+
+		<Grid.RowDefinitions>
+			<RowDefinition Height="0.15*" />
+			<RowDefinition Height="0.85*" />
+		</Grid.RowDefinitions>
+
+		<Border Grid.Row="0" Background="{ThemeResource SystemAccentColorLight3}">
+			<TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Style="{ThemeResource HeaderTextBlockStyle}" Text="Login Form" />
+		</Border>
+
+		<StackPanel Grid.Row="1" VerticalAlignment="Center">
+
+			<StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Vertical">
+				<TextBlock Text="Identity :" />
+				<TextBox x:Name="Identity" Width="350" MinWidth="350" MaxWidth="350" Text="sip:" />
+			</StackPanel>
+
+			<StackPanel Margin="0,10,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Vertical">
+				<TextBlock Text="Password :" />
+				<PasswordBox x:Name="Password" Width="350" MinWidth="350" MaxWidth="350" PlaceholderText="myPasswd" />
+			</StackPanel>
+
+			<Button x:Name="LogIn" Click="LogInClick" Content="Login" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,10,0,0" />
+
+			<TextBlock x:Name="RegistrationText" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,10,0,0" />
+		</StackPanel>
+	</Grid>
+</Page>

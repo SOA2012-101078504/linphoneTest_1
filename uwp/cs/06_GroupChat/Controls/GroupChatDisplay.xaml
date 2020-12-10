@@ -1,0 +1,52 @@
+﻿<UserControl
+    x:Class="_06_GroupChat.Controls.GroupChatDisplay"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:linphone="using:Linphone"
+	Loaded="GroupChatDisplay_Loaded"
+	Unloaded="GroupChatDisplay_Unloaded">
+
+	<Grid x:Name="GroupChatDisplayGrid">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="auto" />
+			<RowDefinition Height="*" />
+			<RowDefinition Height="auto" />
+		</Grid.RowDefinitions>
+
+		<StackPanel Orientation="Horizontal" Grid.Row="0">
+			<TextBlock>Participants :</TextBlock>
+			<Button x:Name="AddParticipant" Click="AddParticipant_Click" FontFamily="Segoe MDL2 Assets" Content="&#xE8FA;" />
+		</StackPanel>
+
+		<ListView x:Name="ParticipantsLV" SelectionMode="None" IsItemClickEnabled="False" Grid.Row="1">
+			<ListView.ItemContainerStyle>
+				<Style TargetType="ListViewItem">
+					<Setter Property="HorizontalContentAlignment" Value="Stretch" />
+				</Style>
+			</ListView.ItemContainerStyle>
+			<ListView.ItemTemplate>
+				<DataTemplate x:DataType="linphone:Participant">
+					<Grid>
+						<Grid.RowDefinitions>
+							<RowDefinition />
+							<RowDefinition />
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="0.8*" />
+							<ColumnDefinition Width="auto" />
+						</Grid.ColumnDefinitions>
+						<TextBlock Text="{Binding Path=Address.Username}" Grid.Row="0" Grid.Column="0" />
+						<Button Tag="{Binding}" Click="Remove_Click" FontFamily="Segoe MDL2 Assets" Content="&#xE8F8;" Grid.Column="1" Grid.Row="0" />
+						<StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal">
+							<TextBlock Text="Is admin : " />
+							<TextBlock Text="{Binding Path=IsAdmin}" Margin="1,0,0,0" />
+						</StackPanel>
+						<Button Tag="{Binding}" Click="AdminSwitch_Click" FontFamily="Segoe MDL2 Assets" Content="&#xE8CB;" Grid.Column="1" Grid.Row="1" />
+					</Grid>
+				</DataTemplate>
+			</ListView.ItemTemplate>
+		</ListView>
+
+		<Button x:Name="RenameGroupChat" Click="RenameGroupChat_Click" Content="Rename group chat" VerticalAlignment="Bottom" Grid.Row="2" />
+	</Grid>
+</UserControl>

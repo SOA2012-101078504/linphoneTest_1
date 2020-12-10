@@ -1,0 +1,46 @@
+﻿<Page
+    x:Class="_02_IncomingCall.Views.CallsPage"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="auto" />
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+
+		<Border Grid.Row="0" Background="{ThemeResource SystemAccentColorLight3}" Padding="10">
+			<TextBlock x:Name="HelloText" HorizontalAlignment="Center" VerticalAlignment="Center" Style="{ThemeResource HeaderTextBlockStyle}" Text="Hello " />
+		</Border>
+
+		<Grid Grid.Row="1">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="auto" />
+				<RowDefinition Height="auto" />
+			</Grid.RowDefinitions>
+
+			<StackPanel Grid.Row="0" VerticalAlignment="Center" Margin="20">
+
+				<TextBlock x:Name="CallText" Text="Your call state is : Idle" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10" />
+
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
+					<Button x:Name="HangOut" Content="Hang out" Click="HangOutClick" IsEnabled="False" />
+					<Button x:Name="Sound" Content="Switch off Sound" Click="SoundClick" IsEnabled="False" />
+					<Button x:Name="Mic" Content="Mute" Click="MicClick" IsEnabled="False" />
+				</StackPanel>
+			</StackPanel>
+
+			<StackPanel Grid.Row="1" x:Name="IncomingCallStackPanel" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" Margin="10">
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+					<TextBlock Text="You have a call from :" />
+					<TextBlock x:Name="IncommingCallText" Text="" />
+				</StackPanel>
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+					<Button x:Name="Answer" Content="Answer" Click="AnswerClick" />
+					<Button x:Name="Decline" Content="Decline" Click="DeclineClick" />
+				</StackPanel>
+			</StackPanel>
+		</Grid>
+	</Grid>
+</Page>

@@ -1,0 +1,13 @@
+job-windows:
+
+  stage: build
+  tags: [ "windows" ]
+  script:
+    # Build VS project
+    #Remove MinGW of MSYS from PATH and add MINGW_TYPE for MSYS2
+    - echo %PATH%
+    - cd uwp\cs
+    - |
+      "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\msbuild.exe" -t:restore -verbosity:minimal 
+    - |
+      "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\msbuild.exe" TutorialsCS.sln /m /property:Configuration=Release /property:Platform=x64 -verbosity:quiet
