@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>{4EDDB112-127A-42C3-81BE-5BA16151E67F}</ProjectGuid>
+    <ProjectGuid>{E275B25F-D5C2-495C-9B6E-9B90C3617E98}</ProjectGuid>
     <OutputType>AppContainerExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>_00_hello_world</RootNamespace>
@@ -151,11 +151,14 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="LinphoneSDK">
-      <Version>4.5.0-alpha.172</Version>
+      <Version>4.5.0-alpha.287</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.11</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets\rootca.pem" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

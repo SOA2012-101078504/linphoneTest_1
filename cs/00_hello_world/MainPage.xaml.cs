@@ -19,6 +19,7 @@
 
 using Linphone;
 using System;
+using System.Diagnostics;
 using System.IO;
 using Windows.UI.Xaml.Controls;
 
@@ -30,8 +31,9 @@ namespace _00_hello_world
 	/// </summary>
 	public sealed partial class MainPage : Page
 	{
+		private Core StoredCore { get; set; }
 
-		private Core storedCore;
+		private LoggingService LoggingService { get; set; }
 
 		public string HelloText { get; set; } = "Hello world, Linphone core version is ";
 
@@ -39,19 +41,30 @@ namespace _00_hello_world
 		{
 			this.InitializeComponent();
 
+
 			// Core is the main object of the SDK. You can't do much without it
+
 			// Some configuration can be done before the Core is created, for example enable debug logs.
-			Linphone.LoggingService.Instance.LogLevel = Linphone.LogLevel.Debug;
+			LoggingService = LoggingService.Instance;
+			LoggingService.LogLevel = LogLevel.Debug;
+			// And here you set the implementation of the delegate method called every time the Linphone SDK log something, see OnLog.
+			LoggingService.Listener.OnLogMessageWritten = OnLog;
 
 			// To create a Core, we need the instance of the Factory.
 			Factory factory = Factory.Instance;
 
 			// Some configuration can be done on the factory before the Core is created, for example enable setting resources Path. This
 			// one can be mandatory
-			factory.TopResourcesDir = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets");
+			string assetsPath = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "Assets");
+			factory.TopResourcesDir = assetsPath;
+			factory.DataResourcesDir = assetsPath;
+			factory.SoundResourcesDir = assetsPath;
+			factory.RingResourcesDir = assetsPath;
+			factory.ImageResourcesDir = assetsPath;
+			factory.MspluginsDir = ".";
 
 			// Your Core can use up to 2 configuration files, but that isn't mandatory.
-			// The third parameter is the application context, he isn't madatory when working
+			// The third parameter is the application context, he isn't mandatory when working
 			// with UWP, he is mandatory in an Android context for example.
 			// You can now create your Core object :
 			Core core = factory.CreateCore("", "", IntPtr.Zero);
@@ -61,7 +74,39 @@ namespace _00_hello_world
 
 			// You should store the Core to keep a reference on it at all times while your app is alive.
 			// A good solution for that is either subclass the Application object or create a Service.
-			storedCore = core;
+			StoredCore = core;
+		}
+
+		/// <summary>
+		/// Simple function to console log everything the Linphone SDK logs.
+		/// You should modify this method to match your logging habits.
+		/// </summary>
+		private void OnLog(LoggingService logService, string domain, LogLevel lev, string message)
+		{
+			string now = DateTime.Now.ToString("hh:mm:ss");
+			string log = now + " [";
+			switch (lev)
+			{
+				case LogLevel.Debug:
+					log += "DEBUG";
+					break;
+				case LogLevel.Error:
+					log += "ERROR";
+					break;
+				case LogLevel.Message:
+					log += "MESSAGE";
+					break;
+				case LogLevel.Warning:
+					log += "WARNING";
+					break;
+				case LogLevel.Fatal:
+					log += "FATAL";
+					break;
+				default:
+					break;
+			}
+			log += "] (" + domain + ") " + message;
+			Debug.WriteLine(log);
 		}
 	}
 }
