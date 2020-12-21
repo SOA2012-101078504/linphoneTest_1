@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>{63E0D306-E3A3-49A2-8CD6-ADF2A91127BA}</ProjectGuid>
+    <ProjectGuid>{8C3B09A6-CD10-4F83-8EF1-6BF2002C6339}</ProjectGuid>
     <OutputType>AppContainerExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>_02_outgoing_call</RootNamespace>
-    <AssemblyName>02_outgoing_call</AssemblyName>
+    <RootNamespace>_03_incoming_call</RootNamespace>
+    <AssemblyName>03_incoming_call</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.19041.0</TargetPlatformVersion>
@@ -120,8 +120,8 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Service\VideoService.cs" />
-    <Compile Include="Views\OutgoingCallsPage.xaml.cs">
-      <DependentUpon>OutgoingCallsPage.xaml</DependentUpon>
+    <Compile Include="Views\CallsPage.xaml.cs">
+      <DependentUpon>CallsPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Service\CoreService.cs" />
     <Compile Include="Views\LoginPage.xaml.cs">
@@ -153,7 +153,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\OutgoingCallsPage.xaml">
+    <Page Include="Views\CallsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

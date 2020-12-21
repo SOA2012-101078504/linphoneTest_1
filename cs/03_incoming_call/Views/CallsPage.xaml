@@ -1,0 +1,58 @@
+﻿<Page
+    x:Class="_03_incoming_call.Views.CallsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:_03_incoming_call"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+	<Grid >
+		<StackPanel Grid.Row="0" VerticalAlignment="Center">
+			<StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
+				<TextBlock x:Name="HelloText" Text="Hello "/>
+				<TextBlock Text="You are now on the Outgoing calls Page !"/>
+			</StackPanel>
+
+			<StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
+				<TextBlock Text="URI to call : "/>
+				<TextBox x:Name="UriToCall" Width="350"  MinWidth="350" MaxWidth="350" Text="sip:anthony.gauchy@sip.linphone.org"/>
+			</StackPanel>
+
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
+				<Button x:Name="CallButton" Content="Call" Click="CallClick"/>
+				<Button x:Name="LogOut" Content="Logout" Click="LogOutClick"/>
+			</StackPanel>
+
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
+				<TextBlock x:Name="CallText" Text="You're call state is : Idle"/>
+			</StackPanel>
+
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
+				<Button x:Name="HangOut" Content="Hang out" Click="HangOutClick" IsEnabled="False"/>
+				<Button x:Name="Sound" Content="Switch off Sound" Click="SoundClick" IsEnabled="False"/>
+				<Button x:Name="Camera" Content="Switch on Camera" Click="CameraClick" IsEnabled="False"/>
+				<Button x:Name="Mic" Content="Mute" Click="MicClick" IsEnabled="False"/>
+			</StackPanel>
+
+			<StackPanel x:Name="WebcamsStackPanel" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" Margin="10">
+				<TextBlock Text="Video : "/>
+				<SwapChainPanel x:Name="VideoSwapChainPanel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="342" Width="608"/>
+				<TextBlock Text="Preview : "/>
+				<SwapChainPanel x:Name="PreviewSwapChainPanel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Height="171" Width="304"/>
+			</StackPanel>
+
+			<StackPanel x:Name="IncomingCallStackPanel" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" Margin="100">
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+					<TextBlock Text="You have a call from :"/>
+					<TextBlock x:Name="IncommingCallText" Text=""/>
+				</StackPanel>
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+					<Button x:Name="Answer" Content="Answer" Click="AnswerClick"/>
+					<Button x:Name="Decline" Content="Decline" Click="DeclineClick"/>
+				</StackPanel>
+			</StackPanel>
+		</StackPanel>
+	</Grid>
+</Page>
