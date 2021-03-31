@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "929724111839",
+    "firebase_url": "https://linphone-android-8a563.firebaseio.com",
+    "project_id": "linphone-android-8a563",
+    "storage_bucket": "linphone-android-8a563.appspot.com"
+  },
+  "client": [
+    {
+		"client_info": {
+			"mobilesdk_app_id": "1:929724111839:android:cfa1ce5fe611ab2818c26a",
+			"android_client_info": {
+				"package_name": "org.linphone.pushnotifications"
+			}
+		},
+		"oauth_client": [
+			{
+				"client_id": "929724111839-v5so1tcd65iil7dd7sde8jgii44h8luf.apps.googleusercontent.com",
+				"client_type": 3
+			}
+		],
+		"api_key": [
+			{
+				"current_key": "AIzaSyCKrwWhkbA7Iy3wpEI8_ZvKOMp5jf6vV6A"
+			}
+		],
+		"services": {
+			"appinvite_service": {
+				"other_platform_oauth_client": [
+				{
+					"client_id": "929724111839-a6g55p0jkq0qfi8utt0v4eh3l405g6nj.apps.googleusercontent.com",
+					"client_type": 3
+				}
+				]
+			}
+		}
+    }
+  ],
+  "configuration_version": "1"
+}
