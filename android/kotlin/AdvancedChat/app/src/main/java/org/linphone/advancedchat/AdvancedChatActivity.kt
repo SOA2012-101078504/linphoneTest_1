@@ -33,17 +33,12 @@ class AdvancedChatActivity: AppCompatActivity() {
     private var chatRoom: ChatRoom? = null
 
     private val coreListener = object: CoreListenerStub() {
-        override fun onRegistrationStateChanged(
-            core: Core,
-            proxyConfig: ProxyConfig,
-            state: RegistrationState?,
-            message: String
-        ) {
+        override fun onAccountRegistrationStateChanged(core: Core, account: Account, state: RegistrationState?, message: String) {
             findViewById<TextView>(R.id.registration_status).text = message
 
             if (state == RegistrationState.Failed) {
                 core.clearAllAuthInfo()
-                core.clearProxyConfig()
+                core.clearAccounts()
                 findViewById<Button>(R.id.connect).isEnabled = true
             } else if (state == RegistrationState.Ok) {
                 findViewById<LinearLayout>(R.id.register_layout).visibility = View.GONE
@@ -180,25 +175,26 @@ class AdvancedChatActivity: AppCompatActivity() {
         }
         val authInfo = Factory.instance().createAuthInfo(username, null, password, null, null, domain, null)
 
-        val proxyConfig = core.createProxyConfig()
+        val params = core.createAccountParams()
         val identity = Factory.instance().createAddress("sip:$username@$domain")
-        proxyConfig.identityAddress = identity
+        params.identityAddress = identity
 
         val address = Factory.instance().createAddress("sip:$domain")
         address?.transport = transportType
-        proxyConfig.serverAddr = address?.asStringUriOnly()
-        proxyConfig.enableRegister(true)
+        params.serverAddress = address
+        params.registerEnabled = true
 
-        // We need a conference factory URI set on the proxy config to be able to create chat rooms with flexisip backend
-        proxyConfig.conferenceFactoryUri = "sip:conference-factory@sip.linphone.org"
+        // We need a conference factory URI set on the Account to be able to create chat rooms with flexisip backend
+        params.conferenceFactoryUri = "sip:conference-factory@sip.linphone.org"
 
         core.addAuthInfo(authInfo)
-        core.addProxyConfig(proxyConfig)
+        val account = core.createAccount(params)
+        core.addAccount(account)
 
         // We also need a LIME X3DH server URL configured for end to end encryption
         core.limeX3DhServerUrl = "https://lime.linphone.org/lime-server/lime-server.php"
 
-        core.defaultProxyConfig = proxyConfig
+        core.defaultAccount = account
         core.addListener(coreListener)
         core.start()
     }
@@ -206,7 +202,7 @@ class AdvancedChatActivity: AppCompatActivity() {
     private fun createFlexisipChatRoom() {
         // In this tutorial we will create a Flexisip one-to-one chat room with end-to-end encryption
         // For it to work, the proxy server we connect to must be an instance of Flexisip
-        // And we must have configured on the ProxyConfig a conference-factory URI
+        // And we must have configured on the Account a conference-factory URI
         val params = core.createDefaultChatRoomParams()
 
         // We won't create a group chat, only a 1-1 with advanced features such as end-to-end encryption
@@ -228,7 +224,7 @@ class AdvancedChatActivity: AppCompatActivity() {
 
             if (remoteAddress != null) {
                 // And finally we will need our local SIP address
-                val localAddress = core.defaultProxyConfig?.identityAddress
+                val localAddress = core.defaultAccount?.params?.identityAddress
                 val room = core.createChatRoom(params, localAddress, arrayOf(remoteAddress))
                 if (room != null) {
                     // If chat room isn't created yet, wait for it to go in state Created

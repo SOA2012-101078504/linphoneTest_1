@@ -120,7 +120,7 @@
             android:id="@+id/toggle_camera"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Toggle video"
+            android:text="Toggle camera"
             android:layout_alignParentRight="true"
             android:layout_below="@id/call_status"/>
 

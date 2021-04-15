@@ -45,8 +45,8 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.3.2'
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
-    // Latest version is 4.5.x, using + to get the latest available
-    implementation 'org.linphone:linphone-sdk-android:4.5+'
+    // Latest version is 5.0.x, using + to get the latest available
+    implementation 'org.linphone:linphone-sdk-android:5.0+'
     // Adding this dependency allows the linphone-sdk to automatically handle audio focus
     implementation 'androidx.media:media:1.2.0'
 }

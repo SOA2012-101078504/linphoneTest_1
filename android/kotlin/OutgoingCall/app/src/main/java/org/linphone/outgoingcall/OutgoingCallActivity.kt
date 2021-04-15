@@ -32,12 +32,7 @@ class OutgoingCallActivity: AppCompatActivity() {
     private lateinit var core: Core
 
     private val coreListener = object: CoreListenerStub() {
-        override fun onRegistrationStateChanged(
-            core: Core,
-            proxyConfig: ProxyConfig,
-            state: RegistrationState?,
-            message: String
-        ) {
+        override fun onAccountRegistrationStateChanged(core: Core, account: Account, state: RegistrationState?, message: String) {
             findViewById<TextView>(R.id.registration_status).text = message
 
             if (state == RegistrationState.Failed) {
@@ -192,19 +187,20 @@ class OutgoingCallActivity: AppCompatActivity() {
         }
         val authInfo = Factory.instance().createAuthInfo(username, null, password, null, null, domain, null)
 
-        val proxyConfig = core.createProxyConfig()
+        val params = core.createAccountParams()
         val identity = Factory.instance().createAddress("sip:$username@$domain")
-        proxyConfig.identityAddress = identity
+        params.identityAddress = identity
 
         val address = Factory.instance().createAddress("sip:$domain")
         address?.transport = transportType
-        proxyConfig.serverAddr = address?.asStringUriOnly()
-        proxyConfig.enableRegister(true)
+        params.serverAddress = address
+        params.registerEnabled = true
+        val account = core.createAccount(params)
 
         core.addAuthInfo(authInfo)
-        core.addProxyConfig(proxyConfig)
+        core.addAccount(account)
 
-        core.defaultProxyConfig = proxyConfig
+        core.defaultAccount = account
         core.addListener(coreListener)
         core.start()
 

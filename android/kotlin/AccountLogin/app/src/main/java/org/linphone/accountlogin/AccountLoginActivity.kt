@@ -26,6 +26,7 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import org.linphone.core.*
+import org.linphone.core.tools.Log
 
 class AccountLoginActivity: AppCompatActivity() {
     private lateinit var core: Core
@@ -33,12 +34,7 @@ class AccountLoginActivity: AppCompatActivity() {
     // Create a Core listener to listen for the callback we need
     // In this case, we want to know about the account registration status
     private val coreListener = object: CoreListenerStub() {
-        override fun onRegistrationStateChanged(
-            core: Core,
-            proxyConfig: ProxyConfig,
-            state: RegistrationState?,
-            message: String
-        ) {
+        override fun onAccountRegistrationStateChanged(core: Core, account: Account, state: RegistrationState, message: String) {
             // If account has been configured correctly, we will go through InProgress and Registered states
             // Otherwise, we will be Failed.
             findViewById<TextView>(R.id.registration_status).text = message
@@ -80,7 +76,7 @@ class AccountLoginActivity: AppCompatActivity() {
             else -> TransportType.Tls
         }
 
-        // To create an account, we need a ProxyConfig object and an AuthInfo object
+        // To configure a SIP account, we need an Account object and an AuthInfo object
         // The first one is how to connect to the proxy server, the second one stores the credentials
 
         // The auth info can be created from the Factory as it's only a data class
@@ -89,29 +85,39 @@ class AccountLoginActivity: AppCompatActivity() {
         // The realm will be determined automatically from the first register, as well as the algorithm
         val authInfo = Factory.instance().createAuthInfo(username, null, password, null, null, domain, null)
 
-        // Proxy config object depends on the Core so we can't create it using the Factory
-        val proxyConfig = core.createProxyConfig()
-        // Proxy config needs an identity address that we can construct from the username and domain
+        // Account object replaces deprecated ProxyConfig object
+        // Account object is configured through an AccountParams object that we can obtain from the Core
+        val accountParams = core.createAccountParams()
+
+        // A SIP account is identified by an identity address that we can construct from the username and domain
         val identity = Factory.instance().createAddress("sip:$username@$domain")
-        proxyConfig.identityAddress = identity
+        accountParams.identityAddress = identity
 
         // We also need to configure where the proxy server is located
         val address = Factory.instance().createAddress("sip:$domain")
         // We use the Address object to easily set the transport protocol
         address?.transport = transportType
-        proxyConfig.serverAddr = address?.asStringUriOnly()
+        accountParams.serverAddress = address
         // And we ensure the account will start the registration process
-        proxyConfig.enableRegister(true)
+        accountParams.registerEnabled = true
+
+        // Now that our AccountParams is configured, we can create the Account object
+        val account = core.createAccount(accountParams)
 
         // Now let's add our objects to the Core
         core.addAuthInfo(authInfo)
-        core.addProxyConfig(proxyConfig)
+        core.addAccount(account)
 
         // Also set the newly added account as default
-        core.defaultProxyConfig = proxyConfig
+        core.defaultAccount = account
 
         // To be notified of the connection status of our account, we need to add the listener to the Core
         core.addListener(coreListener)
+        // We can also register a callback on the Account object
+        account.addListener { _, state, message ->
+            // There is a Log helper in org.linphone.core.tools package
+            Log.i("[Account] Registration state changed: $state, $message")
+        }
 
         // Finally we need the Core to be started for the registration to happen (it could have been started before)
         core.start()
