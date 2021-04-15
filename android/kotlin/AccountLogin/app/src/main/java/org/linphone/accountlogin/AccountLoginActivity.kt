@@ -39,8 +39,10 @@ class AccountLoginActivity: AppCompatActivity() {
             // Otherwise, we will be Failed.
             findViewById<TextView>(R.id.registration_status).text = message
 
-            if (state == RegistrationState.Failed) {
+            if (state == RegistrationState.Failed || state == RegistrationState.Cleared) {
                 findViewById<Button>(R.id.connect).isEnabled = true
+            } else if (state == RegistrationState.Ok) {
+                findViewById<Button>(R.id.disconnect).isEnabled = true
             }
         }
     }
@@ -56,6 +58,16 @@ class AccountLoginActivity: AppCompatActivity() {
 
         findViewById<Button>(R.id.connect).setOnClickListener {
             login()
+            it.isEnabled = false
+        }
+
+        findViewById<Button>(R.id.disconnect).setOnClickListener {
+            unregister()
+            it.isEnabled = false
+        }
+
+        findViewById<Button>(R.id.delete).setOnClickListener {
+            delete()
             it.isEnabled = false
         }
 
@@ -111,6 +123,9 @@ class AccountLoginActivity: AppCompatActivity() {
         // Also set the newly added account as default
         core.defaultAccount = account
 
+        // Allow account to be removed
+        findViewById<Button>(R.id.delete).isEnabled = true
+
         // To be notified of the connection status of our account, we need to add the listener to the Core
         core.addListener(coreListener)
         // We can also register a callback on the Account object
@@ -121,5 +136,34 @@ class AccountLoginActivity: AppCompatActivity() {
 
         // Finally we need the Core to be started for the registration to happen (it could have been started before)
         core.start()
+    }
+
+    private fun unregister() {
+        // Here we will disable the registration of our Account
+        val account = core.defaultAccount
+        account ?: return
+
+        val params = account.params
+        // Returned params object is const, so to make changes we first need to clone it
+        val clonedParams = params.clone()
+
+        // Now let's make our changes
+        clonedParams.registerEnabled = false
+
+        // And apply them
+        account.params = clonedParams
+    }
+
+    private fun delete() {
+        // To completely remove an Account
+        val account = core.defaultAccount
+        account ?: return
+        core.removeAccount(account)
+
+        // To remove all accounts use
+        core.clearAccounts()
+
+        // Same for auth info
+        core.clearAllAuthInfo()
     }
 }
