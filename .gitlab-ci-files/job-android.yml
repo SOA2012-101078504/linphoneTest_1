@@ -1,0 +1,47 @@
+.job-android:
+
+  stage: build
+  tags: [ "docker-android" ]
+  image: gitlab.linphone.org:4567/bc/public/linphone-android/bc-dev-android:30
+
+job-android-hello-world:
+  extends: .job-android
+  script:
+    - cd android/kotlin/HelloWorld/
+    - ./gradlew assembleRelease
+
+job-android-account:
+  extends: .job-android
+  script:
+    - cd android/kotlin/AccountLogin/
+    - ./gradlew assembleRelease
+
+job-android-push-notifications:
+  extends: .job-android
+  script:
+    - cd android/kotlin/Pushnotifications/
+    - ./gradlew assembleRelease
+
+job-android-basic-chat:
+  extends: .job-android
+  script:
+    - cd android/kotlin/BasicChat/
+    - ./gradlew assembleRelease
+
+job-android-advanced-chat:
+  extends: .job-android
+  script:
+    - cd android/kotlin/AdvancedChat/
+    - ./gradlew assembleRelease
+
+job-android-incoming-call:
+  extends: .job-android
+  script:
+    - cd android/kotlin/IncomingCall/
+    - ./gradlew assembleRelease
+
+job-android-outgoing-call:
+  extends: .job-android
+  script:
+    - cd android/kotlin/OutgoingCall/
+    - ./gradlew assembleRelease
