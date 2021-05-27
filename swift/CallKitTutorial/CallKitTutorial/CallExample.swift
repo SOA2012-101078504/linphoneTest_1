@@ -20,7 +20,7 @@ class CallKitExampleContext : ObservableObject
     /*------------ Call tutorial related variables ---------------*/
     let mCallKitTutorialDelegate = CallKitTutorialDelegate()
     var mCall: Call!
-    var proxy_cfg : ProxyConfig!
+    var account : Account!
     var mVideoDevices : [String] = []
     var mUsedVideoDeviceId : Int = 0
     var callAlreadyStopped = false;
@@ -28,10 +28,10 @@ class CallKitExampleContext : ObservableObject
     @Published var speakerEnabled : Bool = false
     @Published var callRunning : Bool = false
     @Published var isCallIncoming : Bool = false
-    @Published var dest : String = "sip:arguillq@sip.linphone.org"
+    @Published var dest : String = "sip:calldest@sip.linphone.org"
     
-    @Published var id : String = "sip:quentindev@sip.linphone.org"
-    @Published var passwd : String = "dev"
+    @Published var id : String = "sip:youraccount@sip.linphone.org"
+    @Published var passwd : String = "yourpassword"
     @Published var loggedIn: Bool = false
 
     var mProviderDelegate : CallKitProviderDelegate!
@@ -56,44 +56,39 @@ class CallKitExampleContext : ObservableObject
         mCore.callkitEnabled = true
         mCore.pushNotificationEnabled = true
         
-        // This is necessary to register to the server and handle push Notifications. Make sure you have a certificate to match your app's bundle ID.
-		let pushConfig = mCore.pushNotificationConfig!
-		pushConfig.provider = "apns.dev"
-        
         try? mCore.start()
         
         // Callbacks on registration and call events
 		mCallKitTutorialDelegate.tutorialContext = self
         mCore.addDelegate(delegate: mCallKitTutorialDelegate)
-        
-        // Available video devices that can be selected to be used in video calls
-        mVideoDevices = mCore.videoDevicesList
     }
     
-    
-    func registrationExample()
-    {
-        if (!loggedIn)
-        {
-            do {
-                proxy_cfg = try createAndInitializeProxyConfig(core : mCore, identity: id, password: passwd)
-                proxy_cfg.pushNotificationAllowed = true
-                try mCore.addProxyConfig(config: proxy_cfg!)
-                if ( mCore.defaultProxyConfig == nil)
-                {
-                    // IMPORTANT : default proxy config setting MUST be done AFTER adding the config to the core !
-                    mCore.defaultProxyConfig = proxy_cfg
-                }
-            } catch {
-                print(error)
-            }
-            
-        }
-    }
+	func createAccountAndRegister() {
+		if (!loggedIn) {
+			do {
+				account = try createAndInitializeAccount(core : mCore, identity: id, password: passwd)
+				
+				// This is necessary to register to the server and handle push Notifications. Make sure you have a certificate to match your app's bundle ID.
+				let updatedPushParams = account.params?.clone()
+				updatedPushParams?.pushNotificationConfig?.provider = "apns.dev"
+				updatedPushParams?.pushNotificationAllowed = true
+				account.params = updatedPushParams
+				
+				try mCore.addAccount(account: account!)
+				if ( mCore.defaultAccount == nil) {
+					// IMPORTANT : default account setting MUST be done AFTER adding the config to the core !
+					mCore.defaultAccount = account
+				}
+			} catch {
+				print(error)
+			}
+
+		}
+	}
     
     func clearRegistrations()
     {
-        mCore.clearProxyConfig()
+        mCore.clearAccounts()
         loggedIn = false
     }
     

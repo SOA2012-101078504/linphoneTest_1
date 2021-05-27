@@ -21,12 +21,14 @@ struct ContentView: View {
                         .font(.title)
                     TextField("", text : $tutorialContext.id)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+						.disabled(tutorialContext.loggedIn)
                 }
                 HStack {
                     Text("Password :")
                         .font(.title)
                     TextField("", text : $tutorialContext.passwd)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+						.disabled(tutorialContext.loggedIn)
                 }
                 VStack {
                     HStack {

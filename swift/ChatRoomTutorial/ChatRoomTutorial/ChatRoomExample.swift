@@ -30,13 +30,13 @@ class ChatRoomExampleContext : ObservableObject {
     
     /*-------- Chatroom tutorial related variables ---------------*/
 	
-	@Published var dest : String = "sip:arguillq@sip.linphone.org"
-	@Published var id : String = "sip:quentindev@sip.linphone.org"
-	@Published var passwd : String = "dev"
+	@Published var dest : String = "sip:yourdest@sip.linphone.org"
+	@Published var id : String = "sip:youraccount@sip.linphone.org"
+	@Published var passwd : String = "yourpassword"
 	@Published var loggedIn: Bool = false
 	
     let mFactoryUri = "sip:conference-factory@sip.linphone.org"
-    var mProxyConfig : ProxyConfig!
+    var mAccount : Account!
     var mChatMessage : ChatMessage?
 	var mLastFileMessageReceived : ChatMessage?
 	let mLinphoneCoreDelegate = LinphoneCoreDelegate()
@@ -88,14 +88,16 @@ class ChatRoomExampleContext : ObservableObject {
 		
     }
     
-    func createProxyConfigAndRegister() {
+    func createAccountAndRegister() {
         do {
-			mProxyConfig = try createAndInitializeProxyConfig(core : mCore, identity: id, password: passwd)
-			mProxyConfig.conferenceFactoryUri = mFactoryUri
-			try mCore.addProxyConfig(config: mProxyConfig)
-			if ( mCore.defaultProxyConfig == nil) {
-				// IMPORTANT : default proxy config setting MUST be done AFTER adding the config to the core !
-				mCore.defaultProxyConfig = mProxyConfig
+			mAccount = try createAndInitializeAccount(core : mCore, identity: id, password: passwd)
+			let conferenceParams = mAccount.params!.clone()
+			conferenceParams!.conferenceFactoryUri = mFactoryUri
+			mAccount.params = conferenceParams
+			try mCore.addAccount(account: mAccount)
+			if ( mCore.defaultAccount == nil) {
+				// IMPORTANT : default account setting MUST be done AFTER adding the config to the core !
+				mCore.defaultAccount = mAccount
 			}
         } catch {
             print(error)
@@ -117,14 +119,14 @@ class ChatRoomExampleContext : ObservableObject {
 				}
                 chatParams.groupEnabled = groupChatEnabled
 				chatParams.subject = "Tutorial Chatroom"
-                mChatRoom = try mCore.createChatRoom(params: chatParams, localAddr: mProxyConfig.contact!, participants: chatDest)
+				mChatRoom = try mCore.createChatRoom(params: chatParams, localAddr: mAccount.contactAddress, participants: chatDest)
                 // Flexisip chatroom requires a setup time. The delegate will set the state to started when it is ready.
 				chatroomState = ChatroomExampleState.Starting
 				//displayableUsers.list.append(DisplayableUser(participant: mChatRoom!.participants[0]))
             }
             else {
                 chatParams.backend = ChatRoomBackend.Basic
-                mChatRoom = try mCore.createChatRoom(params: chatParams, localAddr: mProxyConfig.contact!, participants: chatDest)
+                mChatRoom = try mCore.createChatRoom(params: chatParams, localAddr: mAccount.contactAddress, participants: chatDest)
                 // Basic chatroom do not require setup time
                 chatroomState = ChatroomExampleState.Started
             }

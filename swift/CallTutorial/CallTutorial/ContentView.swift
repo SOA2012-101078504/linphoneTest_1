@@ -36,111 +36,128 @@ struct ContentView: View {
 		}
 	}
 	var body: some View {
-		VStack(alignment: .leading) {
-			Group {
-				HStack {
-					Text("Identity :")
-					.font(.subheadline)
-					TextField("", text : $tutorialContext.id)
-					.textFieldStyle(RoundedBorderTextFieldStyle())
-				}
-				HStack {
-					Text("Password :")
-					.font(.subheadline)
-					TextField("", text : $tutorialContext.passwd)
-					.textFieldStyle(RoundedBorderTextFieldStyle())
-				}
-				HStack {
-					Button(action:  tutorialContext.registrationExample)
-					{
-						Text("Login")
-						.font(.largeTitle)
-						.foregroundColor(Color.white)
-						.frame(width: 90.0, height: 42.0)
-						.background(Color.gray)
+		NavigationView {
+			VStack(alignment: .leading) {
+				Group {
+					HStack {
+						Text("Identity :")
+						.font(.subheadline)
+						TextField("", text : $tutorialContext.id)
+						.textFieldStyle(RoundedBorderTextFieldStyle())
 					}
-					Text("Login State : ")
-					.font(.footnote)
-					Text(tutorialContext.loggedIn ? "Logged in" : "Unregistered")
-					.font(.footnote)
-					.foregroundColor(tutorialContext.loggedIn ? Color.green : Color.black)
-				}
-			}
-			HStack {
-				Text("Call destination :")
-				TextField("", text : $tutorialContext.dest)
-				.textFieldStyle(RoundedBorderTextFieldStyle())
-			}
-			.padding(.top, 5)
-			VStack {
-				HStack {
-					Text("Microphone :").frame(width: 200, height: 40.0)
-					Button(action: tutorialContext.microphoneMuteToggle)
-					{
-						Text(tutorialContext.microphoneMuted ? "Unmute" : "Mute")
-						.font(.title)
-						.foregroundColor(Color.white)
-						.frame(width: 100.0, height: 40.0)
-						.background(Color.gray)
+					HStack {
+						Text("Password :")
+						.font(.subheadline)
+						TextField("", text : $tutorialContext.passwd)
+						.textFieldStyle(RoundedBorderTextFieldStyle())
 					}
-				}.padding()
-				HStack {
-					VStack {
-						Text("Audio device :")
-						Text("\(tutorialContext.currentAudioDevice.deviceName)")
-					}.frame(width: 200, height: 40.0)
-					Button(action: tutorialContext.changeAudioOutput)
-					{
-						Text("Change")
-						.font(.title)
-						.foregroundColor(Color.white)
-						.frame(width: 115.0, height: 40.0)
-						.background(Color.gray)
-					}
-				}.padding()
-			}
-			Spacer()
-			VStack {
-				HStack {
-					Button(action: {
-						if (self.tutorialContext.isCallIncoming) {
-							self.tutorialContext.acceptCall()
+					HStack {
+						Button(action:  tutorialContext.createAccountAndRegister)
+						{
+							Text("Login")
+							.font(.largeTitle)
+							.foregroundColor(Color.white)
+							.frame(width: 90.0, height: 42.0)
+							.background(Color.gray)
 						}
-						else {
-							self.tutorialContext.outgoingCallExample()
+						Text("Login State : ")
+						.font(.footnote)
+						Text(tutorialContext.loggedIn ? "Logged in" : "Unregistered")
+						.font(.footnote)
+						.foregroundColor(tutorialContext.loggedIn ? Color.green : Color.black)
+					}
+				}
+				HStack {
+					Text("Call destination :")
+					TextField("", text : $tutorialContext.dest)
+					.textFieldStyle(RoundedBorderTextFieldStyle())
+				}
+				.padding(.top, 5)
+				VStack {
+					HStack {
+						Text("Microphone :").frame(width: 200, height: 40.0)
+						Button(action: tutorialContext.microphoneMuteToggle)
+						{
+							Text(tutorialContext.microphoneMuted ? "Unmute" : "Mute")
+							.font(.title)
+							.foregroundColor(Color.white)
+							.frame(width: 100.0, height: 40.0)
+							.background(Color.gray)
+						}
+					}.padding()
+					/*NavigationLink(destination : Group {
+						if (tutorialContext.displayableDevices.count == 0) {
+							Text("Please start a call\nbefore selecting the audio route")
+								.multilineTextAlignment(.center)
+						} else {
+							ForEach(tutorialContext.displayableDevices) { device in
+								HStack {
+									Text("\(device.name)\((device.name == tutorialContext.currentAudioDevice.deviceName) ? " (current)" : "")")
+									Spacer()
+									Button(action: { tutorialContext.switchAudioOutput(newDevice: device.name) })
+									{
+										Text("Select")
+											.font(.callout)
+											.foregroundColor(Color.white)
+											.frame(width: 70.0, height: 35.0)
+											.background(Color.gray)
+									}.padding(.vertical)
+								}.padding(.horizontal).border(Color.gray)
+							}
+							Spacer()
 						}
 					})
 					{
-					Text(getCallButtonText())
-					.font(.largeTitle)
-					.foregroundColor(Color.white)
-					.frame(width: 180.0, height: 42.0)
-					.background(Color.green)
-					}
-					Button(action: tutorialContext.stopCall) {
-						Text(tutorialContext.isCallIncoming ? "Decline" : "Stop Call")
+						Text("Change output\naudio device")
+							.font(.title)
+							.foregroundColor(Color.white)
+							.multilineTextAlignment(.center)
+							.background(Color.gray)
+					}.padding()*/
+				}
+				Spacer()
+				VStack {
+					HStack {
+						Button(action: {
+							if (self.tutorialContext.isCallIncoming) {
+								self.tutorialContext.acceptCall()
+							}
+							else {
+								self.tutorialContext.outgoingCallExample()
+							}
+						})
+						{
+						Text(getCallButtonText())
 						.font(.largeTitle)
 						.foregroundColor(Color.white)
 						.frame(width: 180.0, height: 42.0)
-						.background(Color.red)
+						.background(Color.green)
+						}
+						Button(action: tutorialContext.stopCall) {
+							Text(tutorialContext.isCallIncoming ? "Decline" : "Stop Call")
+							.font(.largeTitle)
+							.foregroundColor(Color.white)
+							.frame(width: 180.0, height: 42.0)
+							.background(Color.red)
+						}
 					}
+					HStack {
+						Text(callStateString())
+						.font(.footnote)
+						.foregroundColor(tutorialContext.callRunning || tutorialContext.isCallIncoming ? Color.green : Color.black)
+					}.padding(.top)
 				}
-				HStack {
-					Text(callStateString())
+				Spacer()
+				Group {
+					Toggle(isOn: $tutorialContext.loggingUnit.logsEnabled.value) {
+						Text("Logs collection").multilineTextAlignment(.trailing)
+					}
+					Text("Core Version is \(tutorialContext.coreVersion)")
 					.font(.footnote)
-					.foregroundColor(tutorialContext.callRunning || tutorialContext.isCallIncoming ? Color.green : Color.black)
-				}.padding(.top)
-			}
-			Spacer()
-			Group {
-				Toggle(isOn: $tutorialContext.loggingUnit.logsEnabled.value) {
-					Text("Logs collection").multilineTextAlignment(.trailing)
 				}
-				Text("Core Version is \(tutorialContext.coreVersion)")
-				.font(.footnote)
 			}
+			.padding()
 		}
-		.padding()
 	}
 }
 

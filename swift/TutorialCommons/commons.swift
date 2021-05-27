@@ -6,19 +6,18 @@ import Foundation
 import linphonesw
 
 
-func createAndInitializeProxyConfig(core: Core, identity: String, password: String) throws -> ProxyConfig {
+func createAndInitializeAccount(core: Core, identity: String, password: String) throws -> Account {
 	let factory = Factory.Instance
-	let proxy_cfg = try core.createProxyConfig()
+	let accountParams = try core.createAccountParams()
 	let address = try factory.createAddress(addr: identity)
 	let info = try factory.createAuthInfo(username: address.username, userid: "", passwd: password, ha1: "", realm: "", domain: address.domain)
+
+	try accountParams.setIdentityaddress(newValue: address)
+	try accountParams.setServeraddr(newValue: "sip:" + address.domain + ";transport=tls")
+	accountParams.registerEnabled = true
+	
 	core.addAuthInfo(info: info)
-
-	try proxy_cfg.setIdentityaddress(newValue: address)
-	let server_addr = "sip:" + address.domain + ";transport=tls"
-	try proxy_cfg.setServeraddr(newValue: server_addr)
-	proxy_cfg.registerEnabled = true
-
-	return proxy_cfg
+	return try core.createAccount(params: accountParams)
 }
 
 
@@ -31,6 +30,10 @@ class LoggingUnit
 			value = val
 		}
 	}
+	
+	var logsEnabled : BoolHolder
+	var logDelegate : LinphoneLoggingServiceImpl
+	var log : LoggingService
 
 	class LinphoneLoggingServiceImpl: LoggingServiceDelegate {
 		var logsEnabled : BoolHolder!
@@ -40,10 +43,6 @@ class LoggingUnit
 			}
 		}
 	}
-
-	var logsEnabled : BoolHolder
-	var logDelegate : LinphoneLoggingServiceImpl
-	var log : LoggingService
 
 	init()
 	{

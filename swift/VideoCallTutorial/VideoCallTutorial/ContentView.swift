@@ -55,7 +55,7 @@ struct ContentView: View {
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
                 HStack {
-                    Button(action:  tutorialContext.registrationExample)
+                    Button(action:  tutorialContext.createProxyConfigAndRegister)
                     {
                         Text("Login")
                             .font(.largeTitle)

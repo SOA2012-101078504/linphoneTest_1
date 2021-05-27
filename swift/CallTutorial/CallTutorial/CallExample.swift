@@ -9,6 +9,13 @@
 import linphonesw
 import AVFoundation
 
+
+struct DisplayableDevice : Identifiable {
+	var id = UUID()
+	var name : String
+	
+}
+
 class CallExampleContext : ObservableObject
 {
 	var mCore: Core! // We need a Core for... anything, basically
@@ -20,7 +27,7 @@ class CallExampleContext : ObservableObject
 	/*------------ Call tutorial related variables ---------------*/
 	let mCallTutorialDelegate = CallTutorialDelegate()
 	var mCall: Call!
-	var proxy_cfg : ProxyConfig!
+	var account : Account!
 	var callAlreadyStopped = false;
 
 	@Published var speakerEnabled : Bool = false
@@ -34,6 +41,7 @@ class CallExampleContext : ObservableObject
 	@Published var loggedIn: Bool = false
 	
 	@Published var currentAudioDevice : AudioDevice!
+	@Published var displayableDevices = [DisplayableDevice]()
 
 	init() {
 		mCallTutorialDelegate.tutorialContext = self
@@ -49,14 +57,14 @@ class CallExampleContext : ObservableObject
 		mCore.addDelegate(delegate: mCallTutorialDelegate)
 	}
 
-	func registrationExample() {
+	func createAccountAndRegister() {
 		if (!loggedIn) {
 			do {
-				proxy_cfg = try createAndInitializeProxyConfig(core : mCore, identity: id, password: passwd)
-				try mCore.addProxyConfig(config: proxy_cfg!)
-				if ( mCore.defaultProxyConfig == nil) {
+				account = try createAndInitializeAccount(core : mCore, identity: id, password: passwd)
+				try mCore.addAccount(account: account!)
+				if ( mCore.defaultAccount == nil) {
 					// IMPORTANT : default proxy config setting MUST be done AFTER adding the config to the core !
-					mCore.defaultProxyConfig = proxy_cfg
+					mCore.defaultAccount = account
 				}
 			} catch {
 				print(error)
@@ -99,24 +107,32 @@ class CallExampleContext : ObservableObject
 			}
 		}
 	}
-
+/*
+	func updateAudioDevices() {
+		var newDevices = [DisplayableDevice]()
+		for device in mCore.audioDevices {
+			newDevices.append(DisplayableDevice(name: device.deviceName))
+		}
+		displayableDevices = newDevices
+		if let output = mCore.outputAudioDevice {
+			currentAudioDevice = output
+		}
+	}
+	func switchAudioOutput(newDevice: String) {
+		for device in  mCore.audioDevices {
+			if (newDevice == device.deviceName) {
+				mCore.outputAudioDevice =  device
+				currentAudioDevice = device
+				break
+			}
+		}
+	}*/
+	
 	func microphoneMuteToggle() {
 		if (callRunning) {
 			mCall.microphoneMuted = !mCall.microphoneMuted
 			microphoneMuted = mCall.microphoneMuted
 		}
-	}
-
-	func changeAudioOutput() {
-		let devices = mCore.audioDevices
-		var newIdx = 0;
-		for i in 0...devices.count {
-			if (devices[i].deviceName == currentAudioDevice.deviceName) {
-				newIdx = (i + 1) % devices.count
-				break
-			}
-		}
-		mCore.outputAudioDevice =  devices[newIdx]
 	}
 
 	func acceptCall()
@@ -152,6 +168,7 @@ class CallTutorialDelegate: CoreDelegate {
 			tutorialContext.callRunning = true
 		} else if (cstate == .StreamsRunning) {
 			// Call has successfully began
+			//tutorialContext.updateAudioDevices()
 			tutorialContext.callRunning = true
 		} else if (cstate == .End || cstate == .Error) {
 			// Call has been terminated by any side, or an error occured
@@ -159,13 +176,9 @@ class CallTutorialDelegate: CoreDelegate {
 			tutorialContext.isCallIncoming = false
 		}
 	}
-	
-	func onAudioDeviceChanged(core: Core, audioDevice: AudioDevice) {
-		tutorialContext.currentAudioDevice = audioDevice
-	}
+	/*
 	func onAudioDevicesListUpdated(core: Core) {
-		if let outputDevice = core.outputAudioDevice {
-			
-		}
-	}
+		tutorialContext.updateAudioDevices()
+	}*/
+	
 }
