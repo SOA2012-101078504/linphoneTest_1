@@ -85,7 +85,7 @@ struct ContentView: View {
 							.background(Color.gray)
 						}
 					}.padding()
-					/*NavigationLink(destination : Group {
+					NavigationLink(destination : Group {
 						if (tutorialContext.displayableDevices.count == 0) {
 							Text("Please start a call\nbefore selecting the audio route")
 								.multilineTextAlignment(.center)
@@ -113,7 +113,7 @@ struct ContentView: View {
 							.foregroundColor(Color.white)
 							.multilineTextAlignment(.center)
 							.background(Color.gray)
-					}.padding()*/
+					}.padding()
 				}
 				Spacer()
 				VStack {

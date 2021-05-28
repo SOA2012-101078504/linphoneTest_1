@@ -32,23 +32,21 @@ class LoginTutorialContext : ObservableObject
         // main loop for receiving notifications and doing background linphonecore work:
         mCore.autoIterateEnabled = true
         try? mCore.start()
+		// Add callbacks to the Linphone Core
+		mRegistrationDelegate = CoreDelegateStub(onAccountRegistrationStateChanged: { (core: Core, account: Account, state: RegistrationState, message: String) in
+			print("New registration state \(state) for user id \( String(describing: account.params?.identityAddress?.asString()))\n")
+			if (state == .Ok) {
+				self.loggedIn = true
+			} else if (state == .Cleared) {
+				self.loggedIn = false
+				
+			}
+		})
+		mCore.addDelegate(delegate: mRegistrationDelegate)
     }
     
     func registrationExample()
     {
-		if (mRegistrationDelegate == nil) {
-			// Add callbacks to the Linphone Core
-			mRegistrationDelegate = CoreDelegateStub(onRegistrationStateChanged: { (core: Core, proxyConfig: ProxyConfig, state: RegistrationState, message: String) in
-				print("New registration state \(state) for user id \( String(describing: proxyConfig.identityAddress?.asString()))\n")
-				if (state == .Ok) {
-					self.loggedIn = true
-				} else if (state == .Cleared) {
-					self.loggedIn = false
-				}
-			})
-			mCore.addDelegate(delegate: mRegistrationDelegate)
-		}
-		
         if (!loggedIn) {
             do {
                 if (account == nil) {

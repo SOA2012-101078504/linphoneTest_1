@@ -21,6 +21,65 @@ struct DisplayableUser : Identifiable {
 	
 }
 
+
+class LinphoneCoreDelegate: CoreDelegate {
+	
+	var tutorialContext : ChatRoomExampleContext!
+	
+	// Called when the Linphone Core detects a change in the account registration state
+	func onAccountRegistrationStateChanged(core: Core, account: Account, state: RegistrationState, message: String) {
+		print("New registration state \(state) for user id \( String(describing: account.params?.identityAddress?.asString()))\n")
+		if (state == RegistrationState.Ok) {
+			tutorialContext.loggedIn = true
+		}
+	}
+	
+	// called when the Linphone Core receives a message
+	func onMessageReceived(core lc: Core, chatRoom room: ChatRoom, message: ChatMessage) {
+		if (tutorialContext.mChatRoom == nil) {
+			tutorialContext.mChatRoom = room
+			tutorialContext.chatroomState = ChatroomExampleState.Started
+		}
+		
+		if (message.hasTextContent()) {
+			tutorialContext.sReceivedMessages += "\n\(message.utf8Text)"
+		}
+		
+		for content in message.contents {
+			if (content.isFileTransfer) {
+				tutorialContext.mLastFileMessageReceived = message
+				tutorialContext.sReceivedMessages += "\n File(s) available(s) for download"
+				break;
+			}
+		}
+	}
+}
+
+class LinphoneChatRoomStateTracker: ChatRoomDelegate {
+	var tutorialContext : ChatRoomExampleContext!
+	
+	func onConferenceJoined(chatRoom: ChatRoom, eventLog: EventLog) {
+		print("ChatRoomTrace - Chatroom ready to start")
+		tutorialContext.displayableUsers = []
+		for part in chatRoom.participants {
+			tutorialContext.displayableUsers.append(DisplayableUser(name: part.address!.asString()))
+		}
+		tutorialContext.chatroomState = ChatroomExampleState.Started
+	}
+}
+
+class LinphoneChatMessageTracker: ChatMessageDelegate {
+	var tutorialContext : ChatRoomExampleContext!
+	
+	func onMsgStateChanged(message msg: ChatMessage, state: ChatMessage.State) {
+		print("MessageTrace - msg state changed: \(state)\n")
+		if (state == ChatMessage.State.FileTransferDone && tutorialContext.isDownloading == true) {
+			tutorialContext.isDownloading = false
+		}
+	}
+}
+
+
 class ChatRoomExampleContext : ObservableObject {
     var mCore: Core! // We need a Core for... anything, basically
     @Published var coreVersion: String = Core.getVersion
@@ -222,7 +281,6 @@ class ChatRoomExampleContext : ObservableObject {
 	}
 	
 	func removeParticipant(user : DisplayableUser) {
-		
 		if let userAddr = try? Factory.Instance.createAddress(addr: user.name) {
 			for part in mChatRoom!.participants {
 				if (part.address!.equal(address2: userAddr))
@@ -238,62 +296,6 @@ class ChatRoomExampleContext : ObservableObject {
 				break
 			}
 		}
-		
 	}
-    
-}
-
-class LinphoneCoreDelegate: CoreDelegate {
-    
-    var tutorialContext : ChatRoomExampleContext!
 	
-	func onRegistrationStateChanged(core: Core, proxyConfig: ProxyConfig, state: RegistrationState, message: String) {
-		print("New registration state \(state) for user id \( String(describing: proxyConfig.identityAddress?.asString()))\n")
-        if (state == RegistrationState.Ok) {
-			tutorialContext.loggedIn = true
-		}
-    }
-	
-	func onMessageReceived(core lc: Core, chatRoom room: ChatRoom, message: ChatMessage) {
-		if (tutorialContext.mChatRoom == nil) {
-			tutorialContext.mChatRoom = room
-			tutorialContext.chatroomState = ChatroomExampleState.Started
-		}
-		
-		if (message.hasTextContent()) {
-			tutorialContext.sReceivedMessages += "\n\(message.utf8Text)"
-		}
-		
-		for content in message.contents {
-			if (content.isFileTransfer) {
-				tutorialContext.mLastFileMessageReceived = message
-				tutorialContext.sReceivedMessages += "\n File(s) available(s) for download"
-				break;
-			}
-		}
-	}
-}
-
-class LinphoneChatRoomStateTracker: ChatRoomDelegate {
-    var tutorialContext : ChatRoomExampleContext!
-	
-	func onConferenceJoined(chatRoom: ChatRoom, eventLog: EventLog) {
-		print("ChatRoomTrace - Chatroom ready to start")
-		tutorialContext.displayableUsers = []
-		for part in chatRoom.participants {
-			tutorialContext.displayableUsers.append(DisplayableUser(name: part.address!.asString()))
-		}
-		tutorialContext.chatroomState = ChatroomExampleState.Started
-	}
-}
-
-class LinphoneChatMessageTracker: ChatMessageDelegate {
-	var tutorialContext : ChatRoomExampleContext!
-	
-	func onMsgStateChanged(message msg: ChatMessage, state: ChatMessage.State) {
-        print("MessageTrace - msg state changed: \(state)\n")
-		if (state == ChatMessage.State.FileTransferDone && tutorialContext.isDownloading == true) {
-			tutorialContext.isDownloading = false
-		}
-    }
 }

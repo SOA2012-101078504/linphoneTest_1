@@ -25,7 +25,6 @@ class CallExampleContext : ObservableObject
 	var loggingUnit = LoggingUnit()
 
 	/*------------ Call tutorial related variables ---------------*/
-	let mCallTutorialDelegate = CallTutorialDelegate()
 	var mCall: Call!
 	var account : Account!
 	var callAlreadyStopped = false;
@@ -34,17 +33,21 @@ class CallExampleContext : ObservableObject
 	@Published var microphoneMuted : Bool = false
 	@Published var callRunning : Bool = false
 	@Published var isCallIncoming : Bool = false
-	@Published var dest : String = "sip:targetphone@sip.linphone.org"
+	@Published var dest : String = "sip:calldest@sip.linphone.org"
 
-	@Published var id : String = "sip:myphone@sip.linphone.org"
-	@Published var passwd : String = "mypassword"
+	@Published var id : String = "sip:youraccount@sip.linphone.org"
+	@Published var passwd : String = "yourpassword"
 	@Published var loggedIn: Bool = false
 	
 	@Published var currentAudioDevice : AudioDevice!
 	@Published var displayableDevices = [DisplayableDevice]()
-
+	
+	var mRegistrationDelegate : CoreDelegate!
+	var mCallStateDelegate : CoreDelegate!
+	var mAudioDeviceChangedDelegate : CoreDelegate!
+	var mAudioDevicesListDelegate : CoreDelegate!
+	
 	init() {
-		mCallTutorialDelegate.tutorialContext = self
 
 		// Initialize Linphone Core
 		try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
@@ -54,7 +57,52 @@ class CallExampleContext : ObservableObject
 		try? mCore.start()
 
 		currentAudioDevice = mCore.audioDevices[0]
-		mCore.addDelegate(delegate: mCallTutorialDelegate)
+		
+		// Callback for actions when a change in the RegistrationState of the Linphone Core happens
+		mRegistrationDelegate = CoreDelegateStub(onAccountRegistrationStateChanged: { (core: Core, account: Account, state: RegistrationState, message: String) in
+			print("New registration state \(state) for user id \( String(describing: account.params?.identityAddress?.asString()))\n")
+			if (state == .Ok) {
+				self.loggedIn = true
+				
+			}
+		})
+		mCore.addDelegate(delegate: mRegistrationDelegate)
+		
+		// Callback for actions when a change in the CallState of the Linphone Core happens
+		mCallStateDelegate = CoreDelegateStub(onCallStateChanged: { (lc: Core, call: Call, cstate: Call.State, message: String) in
+			print("CallTrace - \(cstate)")
+			if (cstate == .IncomingReceived) {
+				// We're being called by someone
+				self.mCall = call
+				self.isCallIncoming = true
+			} else if (cstate == .OutgoingRinging) {
+				// We're calling someone
+				self.callRunning = true
+			} else if (cstate == .StreamsRunning) {
+				// Call has successfully began
+				self.updateAudioDevices()
+				self.callRunning = true
+			} else if (cstate == .End || cstate == .Error) {
+				// Call has been terminated by any side, or an error occured
+				self.callRunning = false
+				self.isCallIncoming = false
+			}
+		})
+		mCore.addDelegate(delegate: mCallStateDelegate)
+		
+		// Callback for actions when a change in audio device in the Linphone Core happens
+		mAudioDeviceChangedDelegate = CoreDelegateStub(onAudioDeviceChanged: { (core: Core, audioDevice: AudioDevice) in
+			if (self.currentAudioDevice.deviceName != audioDevice.deviceName) {
+				self.currentAudioDevice = audioDevice
+			}
+		})
+		mCore.addDelegate(delegate: mAudioDeviceChangedDelegate)
+		
+		// Callback when the audio devices list available to the Linphone Core is updated
+		mAudioDevicesListDelegate = CoreDelegateStub(onAudioDevicesListUpdated: { (core: Core) in
+			self.updateAudioDevices()
+		})
+		mCore.addDelegate(delegate: mAudioDevicesListDelegate)
 	}
 
 	func createAccountAndRegister() {
@@ -107,17 +155,15 @@ class CallExampleContext : ObservableObject
 			}
 		}
 	}
-/*
+
 	func updateAudioDevices() {
 		var newDevices = [DisplayableDevice]()
 		for device in mCore.audioDevices {
 			newDevices.append(DisplayableDevice(name: device.deviceName))
 		}
 		displayableDevices = newDevices
-		if let output = mCore.outputAudioDevice {
-			currentAudioDevice = output
-		}
 	}
+	
 	func switchAudioOutput(newDevice: String) {
 		for device in  mCore.audioDevices {
 			if (newDevice == device.deviceName) {
@@ -126,7 +172,7 @@ class CallExampleContext : ObservableObject
 				break
 			}
 		}
-	}*/
+	}
 	
 	func microphoneMuteToggle() {
 		if (callRunning) {
@@ -135,50 +181,9 @@ class CallExampleContext : ObservableObject
 		}
 	}
 
-	func acceptCall()
-	{
+	func acceptCall() {
 		do {
 			try mCall.accept()
-		} catch {
-			print(error)
-		}
+		} catch { print(error) }
 	}
-}
-
-// Callback for actions when a change in the Registration State happens
-class CallTutorialDelegate: CoreDelegate {
-
-	var tutorialContext : CallExampleContext!
-	
-	func onRegistrationStateChanged(core: Core, proxyConfig: ProxyConfig, state: RegistrationState, message: String) {
-		print("New registration state \(state) for user id \( String(describing: proxyConfig.identityAddress?.asString()))\n")
-		if (state == .Ok) {
-			tutorialContext.loggedIn = true
-		}
-	}
-	
-	func onCallStateChanged(core lc: Core, call: Call, state cstate: Call.State, message: String) {
-		print("CallTrace - \(cstate)")
-		if (cstate == .IncomingReceived) {
-			// We're being called by someone
-			tutorialContext.mCall = call
-			tutorialContext.isCallIncoming = true
-		} else if (cstate == .OutgoingRinging) {
-			// We're calling someone
-			tutorialContext.callRunning = true
-		} else if (cstate == .StreamsRunning) {
-			// Call has successfully began
-			//tutorialContext.updateAudioDevices()
-			tutorialContext.callRunning = true
-		} else if (cstate == .End || cstate == .Error) {
-			// Call has been terminated by any side, or an error occured
-			tutorialContext.callRunning = false
-			tutorialContext.isCallIncoming = false
-		}
-	}
-	/*
-	func onAudioDevicesListUpdated(core: Core) {
-		tutorialContext.updateAudioDevices()
-	}*/
-	
 }

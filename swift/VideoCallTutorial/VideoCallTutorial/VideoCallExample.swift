@@ -46,8 +46,8 @@ class VideoCallExample : ObservableObject
 		mVideoDevices = mCore.videoDevicesList
 		
 		// Callback for actions when a change in the RegistrationState of the Linphone Core happens
-		mRegistrationDelegate = CoreDelegateStub(onRegistrationStateChanged: { (core: Core, proxyConfig: ProxyConfig, state: RegistrationState, message: String) in
-			print("New registration state \(state) for user id \( String(describing: proxyConfig.identityAddress?.asString()))\n")
+		mRegistrationDelegate = CoreDelegateStub(onAccountRegistrationStateChanged: { (core: Core, account: Account, state: RegistrationState, message: String) in
+			print("New registration state \(state) for user id \( String(describing: account.params?.identityAddress?.asString()))\n")
 			if (state == .Ok) {
 				self.loggedIn = true
 				

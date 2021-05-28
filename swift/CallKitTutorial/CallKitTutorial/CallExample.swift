@@ -125,8 +125,8 @@ class CallKitTutorialDelegate: CoreDelegate {
     
     var tutorialContext : CallKitExampleContext!
 	
-	func onRegistrationStateChanged(core: Core, proxyConfig: ProxyConfig, state: RegistrationState, message: String) {
-		print("New registration state \(state) for user id \( String(describing: proxyConfig.identityAddress?.asString()))\n")
+	func onAccountRegistrationStateChanged(core: Core, account: Account, state: RegistrationState, message: String) {
+		print("New registration state \(state) for user id \( String(describing: account.params?.identityAddress?.asString()))\n")
 		if (state == .Ok) {
 			tutorialContext.loggedIn = true
 		}
