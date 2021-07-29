@@ -17,3 +17,4 @@ swift/*/Pods/
 swift/*/*.xcodeproj/project.xcworkspace/xcuserdata/
 swift/*/*.xcodeproj/xcuserdata/
 swift/*/*.xcworkspace/xcuserdata/
+swift/*/build
