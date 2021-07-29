@@ -6,7 +6,7 @@ import Foundation
 import linphonesw
 
 
-func createAndInitializeAccount(core: Core, identity: String, password: String) throws -> Account {
+func createAndInitializeAccount(core: Core, identity: String, password: String, withVoipPush: Bool = false, withRemotePush: Bool = false) throws -> Account {
 	let factory = Factory.Instance
 	let accountParams = try core.createAccountParams()
 	let address = try factory.createAddress(addr: identity)
@@ -16,6 +16,11 @@ func createAndInitializeAccount(core: Core, identity: String, password: String) 
 	try accountParams.setServeraddr(newValue: "sip:" + address.domain + ";transport=tls")
 	accountParams.registerEnabled = true
 	
+	// This is necessary to register to the server and handle push Notifications. Make sure you have a certificate to match your app's bundle ID.
+	accountParams.pushNotificationConfig?.provider = "apns.dev"
+	
+	accountParams.pushNotificationAllowed = withVoipPush
+	accountParams.remotePushNotificationAllowed = withRemotePush
 	core.addAuthInfo(info: info)
 	return try core.createAccount(params: accountParams)
 }
@@ -39,7 +44,7 @@ class LoggingUnit
 		var logsEnabled : BoolHolder!
 		func onLogMessageWritten(logService: LoggingService, domain: String, level: LogLevel, message: String) {
 			if (logsEnabled.value) {
-				print("Linphone logs: \(message)\n")
+				print("Linphone logs: \(message)")
 			}
 		}
 	}

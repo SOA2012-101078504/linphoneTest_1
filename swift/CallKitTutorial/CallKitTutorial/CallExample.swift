@@ -66,14 +66,8 @@ class CallKitExampleContext : ObservableObject
 	func createAccountAndRegister() {
 		if (!loggedIn) {
 			do {
-				account = try createAndInitializeAccount(core : mCore, identity: id, password: passwd)
-				
-				// This is necessary to register to the server and handle push Notifications. Make sure you have a certificate to match your app's bundle ID.
-				let updatedPushParams = account.params?.clone()
-				updatedPushParams?.pushNotificationConfig?.provider = "apns.dev"
-				updatedPushParams?.pushNotificationAllowed = true
-				account.params = updatedPushParams
-				
+				account = try createAndInitializeAccount(core : mCore, identity: id, password: passwd, withVoipPush: true)
+
 				try mCore.addAccount(account: account!)
 				if ( mCore.defaultAccount == nil) {
 					// IMPORTANT : default account setting MUST be done AFTER adding the config to the core !
