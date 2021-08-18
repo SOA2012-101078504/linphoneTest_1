@@ -27,12 +27,15 @@ class LoginTutorialContext : ObservableObject
     init()
     {
         // Initialize Linphone Core
-        try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
+	//FIXME ne peut on avoir une fonction de création sans param plutot que des params vide ?
+        try? mCore = Factory.Instance.createCore(configPath: nil, factoryConfigPath: nil, systemContext: nil)
 
         // main loop for receiving notifications and doing background linphonecore work:
-        mCore.autoIterateEnabled = true
+		//FIXME plus necessaire en 5.0
+		mCore.autoIterateEnabled = true
         try? mCore.start()
 		// Add callbacks to the Linphone Core
+		//pourquoi un attribue de class ? une variable locale serait sufisante.
 		mRegistrationDelegate = CoreDelegateStub(onAccountRegistrationStateChanged: { (core: Core, account: Account, state: RegistrationState, message: String) in
 			print("New registration state \(state) for user id \( String(describing: account.params?.identityAddress?.asString()))\n")
 			if (state == .Ok) {
@@ -45,6 +48,8 @@ class LoginTutorialContext : ObservableObject
 		mCore.addDelegate(delegate: mRegistrationDelegate)
     }
     
+	
+	//FIXME expliquer ce que ça fait
     func registrationExample()
     {
         if (!loggedIn) {
@@ -52,10 +57,8 @@ class LoginTutorialContext : ObservableObject
                 if (account == nil) {
                     account = try createAndInitializeAccount(core : mCore, identity: id, password: passwd)
                     try mCore.addAccount(account: account!)
-                    if ( mCore.defaultAccount == nil) {
-						// IMPORTANT : default account setting MUST be done AFTER adding the config to the core !)
-						mCore.defaultAccount = account
-					}
+ 					// IMPORTANT : default account setting MUST be done AFTER adding the config to the core !)
+					mCore.defaultAccount = account
                 }
                 else {
 					let registeredParams = account?.params?.clone()
