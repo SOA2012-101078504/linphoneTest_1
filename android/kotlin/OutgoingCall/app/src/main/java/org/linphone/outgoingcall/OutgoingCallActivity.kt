@@ -200,6 +200,9 @@ class OutgoingCallActivity: AppCompatActivity() {
         core.addAuthInfo(authInfo)
         core.addAccount(account)
 
+        // Asks the CaptureTextureView to resize to match the captured video's size ratio
+        core.config.setBool("video", "auto_resize_preview_to_keep_ratio", true)
+
         core.defaultAccount = account
         core.addListener(coreListener)
         core.start()
