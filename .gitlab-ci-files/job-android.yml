@@ -7,41 +7,41 @@
 job-android-hello-world:
   extends: .job-android
   script:
-    - cd android/kotlin/HelloWorld/
+    - cd android/kotlin/0-HelloWorld/
     - ./gradlew assembleRelease
 
 job-android-account:
   extends: .job-android
   script:
-    - cd android/kotlin/AccountLogin/
+    - cd android/kotlin/1-AccountLogin/
     - ./gradlew assembleRelease
 
 job-android-push-notifications:
   extends: .job-android
   script:
-    - cd android/kotlin/Pushnotifications/
+    - cd android/kotlin/2-PushNotifications/
     - ./gradlew assembleRelease
 
 job-android-basic-chat:
   extends: .job-android
   script:
-    - cd android/kotlin/BasicChat/
+    - cd android/kotlin/5-BasicChat/
     - ./gradlew assembleRelease
 
 job-android-advanced-chat:
   extends: .job-android
   script:
-    - cd android/kotlin/AdvancedChat/
+    - cd android/kotlin/6-AdvancedChat/
     - ./gradlew assembleRelease
 
 job-android-incoming-call:
   extends: .job-android
   script:
-    - cd android/kotlin/IncomingCall/
+    - cd android/kotlin/3-IncomingCall/
     - ./gradlew assembleRelease
 
 job-android-outgoing-call:
   extends: .job-android
   script:
-    - cd android/kotlin/OutgoingCall/
+    - cd android/kotlin/4-OutgoingCall/
     - ./gradlew assembleRelease
