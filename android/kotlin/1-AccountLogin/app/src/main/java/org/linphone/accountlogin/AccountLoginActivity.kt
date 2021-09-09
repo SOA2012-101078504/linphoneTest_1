@@ -35,7 +35,7 @@ class AccountLoginActivity: AppCompatActivity() {
     // In this case, we want to know about the account registration status
     private val coreListener = object: CoreListenerStub() {
         override fun onAccountRegistrationStateChanged(core: Core, account: Account, state: RegistrationState, message: String) {
-            // If account has been configured correctly, we will go through InProgress and Registered states
+            // If account has been configured correctly, we will go through Progress and Ok states
             // Otherwise, we will be Failed.
             findViewById<TextView>(R.id.registration_status).text = message
 
