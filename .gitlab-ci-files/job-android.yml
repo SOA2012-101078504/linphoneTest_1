@@ -34,6 +34,12 @@ job-android-advanced-chat:
     - cd android/kotlin/6-AdvancedChat/
     - ./gradlew assembleRelease
 
+job-android-group-chat:
+  extends: .job-android
+  script:
+    - cd android/kotlin/7-GroupChat/
+    - ./gradlew assembleRelease
+
 job-android-incoming-call:
   extends: .job-android
   script:

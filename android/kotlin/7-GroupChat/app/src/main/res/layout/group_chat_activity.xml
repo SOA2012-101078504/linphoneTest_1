@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <TextView
+        android:id="@+id/registration_status"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <LinearLayout
+        android:id="@+id/register_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/registration_status"
+        android:gravity="center"
+        android:visibility="visible"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/username"
+            android:hint="Username"
+            android:text="viish"
+            android:inputType="textEmailAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/password"
+            android:hint="Password"
+            android:text="lucifer"
+            android:inputType="textPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/domain"
+            android:hint="Domain"
+            android:text="sip.linphone.org"
+            android:inputType="textUri"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <RadioGroup
+            android:id="@+id/transport"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/udp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="UDP" />
+
+            <RadioButton
+                android:id="@+id/tcp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TCP" />
+
+            <RadioButton
+                android:id="@+id/tls"
+                android:checked="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TLS" />
+
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/connect"
+            android:text="Connect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/chat_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/registration_status"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/subject"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_toLeftOf="@id/change_subject"
+            android:hint="Title"/>
+
+        <Button
+            android:id="@+id/change_subject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:enabled="false"
+            android:text="Change subject" />
+
+        <EditText
+            android:id="@+id/participant_address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/subject"
+            android:layout_toLeftOf="@id/add_participant"
+            android:text="thorin.oakenshield"
+            android:hint="Participant SIP address"/>
+
+        <Button
+            android:id="@+id/add_participant"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/subject"
+            android:layout_alignParentRight="true"
+            android:text="Add participant" />
+
+        <TextView
+            android:id="@+id/participants"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/add_participant"/>
+
+        <Button
+            android:id="@+id/create_chat_room"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/participants"
+            android:layout_alignParentRight="true"
+            android:enabled="false"
+            android:text="Create" />
+
+        <Button
+            android:id="@+id/send_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Send"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"/>
+
+        <EditText
+            android:id="@+id/message"
+            android:text="Test"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@id/send_message"
+            android:layout_alignParentBottom="true"
+            android:hint="Message to send"/>
+
+        <ScrollView
+            android:id="@+id/scroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#A1A1A1"
+            android:fillViewport="true"
+            android:layout_above="@id/message"
+            android:layout_below="@id/create_chat_room">
+
+            <LinearLayout
+                android:id="@+id/messages"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"/>
+
+        </ScrollView>
+
+    </RelativeLayout>
+
+</RelativeLayout>
