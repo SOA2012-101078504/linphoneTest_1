@@ -32,4 +32,5 @@ ios/swift/*/*.xcodeproj/project.xcworkspace/xcuserdata/
 ios/swift/*/*.xcodeproj/xcuserdata/
 ios/swift/*/*.xcworkspace/xcuserdata/
 ios/swift/*/build
+ios/swift/*/*.xcworkspace
 

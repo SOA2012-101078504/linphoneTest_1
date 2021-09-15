@@ -12,14 +12,14 @@ import linphonesw
 
 class BasicChatTutorialContext : ObservableObject
 {
-    var mCore: Core!
-    @Published var coreVersion: String = Core.getVersion
-    
+	var mCore: Core!
+	@Published var coreVersion: String = Core.getVersion
+	
 	var mRegistrationDelegate : CoreDelegate!
-    @Published var username : String = "user"
-    @Published var passwd : String = "pwd"
+	@Published var username : String = "user"
+	@Published var passwd : String = "pwd"
 	@Published var domain : String = "sip.example.org"
-    @Published var loggedIn: Bool = false
+	@Published var loggedIn: Bool = false
 	@Published var transportType : String = "TLS"
 	
 	/*------------ Basic chat tutorial related variables -------*/
@@ -35,12 +35,12 @@ class BasicChatTutorialContext : ObservableObject
 	var fileFolderUrl : URL!
 	var fileUrl : URL!
 	
-    init()
-    {
+	init()
+	{
 		LoggingService.Instance.logLevel = LogLevel.Debug
 		
-        try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
-        try? mCore.start()
+		try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
+		try? mCore.start()
 		
 		mRegistrationDelegate = CoreDelegateStub(onMessageReceived : { (core: Core, chatRoom: ChatRoom, message: ChatMessage) in
 			// We will be called in this when a message is received
@@ -58,7 +58,7 @@ class BasicChatTutorialContext : ObservableObject
 			}
 			// We will notify the sender the message has been read by us
 			chatRoom.markAsRead()
-				
+			
 			for content in message.contents {
 				if (content.isFileTransfer) {
 					self.mLastFileMessageReceived = message
@@ -98,8 +98,8 @@ class BasicChatTutorialContext : ObservableObject
 		}catch let error as NSError{
 			print("Unable to create d)irectory",error)
 		}
-    }
-    
+	}
+	
 	func login() {
 		
 		do {
@@ -117,24 +117,24 @@ class BasicChatTutorialContext : ObservableObject
 			try accountParams.setServeraddress(newValue: address)
 			accountParams.registerEnabled = true
 			let account = try mCore.createAccount(params: accountParams)
-
+			
 			mCore.addAuthInfo(info: authInfo)
 			try mCore.addAccount(account: account)
-
+			
 			mCore.defaultAccount = account
-				
+			
 		} catch { NSLog(error.localizedDescription) }
 	}
 	
-    func unregister()
-    {
+	func unregister()
+	{
 		if let account = mCore.defaultAccount {
 			let params = account.params
 			let clonedParams = params?.clone()
 			clonedParams?.registerEnabled = false
 			account.params = clonedParams
 		}
-    }
+	}
 	func delete() {
 		if let account = mCore.defaultAccount {
 			mCore.removeAccount(account: account)
@@ -153,7 +153,7 @@ class BasicChatTutorialContext : ObservableObject
 			params.backend = ChatRoomBackend.Basic
 			params.encryptionEnabled = false
 			params.groupEnabled = false
-
+			
 			if (params.isValid) {
 				// We also need the SIP address of the person we will chat with
 				let remote = try Factory.Instance.createAddress(addr: remoteAddress)
@@ -166,7 +166,7 @@ class BasicChatTutorialContext : ObservableObject
 			}
 		} catch { NSLog(error.localizedDescription) }
 	}
-
+	
 	func sendMessage() {
 		do {
 			if (mChatroom == nil) {
@@ -176,50 +176,50 @@ class BasicChatTutorialContext : ObservableObject
 			mChatMessage = nil
 			// We need to create a ChatMessage object using the ChatRoom
 			mChatMessage = try mChatroom!.createMessageFromUtf8(message: msgToSend)
-
+			
 			// Then we can send it, progress will be notified using the onMsgStateChanged callback
 			mChatMessage!.addDelegate(delegate: mChatMessageDelegate)
-
+			
 			// Send the message
 			mChatMessage!.send()
-
+			
 			// Clear the message input field
 			msgToSend.removeAll()
 		} catch { NSLog(error.localizedDescription) }
 	}
-
+	
 	func sendFile() {
 		do {
 			if (mChatroom == nil) {
 				// We need a ChatRoom object to send chat messages in it, so let's create it if it hasn't been done yet
 				createBasicChatRoom()
 			}
-
+			
 			// We need to create a Content for our file transfer
 			let content = try Factory.Instance.createContent()
 			// Every content needs a content type & subtype
 			content.name = "file_to_transfer.txt"
 			content.type = "text"
 			content.subtype = "plain"
-
+			
 			// The simplest way to upload a file is to provide it's path
 			content.filePath = fileUrl.path
-
+			
 			// We need to create a ChatMessage object using the ChatRoom
 			let chatMessage = try mChatroom!.createFileTransferMessage(initialContent: content)
-
+			
 			// Then we can send it, progress will be notified using the onMsgStateChanged callback
 			chatMessage.addDelegate(delegate: mChatMessageDelegate)
-
+			
 			// Ensure a file sharing server URL is correctly set in the Core
 			mCore.fileTransferServer = "https://www.linphone.org:444/lft.php"
-
+			
 			// Send the message
 			chatMessage.send()
 			
 		} catch { NSLog(error.localizedDescription) }
 	}
-
+	
 	
 	func downloadLastFileMessage() {
 		if let message = mLastFileMessageReceived {

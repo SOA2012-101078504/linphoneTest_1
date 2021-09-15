@@ -10,15 +10,15 @@ import linphonesw
 
 class OutgoingCallTutorialContext : ObservableObject
 {
-    var mCore: Core!
-    @Published var coreVersion: String = Core.getVersion
-    
-    var mAccount: Account?
+	var mCore: Core!
+	@Published var coreVersion: String = Core.getVersion
+	
+	var mAccount: Account?
 	var mCoreDelegate : CoreDelegate!
-    @Published var username : String = "user"
-    @Published var passwd : String = "pwd"
+	@Published var username : String = "user"
+	@Published var passwd : String = "pwd"
 	@Published var domain : String = "sip.example.org"
-    @Published var loggedIn: Bool = false
+	@Published var loggedIn: Bool = false
 	@Published var transportType : String = "TLS"
 	
 	// Outgoing call related variables
@@ -28,11 +28,11 @@ class OutgoingCallTutorialContext : ObservableObject
 	@Published var canChangeCamera : Bool = false
 	@Published var remoteAddress : String = "sip:arguillq@sip.linphone.org"
 	
-    init()
-    {
+	init()
+	{
 		LoggingService.Instance.logLevel = LogLevel.Debug
 		
-        try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
+		try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
 		// Here we enable the video capture & display at Core level
 		// It doesn't mean calls will be made with video automatically,
 		// But it allows to use it later
@@ -50,7 +50,7 @@ class OutgoingCallTutorialContext : ObservableObject
 		// If the following property is enabled, it will automatically configure created call params with video enabled
 		//core.videoActivationPolicy.automaticallyInitiate = true
 		
-        try? mCore.start()
+		try? mCore.start()
 		
 		mCoreDelegate = CoreDelegateStub( onCallStateChanged: { (core: Core, call: Call, state: Call.State, message: String) in
 			// This function will be called each time a call state changes,
@@ -71,7 +71,7 @@ class OutgoingCallTutorialContext : ObservableObject
 				// or after the ICE negotiation completes
 				// Wait for the call to be connected before allowing a call update
 				self.isCallRunning = true
-
+				
 				// Only enable toggle camera button if there is more than 1 camera
 				// We check if core.videoDevicesList.size > 2 because of the fake camera with static image created by our SDK (see below)
 				self.canChangeCamera = core.videoDevicesList.count > 2
@@ -89,7 +89,7 @@ class OutgoingCallTutorialContext : ObservableObject
 				self.isCallRunning = false
 				self.canChangeCamera = false
 			} else if (state == .Error) {
-
+				
 			}
 		}, onAccountRegistrationStateChanged: { (core: Core, account: Account, state: RegistrationState, message: String) in
 			NSLog("New registration state is \(state) for user id \( String(describing: account.params?.identityAddress?.asString()))\n")
@@ -100,8 +100,8 @@ class OutgoingCallTutorialContext : ObservableObject
 			}
 		})
 		mCore.addDelegate(delegate: mCoreDelegate)
-    }
-    
+	}
+	
 	func login() {
 		
 		do {
@@ -122,19 +122,19 @@ class OutgoingCallTutorialContext : ObservableObject
 			mCore.addAuthInfo(info: authInfo)
 			try mCore.addAccount(account: mAccount!)
 			mCore.defaultAccount = mAccount
-				
+			
 		} catch { NSLog(error.localizedDescription) }
 	}
 	
-    func unregister()
-    {
+	func unregister()
+	{
 		if let account = mCore.defaultAccount {
 			let params = account.params
 			let clonedParams = params?.clone()
 			clonedParams?.registerEnabled = false
 			account.params = clonedParams
 		}
-    }
+	}
 	func delete() {
 		if let account = mCore.defaultAccount {
 			mCore.removeAccount(account: account)
@@ -142,17 +142,17 @@ class OutgoingCallTutorialContext : ObservableObject
 			mCore.clearAllAuthInfo()
 		}
 	}
-
+	
 	
 	func outgoingCall() {
 		do {
 			// As for everything we need to get the SIP URI of the remote and convert it to an Address
 			let remoteAddress = try Factory.Instance.createAddress(addr: remoteAddress)
-
+			
 			// We also need a CallParams object
 			// Create call params expects a Call object for incoming calls, but for outgoing we must use null safely
 			let params = try mCore.createCallParams(call: nil)
-
+			
 			// We can now configure it
 			// Here we ask for no encryption but we could ask for ZRTP/SRTP/DTLS
 			params.mediaEncryption = MediaEncryption.None
@@ -169,10 +169,10 @@ class OutgoingCallTutorialContext : ObservableObject
 	func terminateCall() {
 		do {
 			if (mCore.callsNb == 0) { return }
-
+			
 			// If the call state isn't paused, we can get it using core.currentCall
 			let coreCall = (mCore.currentCall != nil) ? mCore.currentCall : mCore.calls[0]
-
+			
 			// Terminating a call is quite simple
 			if let call = coreCall {
 				try call.terminate()
@@ -207,7 +207,7 @@ class OutgoingCallTutorialContext : ObservableObject
 		do {
 			// Currently used camera
 			let currentDevice = mCore.videoDevice
-
+			
 			// Let's iterate over all camera available and choose another one
 			for camera in mCore.videoDevicesList {
 				// All devices will have a "Static picture" fake camera, and we don't want to use it
@@ -223,7 +223,7 @@ class OutgoingCallTutorialContext : ObservableObject
 		do {
 			if (mCore.callsNb == 0) { return }
 			let coreCall = (mCore.currentCall != nil) ? mCore.currentCall : mCore.calls[0]
-		
+			
 			if let call = coreCall {
 				if (call.state != Call.State.Paused && call.state != Call.State.Pausing) {
 					// If our call isn't paused, let's pause it

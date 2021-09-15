@@ -11,14 +11,14 @@ import AVFoundation
 
 class CallKitExampleContext : ObservableObject
 {
-    var mCore: Core!
-    @Published var coreVersion: String = Core.getVersion
-
+	var mCore: Core!
+	@Published var coreVersion: String = Core.getVersion
+	
 	var mAccount: Account?
 	var mCoreDelegate : CoreDelegate!
-	@Published var username : String = "quentindev"
-	@Published var passwd : String = "dev"
-	@Published var domain : String = "sip.linphone.org"
+	@Published var username : String = "user"
+	@Published var passwd : String = "pwd"
+	@Published var domain : String = "sip.example.org"
 	@Published var loggedIn: Bool = false
 	@Published var transportType : String = "TLS"
 	
@@ -35,8 +35,8 @@ class CallKitExampleContext : ObservableObject
 	var mProviderDelegate : CallKitProviderDelegate!
 	var mCallAlreadyStopped : Bool = false;
 	
-    init()
-    {
+	init()
+	{
 		LoggingService.Instance.logLevel = LogLevel.Debug
 		
 		let factory = Factory.Instance
@@ -92,8 +92,8 @@ class CallKitExampleContext : ObservableObject
 			}
 		})
 		mCore.addDelegate(delegate: mCoreDelegate)
-    }
-    
+	}
+	
 	func login() {
 		
 		do {
@@ -118,7 +118,7 @@ class CallKitExampleContext : ObservableObject
 			mCore.addAuthInfo(info: authInfo)
 			try mCore.addAccount(account: mAccount!)
 			mCore.defaultAccount = mAccount
-				
+			
 		} catch { NSLog(error.localizedDescription) }
 	}
 	

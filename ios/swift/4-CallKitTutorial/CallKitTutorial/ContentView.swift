@@ -48,9 +48,9 @@ struct ContentView: View {
 						.disabled(tutorialContext.loggedIn)
 				}
 				Picker(selection: $tutorialContext.transportType, label: Text("Transport:")) {
-								Text("TLS").tag("TLS")
-								Text("TCP").tag("TCP")
-								Text("UDP").tag("UDP")
+					Text("TLS").tag("TLS")
+					Text("TCP").tag("TCP")
+					Text("UDP").tag("UDP")
 				}.pickerStyle(SegmentedPickerStyle()).padding()
 				VStack {
 					HStack {

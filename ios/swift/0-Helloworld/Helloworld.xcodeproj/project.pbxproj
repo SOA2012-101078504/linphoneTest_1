@@ -13,7 +13,7 @@
 		663D8CE526E8E35500EE487F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 663D8CE426E8E35500EE487F /* Assets.xcassets */; };
 		663D8CE826E8E35500EE487F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 663D8CE726E8E35500EE487F /* Preview Assets.xcassets */; };
 		663D8CEB26E8E35500EE487F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 663D8CE926E8E35500EE487F /* LaunchScreen.storyboard */; };
-		663D8CF326E8E73700EE487F /* HelloworldTutorial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663D8CF226E8E73700EE487F /* HelloworldTutorial.swift */; };
+		667C3B4826F1E7B2004D4F14 /* HelloworldTutorial.swift in Sources */ = {isa = PBXBuildFile; fileRef = 667C3B4726F1E7B2004D4F14 /* HelloworldTutorial.swift */; };
 		AE5DCE54FB07B00CDB39CF8C /* Pods_Helloworld.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 658B93FC56A6311767BE2F24 /* Pods_Helloworld.framework */; };
 /* End PBXBuildFile section */
 
@@ -28,7 +28,7 @@
 		663D8CE726E8E35500EE487F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		663D8CEA26E8E35500EE487F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		663D8CEC26E8E35500EE487F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		663D8CF226E8E73700EE487F /* HelloworldTutorial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HelloworldTutorial.swift; path = ../../../../Downloads/HelloworldTutorial.swift; sourceTree = "<group>"; };
+		667C3B4726F1E7B2004D4F14 /* HelloworldTutorial.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HelloworldTutorial.swift; sourceTree = "<group>"; };
 		B14B29CDA5B52FB0218CB545 /* Pods-Helloworld.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Helloworld.release.xcconfig"; path = "Target Support Files/Pods-Helloworld/Pods-Helloworld.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -71,8 +71,8 @@
 				663D8CE426E8E35500EE487F /* Assets.xcassets */,
 				663D8CE926E8E35500EE487F /* LaunchScreen.storyboard */,
 				663D8CEC26E8E35500EE487F /* Info.plist */,
+				667C3B4726F1E7B2004D4F14 /* HelloworldTutorial.swift */,
 				663D8CE626E8E35500EE487F /* Preview Content */,
-				663D8CF226E8E73700EE487F /* HelloworldTutorial.swift */,
 			);
 			path = Helloworld;
 			sourceTree = "<group>";
@@ -219,7 +219,7 @@
 				663D8CDF26E8E35400EE487F /* AppDelegate.swift in Sources */,
 				663D8CE126E8E35400EE487F /* SceneDelegate.swift in Sources */,
 				663D8CE326E8E35400EE487F /* ContentView.swift in Sources */,
-				663D8CF326E8E73700EE487F /* HelloworldTutorial.swift in Sources */,
+				667C3B4826F1E7B2004D4F14 /* HelloworldTutorial.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

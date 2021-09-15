@@ -10,7 +10,7 @@ import SwiftUI
 import linphonesw
 
 struct ContentView: View {
-    
+	
 	@ObservedObject var tutorialContext : OutgoingCallTutorialContext
 	
 	func callStateString() -> String {
@@ -21,24 +21,24 @@ struct ContentView: View {
 		}
 	}
 	
-    var body: some View {
-        
-        VStack {
-            Group {
-                HStack {
-                    Text("Username:")
-                        .font(.title)
+	var body: some View {
+		
+		VStack {
+			Group {
+				HStack {
+					Text("Username:")
+						.font(.title)
 					TextField("", text : $tutorialContext.username)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+						.textFieldStyle(RoundedBorderTextFieldStyle())
 						.disabled(tutorialContext.loggedIn)
-                }
-                HStack {
-                    Text("Password:")
-                        .font(.title)
-                    TextField("", text : $tutorialContext.passwd)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+				}
+				HStack {
+					Text("Password:")
+						.font(.title)
+					TextField("", text : $tutorialContext.passwd)
+						.textFieldStyle(RoundedBorderTextFieldStyle())
 						.disabled(tutorialContext.loggedIn)
-                }
+				}
 				HStack {
 					Text("Domain:")
 						.font(.title)
@@ -47,37 +47,37 @@ struct ContentView: View {
 						.disabled(tutorialContext.loggedIn)
 				}
 				Picker(selection: $tutorialContext.transportType, label: Text("Transport:")) {
-								Text("TLS").tag("TLS")
-								Text("TCP").tag("TCP")
-								Text("UDP").tag("UDP")
+					Text("TLS").tag("TLS")
+					Text("TCP").tag("TCP")
+					Text("UDP").tag("UDP")
 				}.pickerStyle(SegmentedPickerStyle()).padding()
-                VStack {
-                    HStack {
-                        Button(action:  {
-                            if (self.tutorialContext.loggedIn)
-                            {
-                                self.tutorialContext.unregister()
+				VStack {
+					HStack {
+						Button(action:  {
+							if (self.tutorialContext.loggedIn)
+							{
+								self.tutorialContext.unregister()
 								self.tutorialContext.delete()
-                            } else {
-                                self.tutorialContext.login()
-                            }
-                        })
-                        {
-                            Text(tutorialContext.loggedIn ? "Log out & \ndelete account" : "Create & \nlog in account")
-                                .font(.largeTitle)
-                                .foregroundColor(Color.white)
+							} else {
+								self.tutorialContext.login()
+							}
+						})
+						{
+							Text(tutorialContext.loggedIn ? "Log out & \ndelete account" : "Create & \nlog in account")
+								.font(.largeTitle)
+								.foregroundColor(Color.white)
 								.frame(width: 220.0, height: 90)
-                                .background(Color.gray)
-                        }
-                    }
-                    HStack {
-                        Text("Login State : ")
-                            .font(.footnote)
-                        Text(tutorialContext.loggedIn ? "Looged in" : "Unregistered")
-                            .font(.footnote)
-                            .foregroundColor(tutorialContext.loggedIn ? Color.green : Color.black)
-                    }.padding(.top, 10.0)
-                }
+								.background(Color.gray)
+						}
+					}
+					HStack {
+						Text("Login State : ")
+							.font(.footnote)
+						Text(tutorialContext.loggedIn ? "Looged in" : "Unregistered")
+							.font(.footnote)
+							.foregroundColor(tutorialContext.loggedIn ? Color.green : Color.black)
+					}.padding(.top, 10.0)
+				}
 				VStack {
 					HStack {
 						Text("Call dest:")
@@ -96,10 +96,10 @@ struct ContentView: View {
 						})
 						{
 							Text( (tutorialContext.isCallRunning) ? "End" : "Call")
-							.font(.largeTitle)
-							.foregroundColor(Color.white)
-							.frame(width: 180.0, height: 42.0)
-							.background(Color.gray)
+								.font(.largeTitle)
+								.foregroundColor(Color.white)
+								.frame(width: 180.0, height: 42.0)
+								.background(Color.gray)
 						}
 						HStack {
 							Text(tutorialContext.isCallRunning ? "Running" : "")
@@ -154,18 +154,18 @@ struct ContentView: View {
 						}
 					}
 				}.padding(.top, 30)
-            }
-            Group {
-                Spacer()
-                Text("Core Version is \(tutorialContext.coreVersion)")
-            }
-        }
-        .padding()
-    }
+			}
+			Group {
+				Spacer()
+				Text("Core Version is \(tutorialContext.coreVersion)")
+			}
+		}
+		.padding()
+	}
 }
 
 struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView(tutorialContext: OutgoingCallTutorialContext())
-    }
+	static var previews: some View {
+		ContentView(tutorialContext: OutgoingCallTutorialContext())
+	}
 }

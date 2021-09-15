@@ -10,24 +10,24 @@ import linphonesw
 
 class LoginTutorialContext : ObservableObject
 {
-    var mCore: Core!
-    @Published var coreVersion: String = Core.getVersion
-    
-    /*------------ Login tutorial related variables -------*/
+	var mCore: Core!
+	@Published var coreVersion: String = Core.getVersion
+	
+	/*------------ Login tutorial related variables -------*/
 	var mRegistrationDelegate : CoreDelegate!
-    @Published var username : String = "user"
-    @Published var passwd : String = "pwd"
+	@Published var username : String = "user"
+	@Published var passwd : String = "pwd"
 	@Published var domain : String = "sip.example.org"
-    @Published var loggedIn: Bool = false
+	@Published var loggedIn: Bool = false
 	@Published var transportType : String = "TLS"
 	
-    init()
-    {
+	init()
+	{
 		
 		LoggingService.Instance.logLevel = LogLevel.Debug
 		
-        try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
-        try? mCore.start()
+		try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
+		try? mCore.start()
 		
 		// Create a Core listener to listen for the callback we need
 		// In this case, we want to know about the account registration status
@@ -43,8 +43,8 @@ class LoginTutorialContext : ObservableObject
 			}
 		})
 		mCore.addDelegate(delegate: mRegistrationDelegate)
-    }
-    
+	}
+	
 	func login() {
 		
 		do {
@@ -64,39 +64,39 @@ class LoginTutorialContext : ObservableObject
 			// ha1 is set to null as we are using the clear text password. Upon first register, the hash will be computed automatically.
 			// The realm will be determined automatically from the first register, as well as the algorithm
 			let authInfo = try Factory.Instance.createAuthInfo(username: username, userid: "", passwd: passwd, ha1: "", realm: "", domain: domain)
-		
+			
 			// Account object replaces deprecated ProxyConfig object
 			// Account object is configured through an AccountParams object that we can obtain from the Core
 			let accountParams = try mCore.createAccountParams()
-
+			
 			// A SIP account is identified by an identity address that we can construct from the username and domain
 			let identity = try Factory.Instance.createAddress(addr: String("sip:" + username + "@" + domain))
 			try! accountParams.setIdentityaddress(newValue: identity)
-		
+			
 			// We also need to configure where the proxy server is located
 			let address = try Factory.Instance.createAddress(addr: String("sip:" + domain))
-		
+			
 			// We use the Address object to easily set the transport protocol
 			try address.setTransport(newValue: transport)
 			try accountParams.setServeraddress(newValue: address)
 			// And we ensure the account will start the registration process
 			accountParams.registerEnabled = true
-		
+			
 			// Now that our AccountParams is configured, we can create the Account object
 			let account = try mCore.createAccount(params: accountParams)
-
+			
 			// Now let's add our objects to the Core
 			mCore.addAuthInfo(info: authInfo)
 			try mCore.addAccount(account: account)
-
+			
 			// Also set the newly added account as default
 			mCore.defaultAccount = account
-				
+			
 		} catch { NSLog(error.localizedDescription) }
 	}
 	
-    func unregister()
-    {
+	func unregister()
+	{
 		// Here we will disable the registration of our Account
 		if let account = mCore.defaultAccount {
 			
@@ -110,19 +110,19 @@ class LoginTutorialContext : ObservableObject
 			// And apply them
 			account.params = clonedParams
 		}
-    }
+	}
 	func delete() {
 		// To completely remove an Account
 		if let account = mCore.defaultAccount {
 			mCore.removeAccount(account: account)
-
+			
 			// To remove all accounts use
 			mCore.clearAccounts()
-
+			
 			// Same for auth info
 			mCore.clearAllAuthInfo()
 		}
 	}
-
-    
+	
+	
 }

@@ -12,14 +12,14 @@ import linphonesw
 
 class AdvancedChatTutorialContext : ObservableObject
 {
-    var mCore: Core!
-    @Published var coreVersion: String = Core.getVersion
-    
+	var mCore: Core!
+	@Published var coreVersion: String = Core.getVersion
+	
 	var mRegistrationDelegate : CoreDelegate!
-    @Published var username : String = "user"
-    @Published var passwd : String = "pwd"
+	@Published var username : String = "user"
+	@Published var passwd : String = "pwd"
 	@Published var domain : String = "sip.example.org"
-    @Published var loggedIn: Bool = false
+	@Published var loggedIn: Bool = false
 	@Published var transportType : String = "TLS"
 	
 	/*------------ Advanced chat tutorial related variables -------*/
@@ -36,12 +36,12 @@ class AdvancedChatTutorialContext : ObservableObject
 	var fileFolderUrl : URL!
 	var fileUrl : URL!
 	
-    init()
-    {
+	init()
+	{
 		LoggingService.Instance.logLevel = LogLevel.Debug
 		
-        try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
-        try? mCore.start()
+		try? mCore = Factory.Instance.createCore(configPath: "", factoryConfigPath: "", systemContext: nil)
+		try? mCore.start()
 		
 		mRegistrationDelegate = CoreDelegateStub(onMessageReceived : { (core: Core, chatRoom: ChatRoom, message: ChatMessage) in
 			if (self.mChatroom == nil) {
@@ -60,7 +60,7 @@ class AdvancedChatTutorialContext : ObservableObject
 			}
 			
 			chatRoom.markAsRead()
-				
+			
 			for content in message.contents {
 				if (content.isFileTransfer) {
 					self.mLastFileMessageReceived = message
@@ -124,8 +124,8 @@ class AdvancedChatTutorialContext : ObservableObject
 		}catch let error as NSError{
 			print("Unable to create d)irectory",error)
 		}
-    }
-    
+	}
+	
 	func login() {
 		
 		do {
@@ -151,21 +151,21 @@ class AdvancedChatTutorialContext : ObservableObject
 			let account = try mCore.createAccount(params: accountParams)
 			try mCore.addAccount(account: account)
 			mCore.defaultAccount = account
-				
+			
 			// We also need a LIME X3DH server URL configured for end to end encryption
 			mCore.limeX3DhServerUrl = "https://lime.linphone.org/lime-server/lime-server.php"
 		} catch { NSLog(error.localizedDescription) }
 	}
 	
-    func unregister()
-    {
+	func unregister()
+	{
 		if let account = mCore.defaultAccount {
 			let params = account.params
 			let clonedParams = params?.clone()
 			clonedParams?.registerEnabled = false
 			account.params = clonedParams
 		}
-    }
+	}
 	func delete() {
 		if let account = mCore.defaultAccount {
 			mCore.removeAccount(account: account)
@@ -174,26 +174,26 @@ class AdvancedChatTutorialContext : ObservableObject
 		}
 	}
 	
-
+	
 	func createFlexisipChatRoom() {
 		do {
 			// In this tutorial we will create a Flexisip one-to-one chat room with end-to-end encryption
 			// For it to work, the proxy server we connect to must be an instance of Flexisip
 			// And we must have configured on the Account a conference-factory URI
 			let params = try mCore.createDefaultChatRoomParams()
-
+			
 			// We won't create a group chat, only a 1-1 with advanced features such as end-to-end encryption
 			params.backend = ChatRoomBackend.FlexisipChat
 			params.groupEnabled = false
-
+			
 			// We will rely on LIME encryption backend (we must have configured the core.limex3dhServerUrl first)
 			params.encryptionEnabled = true
 			params.encryptionBackend = ChatRoomEncryptionBackend.Lime
-
+			
 			// A flexisip chat room must have a subject
 			// But as we are doing a 1-1 chat room here we won't display it, so we can set whatever we want
 			params.subject = "dummy subject"
-
+			
 			if (params.isValid) {
 				// We also need the SIP address of the person we will chat with
 				let remote = try Factory.Instance.createAddress(addr: remoteAddress)
@@ -204,7 +204,7 @@ class AdvancedChatTutorialContext : ObservableObject
 				// If chat room isn't created yet, wait for it to go in state Created
 				// as Flexisip chat room creation process is asynchronous
 				mChatroom!.addDelegate(delegate: mChatroomDelegate)
-
+				
 				// Chat room may already be created (for example if you logged in with an account for which the chat room already exists)
 				if (mChatroom!.state == ChatRoom.State.Created) {
 					enableEphemeral()
@@ -212,8 +212,8 @@ class AdvancedChatTutorialContext : ObservableObject
 				}
 			}
 		} catch { NSLog(error.localizedDescription) }
- }
-
+	}
+	
 	func sendMessage() {
 		do {
 			if (mChatroom == nil) {
@@ -226,13 +226,13 @@ class AdvancedChatTutorialContext : ObservableObject
 			msgToSend.removeAll()
 		} catch { NSLog(error.localizedDescription) }
 	}
-
+	
 	func sendFile() {
 		do {
 			if (mChatroom == nil) {
 				createFlexisipChatRoom()
 			}
-
+			
 			let content = try Factory.Instance.createContent()
 			content.name = "file_to_transfer.txt"
 			content.type = "text"
@@ -245,7 +245,7 @@ class AdvancedChatTutorialContext : ObservableObject
 			
 		} catch { NSLog(error.localizedDescription) }
 	}
-
+	
 	func downloadLastFileMessage() {
 		if let message = mLastFileMessageReceived {
 			for content in message.contents {
