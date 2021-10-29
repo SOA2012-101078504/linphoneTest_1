@@ -26,7 +26,7 @@ class OutgoingCallTutorialContext : ObservableObject
 	@Published var isCallRunning : Bool = false
 	@Published var isVideoEnabled : Bool = false
 	@Published var canChangeCamera : Bool = false
-	@Published var remoteAddress : String = "sip:arguillq@sip.linphone.org"
+	@Published var remoteAddress : String = "sip:calldest@sip.linphone.org"
 	
 	init()
 	{
