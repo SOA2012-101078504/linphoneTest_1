@@ -29,7 +29,7 @@ namespace _02_IncomingCall.Views
 	{
 		private CoreService CoreService { get; } = CoreService.Instance;
 
-		private Call IncommingCall;
+		private Call IncomingCall;
 
 		public CallsPage()
 		{
@@ -50,9 +50,9 @@ namespace _02_IncomingCall.Views
 			HelloText.Text += CoreService.Core.DefaultProxyConfig.FindAuthInfo().Username;
 
 			// On each stage of a call we want to update our GUI.
-			// The same way we did it for OnAccountRegistrationStateChanged we can register
+			// The same way we did for OnAccountRegistrationStateChanged we can register
 			// a delegate called every time the state of a call changed.
-			// Watch this.OnCallStateChanged for more details
+			// See this.OnCallStateChanged for more details
 			CoreService.AddOnCallStateChangedDelegate(OnCallStateChanged);
 
 			if (CoreService.Core.CurrentCall != null)
@@ -64,7 +64,7 @@ namespace _02_IncomingCall.Views
 		/// <summary>
 		/// Method called when the "Hang out" button is clicked.
 		/// </summary>
-		private void HangOutClick(object sender, RoutedEventArgs e)
+		private void OnHangUpClicked(object sender, RoutedEventArgs e)
 		{
 			// Simply call TerminateAllCalls to hang out.
 			// You could also do something like CoreService.Core.CurrentCall?.Terminate();
@@ -73,11 +73,11 @@ namespace _02_IncomingCall.Views
 
 		/// <summary>
 		/// Method called when the "Switch on/off" button is clicked.
-		/// Watch CoreService.SpeakerMutedSwitch for more info.
+		/// See CoreService.ToggleSpeaker for more info.
 		/// </summary>
 		private void SoundClick(object sender, RoutedEventArgs e)
 		{
-			if (CoreService.SpeakerMutedSwitch())
+			if (CoreService.ToggleSpeaker())
 			{
 				Sound.Content = "Switch on Sound";
 			}
@@ -89,11 +89,11 @@ namespace _02_IncomingCall.Views
 
 		/// <summary>
 		/// Method to mute/unmute your microphone.
-		/// Watch CoreService.MicEnabledSwitch for more info.
+		/// See CoreService.ToggleMic for more info.
 		/// </summary>
 		private void MicClick(object sender, RoutedEventArgs e)
 		{
-			if (CoreService.MicEnabledSwitch())
+			if (CoreService.ToggleMic())
 			{
 				Mic.Content = "Mute";
 			}
@@ -119,10 +119,10 @@ namespace _02_IncomingCall.Views
 					// "Busy". If you want to implement a multi call app you can increase Core.MaxCalls.
 					// Here we store the incoming call reference so we can accept or decline the call on user input, see AnswerClick
 					// and DeclineClick.
-					IncommingCall = call;
+					IncomingCall = call;
 					// And we update the GUI to notify the user of the incoming call.
 					IncomingCallStackPanel.Visibility = Visibility.Visible;
-					IncommingCallText.Text = " " + IncommingCall.RemoteAddress.AsString();
+					IncomingCallText.Text = " " + IncomingCall.RemoteAddress.AsString();
 
 					break;
 
@@ -136,7 +136,7 @@ namespace _02_IncomingCall.Views
 				case CallState.Released:
 					// By default after 30 seconds of ringing without accept or decline a call is
 					// automatically ended.
-					IncommingCall = null;
+					IncomingCall = null;
 					EndingCallGuiUpdates();
 
 					break;
@@ -148,7 +148,7 @@ namespace _02_IncomingCall.Views
 		/// </summary>
 		private async void AnswerClick(object sender, RoutedEventArgs e)
 		{
-			if (IncommingCall != null)
+			if (IncomingCall != null)
 			{
 				// We call this method to pop the microphone permission window.
 				// If the permission was already granted for this app, no pop up
@@ -157,8 +157,8 @@ namespace _02_IncomingCall.Views
 
 				// To accept a call only use the Accept() method on the call object.
 				// If we wanted, we could create a CallParams object and answer using this object to make changes to the call configuration.
-				IncommingCall.Accept();
-				IncommingCall = null;
+				IncomingCall.Accept();
+				IncomingCall = null;
 			}
 		}
 
@@ -167,12 +167,12 @@ namespace _02_IncomingCall.Views
 		/// </summary>
 		private void DeclineClick(object sender, RoutedEventArgs e)
 		{
-			if (IncommingCall != null)
+			if (IncomingCall != null)
 			{
-				// You have do give a Reason to decline a call. This info is sent to the remote.
+				// You have to give a Reason to decline a call. This info is sent to the remote.
 				// See Linphone.Reason to see the full list.
-				IncommingCall.Decline(Reason.Declined);
-				IncommingCall = null;
+				IncomingCall.Decline(Reason.Declined);
+				IncomingCall = null;
 			}
 		}
 
@@ -182,7 +182,7 @@ namespace _02_IncomingCall.Views
 		private void EndingCallGuiUpdates()
 		{
 			IncomingCallStackPanel.Visibility = Visibility.Collapsed;
-			HangOut.IsEnabled = false;
+			HangUp.IsEnabled = false;
 			Sound.IsEnabled = false;
 			Mic.IsEnabled = false;
 			Mic.Content = "Mute";
@@ -195,7 +195,7 @@ namespace _02_IncomingCall.Views
 		private void CallInProgressGuiUpdates()
 		{
 			IncomingCallStackPanel.Visibility = Visibility.Collapsed;
-			HangOut.IsEnabled = true;
+			HangUp.IsEnabled = true;
 			Sound.IsEnabled = true;
 			Mic.IsEnabled = true;
 		}

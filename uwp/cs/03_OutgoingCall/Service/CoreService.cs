@@ -70,15 +70,13 @@ namespace _03_OutgoingCall.Service
 					core.RootCa = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "share", "Linphone", "rootca.pem");
 					core.UserCertificatesPath = ApplicationData.Current.LocalFolder.Path;
 
+					// NEW!
 					VideoActivationPolicy videoActivationPolicy = factory.CreateVideoActivationPolicy();
 					videoActivationPolicy.AutomaticallyAccept = true;
 					videoActivationPolicy.AutomaticallyInitiate = false;
 					core.VideoActivationPolicy = videoActivationPolicy;
 
-					if (core.VideoSupported())
-					{
-						core.VideoCaptureEnabled = true;
-					}
+					core.VideoCaptureEnabled = core.VideoSupported();
 					core.UsePreviewWindow(true);
 				}
 				return core;
@@ -174,12 +172,12 @@ namespace _03_OutgoingCall.Service
 			Core.InviteAddress(address);
 		}
 
-		public bool MicEnabledSwitch()
+		public bool ToggleMic()
 		{
 			return Core.MicEnabled = !Core.MicEnabled;
 		}
 
-		public bool SpeakerMutedSwitch()
+		public bool ToggleSpeaker()
 		{
 			return Core.CurrentCall.SpeakerMuted = !Core.CurrentCall.SpeakerMuted;
 		}
@@ -187,11 +185,8 @@ namespace _03_OutgoingCall.Service
 		/// <summary>
 		/// Ask the peer of the current call to enable/disable the video call.
 		/// </summary>
-		public async Task<bool> CameraEnabledSwitchAsync()
+		public async Task<bool> ToggleCameraAsync()
 		{
-			// We call this method to pop up the webcam permission window.
-			// If the permission was already granted for this app, no pop up
-			// appears.
 			await OpenCameraPopup();
 
 			// Retrieving the current call
@@ -199,24 +194,25 @@ namespace _03_OutgoingCall.Service
 
 			// Core.createCallParams(call) create CallParams matching the Call parameters,
 			// here the current call. CallParams contains a variety of parameters like
-			// audio bandwidth limit, media encryption type... And if the video is enable
+			// audio bandwidth limit, media encryption type...< And if the video is enable
 			// or not.
 			CallParams param = core.CreateCallParams(call);
 
 			// Switch the current VideoEnableValue
 			bool newValue = !param.VideoEnabled;
 			param.VideoEnabled = newValue;
+			param.VideoDirection = MediaDirection.RecvOnly;
 
 			// Try to update the call parameters with those new CallParams.
-			// If the video switch from true to false the peer can't refuse to disable the video.
-			// If the video switch from false to true and the peer don't have videoActivationPolicy.AutomaticallyAccept = true
-			// you have to wait for him to accept the update. The Call status is "Updating" during this time.
+			// If the video switched from true to false the peer can't refuse to disable the video.
+			// If the video switched from false to true and the peer doesn't have videoActivationPolicy.AutomaticallyAccept = true
+			// you have to wait for them to accept the update. The Call status is "Updating" during this time.
 			call.Update(param);
 
 			return newValue;
 		}
 
-		private async Task OpenMicrophonePopup()
+		public async Task OpenMicrophonePopup()
 		{
 			AudioGraphSettings settings = new AudioGraphSettings(Windows.Media.Render.AudioRenderCategory.Media);
 			CreateAudioGraphResult result = await AudioGraph.CreateAsync(settings);
@@ -231,11 +227,18 @@ namespace _03_OutgoingCall.Service
 
 		private async Task OpenCameraPopup()
 		{
-			MediaCapture mediaCapture = new Windows.Media.Capture.MediaCapture();
-			await mediaCapture.InitializeAsync(new MediaCaptureInitializationSettings
+			MediaCapture mediaCapture = new MediaCapture();
+			try
 			{
-				StreamingCaptureMode = StreamingCaptureMode.Video
-			});
+				await mediaCapture.InitializeAsync(new MediaCaptureInitializationSettings
+				{
+					StreamingCaptureMode = StreamingCaptureMode.Video
+				});
+			}
+			catch (Exception e) when(e.Message.StartsWith("No capture devices are available."))
+            {
+                // Ignored. You can ask the remote party for video even if you don't have a camera.
+            }
 			mediaCapture.Dispose();
 		}
 	}

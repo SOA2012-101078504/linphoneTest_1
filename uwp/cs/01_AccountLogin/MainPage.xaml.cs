@@ -66,17 +66,18 @@ namespace _01_AccountLogin
 
 			StoredCore = core;
 
-			// We need to indicate to the core where are stored the root ans user certificates, for future TLS exchange.
+			// We need to indicate to the core where to find the root and user certificates, for future TLS exchange.
 			StoredCore.RootCa = Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "share", "Linphone", "rootca.pem");
 			StoredCore.UserCertificatesPath = ApplicationData.Current.LocalFolder.Path;
 
-			// In this tutorials we are going to log in and our registration state will change.
+			// In this tutorial we are going to log in and our registration state will change.
 			// Here we show you how to register a delegate method called every time the
-			// on OnAccountRegistrationStateChanged callback is triggered.
+			// OnAccountRegistrationStateChanged callback is triggered.
 			StoredCore.Listener.OnAccountRegistrationStateChanged += OnAccountRegistrationStateChanged;
 
 			// Start the core after setup, and before everything else.
 			StoredCore.Start();
+			StoredCore.AutoIterateEnabled = true;
 
 			// The method Iterate must be permanently called on our core.
 			// The Iterate method runs all the waiting backgrounds tasks and poll networks notifications.
@@ -135,7 +136,17 @@ namespace _01_AccountLogin
 				// We also need to configure where the proxy server is located
 				Address serverAddr = Factory.Instance.CreateAddress("sip:" + address.Domain);
 				// We use the Address object to easily set the transport protocol
-				serverAddr.Transport = TlsRadio.IsChecked ?? false ? TransportType.Tls : TcpRadio.IsChecked ?? false ? TransportType.Tcp : TransportType.Udp;
+				if (TlsRadio.IsChecked == true) {
+					serverAddr.Transport = TransportType.Tls;
+				}
+				else if (TcpRadio.IsChecked == true)
+				{
+					serverAddr.Transport = TransportType.Tcp;
+				}
+				else
+				{
+					serverAddr.Transport = TransportType.Udp;
+				}
 				accountParams.ServerAddress = serverAddr;
 				// If RegisterEnabled is set to true, when this account will be added to the core it will
 				// automatically try to connect.

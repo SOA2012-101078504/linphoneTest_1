@@ -45,7 +45,7 @@ namespace _07_AdvancedChat.Views
 		{
 			base.OnNavigatedTo(e);
 
-			ChatRoom = ((ChatRoom)e.Parameter);
+			ChatRoom = (ChatRoom)e.Parameter;
 
 			ChatRoom.Listener.OnMessageReceived += OnMessageReceived;
 			ChatRoom.Listener.OnConferenceLeft += AddEvent;
@@ -58,24 +58,27 @@ namespace _07_AdvancedChat.Views
 			ChatRoom.Listener.OnEphemeralEvent += AddEvent;
 
 			// In this step we want to test the ephemeral messages. This feature is only
-			// available if you are using in a Flexisip backend.
-			if (ChatRoomBackend.FlexisipChat.Equals(ChatRoom.CurrentParams.Backend) && !ChatRoom.EphemeralEnabled)
+			// available if you are using a Flexisip backend.
+			if (ChatRoom.CurrentParams.Backend == ChatRoomBackend.FlexisipChat)
 			{
-				// In this step when the ephemeral feature is available we enable it
-				// by default. Just set the EphemeralEnabled to true to activate the
-				// ephemeral mode, after this point every message send will be marked
-				// as ephemeral
-				ChatRoom.EphemeralEnabled = true;
+				if (!ChatRoom.EphemeralEnabled)
+				{
+					// In this step when the ephemeral feature is available we enable it
+					// by default. Just set the EphemeralEnabled to true to activate the
+					// ephemeral mode, after this point every message sent will be marked
+					// as ephemeral
+					ChatRoom.EphemeralEnabled = true;
 
-				// You can choose how many times you want the message to be displayed before
-				// getting destroyed with EphemeralLifetime, the value is in second.
-				// Here we set a low value for testing purpose.
-				ChatRoom.EphemeralLifetime = 15;
+					// You can choose how long you want the message to be displayed before
+					// getting destroyed with EphemeralLifetime, the value is in second.
+					// Here we set a low value for testing purpose.
+					ChatRoom.EphemeralLifetime = 15;
 
-				// At any time you can choose to disable the ephemeral mode moving EphemeralEnabled to false.
-				// See the EphemeralCheckBox_Unchecked method.
+					// You can choose to disable the ephemeral mode at any time by setting EphemeralEnabled to false.
+					// See the EphemeralCheckBox_Unchecked method.
+				}
 			}
-			else if (!ChatRoomBackend.FlexisipChat.Equals(ChatRoom.CurrentParams.Backend))
+			else
 			{
 				// If the backend is not a Flexisip one we hide the ephemeral feature in the ChatPage
 				// because it doesn't support it.
@@ -117,7 +120,7 @@ namespace _07_AdvancedChat.Views
 		private void UpdateGUI()
 		{
 			ChatHeaderText.Text = "Your conversation with : " + ChatRoom.PeerAddress.Username;
-			foreach (EventLog eventLog in ChatRoom.GetHistoryEvents(0))
+			foreach (var eventLog in ChatRoom.GetHistoryEvents(0))
 			{
 				if (EventLogType.ConferenceChatMessage.Equals(eventLog.Type))
 				{
@@ -137,7 +140,7 @@ namespace _07_AdvancedChat.Views
 			PeerUsername.Text += ChatRoom.PeerAddress.Username;
 			YourUsername.Text += ChatRoom.LocalAddress.Username;
 
-			// We only display the GroupChatDisplay if we are in real group chat,
+			// We only display the GroupChatDisplay if we are in a real group chat,
 			// we don't if it's a OneToOne secure ChatRoom.
 			if (ChatRoom.HasCapability((int)ChatRoomCapabilities.Conference)
 				&& !ChatRoom.HasCapability((int)ChatRoomCapabilities.OneToOne))

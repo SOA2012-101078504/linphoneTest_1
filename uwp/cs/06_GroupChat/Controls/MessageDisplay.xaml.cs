@@ -68,11 +68,11 @@ namespace _06_GroupChat.Controls
 
 			if (ChatMessage.IsOutgoing)
 			{
-				this.HorizontalAlignment = HorizontalAlignment.Right;
+				HorizontalAlignment = HorizontalAlignment.Right;
 			}
 			else
 			{
-				this.HorizontalAlignment = HorizontalAlignment.Left;
+				HorizontalAlignment = HorizontalAlignment.Left;
 			}
 		}
 
@@ -82,9 +82,9 @@ namespace _06_GroupChat.Controls
 
 			// We iterate over the Contents list to display all the contents
 			// in a multipart message.
-			// This code is common for Basic and Flexisip ChatRoom so even if
-			// another SIP client don't respect the basic chat room rules and
-			// and send multipart we can display it.
+			// This code is the same for Basic and Flexisip ChatRoom so even if
+			// another SIP client doesn't follow the basic chat room rules and
+			// and sends multipart content we can display it.
 			foreach (Content content in ChatMessage.Contents)
 			{
 				AddContent(content);
@@ -93,7 +93,7 @@ namespace _06_GroupChat.Controls
 
 		private void AddContent(Content content)
 		{
-			// A Content object can himself be multipart
+			// A Content object can itself be multipart
 			if (content.IsMultipart)
 			{
 				// So we make this method recursive
@@ -104,7 +104,7 @@ namespace _06_GroupChat.Controls
 				return;
 			}
 
-			// And we create a content display for each content. You can watch the code
+			// And we create a content display for each content. You can look at the code
 			// in content ContentDisplay.xaml(.cs).
 			ContentDisplay contentDisplay = new ContentDisplay(content, ChatMessage);
 			ContentsStack.Children.Add(contentDisplay);

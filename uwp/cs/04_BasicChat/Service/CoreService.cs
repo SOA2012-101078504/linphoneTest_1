@@ -75,11 +75,8 @@ namespace _04_BasicChat.Service
 					videoActivationPolicy.AutomaticallyInitiate = false;
 					core.VideoActivationPolicy = videoActivationPolicy;
 
-					if (core.VideoSupported())
-					{
-						core.VideoDisplayFilter = "MSOGL";
-						core.VideoCaptureEnabled = true;
-					}
+
+					core.VideoCaptureEnabled = core.VideoSupported();
 					core.UsePreviewWindow(true);
 				}
 				return core;
@@ -192,17 +189,17 @@ namespace _04_BasicChat.Service
 			Core.InviteAddress(address);
 		}
 
-		public bool MicEnabledSwitch()
+		public bool ToggleMic()
 		{
 			return Core.MicEnabled = !Core.MicEnabled;
 		}
 
-		public bool SpeakerMutedSwitch()
+		public bool ToggleSpeaker()
 		{
 			return Core.CurrentCall.SpeakerMuted = !Core.CurrentCall.SpeakerMuted;
 		}
 
-		public async Task<bool> CameraEnabledSwitchAsync()
+		public async Task<bool> ToggleCameraAsync()
 		{
 			await OpenCameraPopup();
 
@@ -256,7 +253,7 @@ namespace _04_BasicChat.Service
 			return Core.CreateChatRoom(chatRoomParams, localAdress, new[] { remoteAddress });
 		}
 
-		private async Task OpenMicrophonePopup()
+		public async Task OpenMicrophonePopup()
 		{
 			AudioGraphSettings settings = new AudioGraphSettings(Windows.Media.Render.AudioRenderCategory.Media);
 			CreateAudioGraphResult result = await AudioGraph.CreateAsync(settings);
@@ -271,11 +268,18 @@ namespace _04_BasicChat.Service
 
 		private async Task OpenCameraPopup()
 		{
-			MediaCapture mediaCapture = new Windows.Media.Capture.MediaCapture();
-			await mediaCapture.InitializeAsync(new MediaCaptureInitializationSettings
+			MediaCapture mediaCapture = new MediaCapture();
+			try
 			{
-				StreamingCaptureMode = StreamingCaptureMode.Video
-			});
+				await mediaCapture.InitializeAsync(new MediaCaptureInitializationSettings
+				{
+					StreamingCaptureMode = StreamingCaptureMode.Video
+				});
+			}
+			catch (Exception e) when (e.Message.StartsWith("No capture devices are available."))
+			{
+				// Ignored.
+			}
 			mediaCapture.Dispose();
 		}
 	}

@@ -4,7 +4,7 @@
 You reached the last step of this tutorial ! Well done ! In this step we will show you
 how to create group chat, enable encryption and send ephemeral messages.
 
-Linphone provide end-to-end encryption to your Flexisip chat with LIME. We will learn
+Linphone provides end-to-end encryption to your Flexisip chat with LIME. We will learn
 in this step how to enable and use LIME to secure our ChatRoom. If you want more 
 informations about LIME take a look to [this page](https://linphone.org/technical-corner/lime).
 
@@ -16,14 +16,11 @@ One-to-one encryption is similar to group chat encryption as it uses LIME. To le
 how to create a one-to-one encrypted chat room also see CoreService.cs. You can also try to create one
 yourself using the new "Create a new secure ChatRoom" on top of the ChatsPage.
 
-Ephemeral messages are meant to disappear after a certain amount of time. You can enable the ephemeral
-mode directly on a ChatRoom object, see ChatPage.xaml.cs to learn how to enable/disable it. And finally 
-watch the new code in MessageDisplay.xaml(.cs) to see how to handle ephemeral messages.
+Ephemeral messages are meant to disappear after a certain amount of time has elapsed.
+You can enable the ephemeral mode directly on a ChatRoom object, see ChatPage.xaml.cs to
+learn how to enable/disable it. And finally take a look at the new code in MessageDisplay.xaml(.cs)
+to see how to handle ephemeral messages.
 
-Don't forget to install those NuGet packages :
- - LinphoneSDK (can be found here : https://www.linphone.org/snapshots/windows/sdk/)
- - Microsoft.NETCore.UniversalWindowsPlatform (version 6.2.12 recommended)
- - ANGLE.WindowsStore (for video rendering, version 2.1.13 recommended)
 
 New/updated files :
 
@@ -41,7 +38,7 @@ New/updated files :
 └───Shared :
 │   │   ChatRoomToStringConverter.cs : a class that implement IValueConverter to display the 
 │   │               the chat room name according to its type. Now we display a SECURE tag
-│   │               for secure chat room
+│   │               for secure chat rooms
 │   │
 └───Views :
 │   │    

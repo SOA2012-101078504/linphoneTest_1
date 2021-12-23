@@ -87,9 +87,9 @@ namespace _07_AdvancedChat.Views
 		private async void NewChatRoom_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
 		{
 			string peerSipAddress = await Utils.InputTextDialogAsync("Enter peer sip address");
-			bool secure = Boolean.Parse((string)((Button)sender).Tag);
-			if (!String.IsNullOrWhiteSpace(peerSipAddress))
+			if (!string.IsNullOrWhiteSpace(peerSipAddress))
 			{
+				bool secure = bool.Parse((string)((Button)sender).Tag); // NEW!
 				ChatRoom newChatRoom = CoreService.CreateOrGetChatRoom(peerSipAddress, secure);
 				if (newChatRoom != null)
 				{

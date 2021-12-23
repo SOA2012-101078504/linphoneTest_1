@@ -148,9 +148,9 @@ namespace _02_IncomingCall.Service
 
 		/// <summary>
 		/// Mute/Unmute your microphone.
-		/// Set MicEnabled=false on the Core mute your microphone globally.
+		/// Setting MicEnabled=false on the Core mutes your microphone globally.
 		/// </summary>
-		public bool MicEnabledSwitch()
+		public bool ToggleMic()
 		{
 			// The following toggles the microphone, disabling completely / enabling the sound capture from the device microphone
 			return Core.MicEnabled = !Core.MicEnabled;
@@ -158,9 +158,9 @@ namespace _02_IncomingCall.Service
 
 		/// <summary>
 		/// Enable/Disable the speaker sound.
-		/// Set SpeakerMuted=true on a Call object to disable the sound of this call.
+		/// Setting SpeakerMuted=true on a Call object disables the sound output of this call.
 		/// </summary>
-		public bool SpeakerMutedSwitch()
+		public bool ToggleSpeaker()
 		{
 			return Core.CurrentCall.SpeakerMuted = !Core.CurrentCall.SpeakerMuted;
 		}

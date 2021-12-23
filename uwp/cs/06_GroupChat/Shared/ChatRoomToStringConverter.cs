@@ -20,7 +20,7 @@ namespace _06_GroupChat.Shared
 			else if (chatRoom.HasCapability((int)ChatRoomCapabilities.OneToOne))
 			{
 				// If the ChatRoom is a OneToOne conference (we will speak more about those in further steps)
-				nameInList = chatRoom.Participants.FirstOrDefault() == null ? "" : chatRoom.Participants.First().Address.Username;
+				nameInList = chatRoom.Participants.FirstOrDefault()?.Address.Username;
 			}
 			else if (chatRoom.HasCapability((int)ChatRoomCapabilities.Conference))
 			{
@@ -28,7 +28,7 @@ namespace _06_GroupChat.Shared
 				nameInList = chatRoom.Subject;
 			}
 
-			if (String.IsNullOrEmpty(nameInList))
+			if (string.IsNullOrEmpty(nameInList))
 			{
 				nameInList = "Incoherent ChatRoom values";
 			}

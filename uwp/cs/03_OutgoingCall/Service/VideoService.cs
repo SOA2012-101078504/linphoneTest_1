@@ -39,7 +39,7 @@ namespace _03_OutgoingCall.Service
 		/// When you want to start the video rendering you need to link the SwapChainPanel surface to Linphone.
 		/// Core.NativePreviewWindowId for the preview surface and Core.CurrentCall.NativeVideoWindowId for the
 		/// remote webcam surface.
-		/// Simply doing this allow Linphone to render your preview and the remote camera if they are available.
+		/// Simply doing this allows Linphone to render your preview and the remote camera if they are available.
 		/// </summary>
 		public void StartVideoStream(SwapChainPanel main, SwapChainPanel preview)
 		{

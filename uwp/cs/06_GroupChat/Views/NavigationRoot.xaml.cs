@@ -28,7 +28,8 @@ using Windows.UI.Xaml.Navigation;
 namespace _06_GroupChat.Views
 {
 	/// <summary>
-	/// A really simple app for a first Login with LinphoneSDK x UWP
+	/// Introduced in step 02 IncomingCall
+	/// Changed in step 04 BasicChat
 	/// </summary>
 	public sealed partial class NavigationRoot : Page
 	{
@@ -60,7 +61,7 @@ namespace _06_GroupChat.Views
 			// there is already a page loaded
 			if (!hasLoadedPreviously)
 			{
-				AppNavFrame.Navigate(typeof(CallsPage));
+				_ = AppNavFrame.Navigate(typeof(CallsPage));
 				UpdateUnreadMessageCount();
 				hasLoadedPreviously = true;
 				NavigationService.CurrentNavigationRoot = this;
@@ -71,11 +72,11 @@ namespace _06_GroupChat.Views
 		{
 			switch (e.SourcePageType)
 			{
-				case Type c when e.SourcePageType == typeof(CallsPage):
+				case Type _ when e.SourcePageType == typeof(CallsPage):
 					((NavigationViewItem)navview.MenuItems[0]).IsSelected = true;
 					break;
 
-				case Type c when e.SourcePageType == typeof(ChatsPage):
+				case Type _ when e.SourcePageType == typeof(ChatsPage):
 					((NavigationViewItem)navview.MenuItems[1]).IsSelected = true;
 					break;
 			}
@@ -91,19 +92,17 @@ namespace _06_GroupChat.Views
 					Content = "There is no settings in this little app",
 					CloseButtonText = "OK"
 				};
-
-				ContentDialogResult result = await noSettingsDialog.ShowAsync();
+				_ = await noSettingsDialog.ShowAsync();
 				return;
 			}
 
-			string invokedItemValue = args.InvokedItem as string;
-			if (invokedItemValue != null && invokedItemValue.Contains("Calls"))
+			if (args.InvokedItem is string invokedItemValue && invokedItemValue.Contains("Calls"))
 			{
-				AppNavFrame.Navigate(typeof(CallsPage));
+				_ = AppNavFrame.Navigate(typeof(CallsPage));
 			}
 			else
 			{
-				AppNavFrame.Navigate(typeof(ChatsPage));
+				_ = AppNavFrame.Navigate(typeof(ChatsPage));
 			}
 		}
 

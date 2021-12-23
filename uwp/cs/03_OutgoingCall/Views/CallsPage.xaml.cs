@@ -31,7 +31,7 @@ namespace _03_OutgoingCall.Views
 
 		private VideoService VideoService { get; } = VideoService.Instance;
 
-		private Call IncommingCall;
+		private Call IncomingCall;
 
 		public CallsPage()
 		{
@@ -71,14 +71,14 @@ namespace _03_OutgoingCall.Views
 			CoreService.Call(UriToCall.Text);
 		}
 
-		private void HangOutClick(object sender, RoutedEventArgs e)
+		private void OnHangUpClicked(object sender, RoutedEventArgs e)
 		{
 			CoreService.Core.TerminateAllCalls();
 		}
 
 		private void SoundClick(object sender, RoutedEventArgs e)
 		{
-			if (CoreService.SpeakerMutedSwitch())
+			if (CoreService.ToggleSpeaker())
 			{
 				Sound.Content = "Switch on Sound";
 			}
@@ -90,22 +90,22 @@ namespace _03_OutgoingCall.Views
 
 		/// <summary>
 		/// Method to turn on/off the video call.
-		/// Watch CoreService.CameraEnabledSwitchAsync for more info.
+		/// See CoreService.ToggleCameraAsync for more info.
 		/// </summary>
 		private async void CameraClick(object sender, RoutedEventArgs e)
 		{
-			await CoreService.CameraEnabledSwitchAsync();
+			await CoreService.ToggleCameraAsync();
 
-			// After CoreService.CameraEnabledSwitchAsync the Call state is "Updating".
+			// After CoreService.ToggleCameraAsync the Call state is "Updating".
 			// We wait for the return of the "StreamsRunning" state to update the GUI
 			// according to the final consensus between callers.
-			Camera.Content = "Waiting for accept ...";
+			Camera.Content = "Waiting for remote party to accept ...";
 			Camera.IsEnabled = false;
 		}
 
 		private void MicClick(object sender, RoutedEventArgs e)
 		{
-			if (CoreService.MicEnabledSwitch())
+			if (CoreService.ToggleMic())
 			{
 				Mic.Content = "Mute";
 			}
@@ -121,24 +121,24 @@ namespace _03_OutgoingCall.Views
 			switch (state)
 			{
 				case CallState.IncomingReceived:
-					IncommingCall = call;
+					IncomingCall = call;
 					IncomingCallStackPanel.Visibility = Visibility.Visible;
-					IncommingCallText.Text = " " + IncommingCall.RemoteAddress.AsString();
+					IncommingCallText.Text = " " + IncomingCall.RemoteAddress.AsString();
 
 					break;
 
+				// The different states a call goes through before your peer answers.
 				case CallState.OutgoingInit:
 				case CallState.OutgoingProgress:
 				case CallState.OutgoingRinging:
-					// Different states you go through when you start a call and before your peer answer.
-					HangOut.IsEnabled = true;
+					HangUp.IsEnabled = true;
 					break;
 
+				// The StreamsRunning state is the default one during a call.
 				case CallState.StreamsRunning:
+				// The UpdatedByRemote state is triggered when the call's parameters are updated
+				// for example when video is asked/removed by remote.
 				case CallState.UpdatedByRemote:
-					// The StreamsRunning state is the default one during a call.
-					// The UpdatedByRemote is triggered when the call's parameters are updated
-					// for example when video is asked/removed by remote.
 
 					CallInProgressGuiUpdates();
 					if (call.CurrentParams.VideoEnabled)
@@ -154,7 +154,7 @@ namespace _03_OutgoingCall.Views
 				case CallState.Error:
 				case CallState.End:
 				case CallState.Released:
-					IncommingCall = null;
+					IncomingCall = null;
 					EndingCallGuiUpdates();
 					VideoService.StopVideoStream();
 
@@ -162,21 +162,22 @@ namespace _03_OutgoingCall.Views
 			}
 		}
 
-		private void AnswerClick(object sender, RoutedEventArgs e)
+		private async void AnswerClick(object sender, RoutedEventArgs e)
 		{
-			if (IncommingCall != null)
+			if (IncomingCall != null)
 			{
-				IncommingCall.Accept();
-				IncommingCall = null;
+				await CoreService.OpenMicrophonePopup();
+				IncomingCall.Accept();
+				IncomingCall = null;
 			}
 		}
 
 		private void DeclineClick(object sender, RoutedEventArgs e)
 		{
-			if (IncommingCall != null)
+			if (IncomingCall != null)
 			{
-				IncommingCall.Decline(Reason.Declined);
-				IncommingCall = null;
+				IncomingCall.Decline(Reason.Declined);
+				IncomingCall = null;
 			}
 		}
 
@@ -194,7 +195,7 @@ namespace _03_OutgoingCall.Views
 
 		/// <summary>
 		/// Method to show the webcam grid and start rendering remote and preview webcam.
-		/// Watch VideoService and more specifically VideoService.StartVideoStream to
+		/// See VideoService and more specifically VideoService.StartVideoStream to
 		/// understand how to start the rendering on a SwapChainPanel.
 		/// </summary>
 		private void StartVideoAndUpdateGui()
@@ -209,7 +210,7 @@ namespace _03_OutgoingCall.Views
 		{
 			IncomingCallStackPanel.Visibility = Visibility.Collapsed;
 			CallButton.IsEnabled = true;
-			HangOut.IsEnabled = false;
+			HangUp.IsEnabled = false;
 			Sound.IsEnabled = false;
 			Camera.IsEnabled = false;
 			Mic.IsEnabled = false;
@@ -223,7 +224,7 @@ namespace _03_OutgoingCall.Views
 		{
 			IncomingCallStackPanel.Visibility = Visibility.Collapsed;
 			CallButton.IsEnabled = false;
-			HangOut.IsEnabled = true;
+			HangUp.IsEnabled = true;
 			Sound.IsEnabled = true;
 			Camera.IsEnabled = true;
 			Mic.IsEnabled = true;

@@ -48,7 +48,7 @@ namespace _06_GroupChat.Views
 
 			ChatRoom.Listener.OnMessageReceived += OnMessageReceived;
 
-			// Here we register to almost all the different events that can appear on a conference.
+			// Here we register to almost all the different events that can happen on a conference.
 			// We use the same method AddEvent to handle all of them.
 			ChatRoom.Listener.OnConferenceLeft += AddEvent;
 			ChatRoom.Listener.OnConferenceJoined += AddEvent;
@@ -59,7 +59,7 @@ namespace _06_GroupChat.Views
 			ChatRoom.Listener.OnParticipantAdded += AddEvent;
 
 			// If the peer address is null it means we are not in a basic
-			// ChatRoom, and that we have to wait the answer from the
+			// ChatRoom, and that we have to wait for the answer from the
 			// conference server.
 			if (ChatRoom.PeerAddress != null)
 			{
@@ -104,7 +104,7 @@ namespace _06_GroupChat.Views
 			// means everything for GetHistoryEvents.
 			foreach (EventLog eventLog in ChatRoom.GetHistoryEvents(0))
 			{
-				// If the event is a message we do like before
+				// If the event is a message we do as before
 				if (EventLogType.ConferenceChatMessage.Equals(eventLog.Type))
 				{
 					AddMessage(eventLog.ChatMessage);
@@ -132,7 +132,7 @@ namespace _06_GroupChat.Views
 				GroupChatDisplayBorder.Visibility = Visibility.Visible;
 			}
 
-			// We don't allow the user to send multipart message in basic ChatRoom
+			// We don't allow the user to send multipart messages in a basic ChatRoom
 			if (ChatRoom.HasCapability((int)ChatRoomCapabilities.Basic))
 			{
 				SendMultipartButton.Visibility = Visibility.Collapsed;
@@ -162,7 +162,7 @@ namespace _06_GroupChat.Views
 			// Here we simply create an event display control ...
 			EventDisplay eventDisplay = new EventDisplay(eventLog);
 
-			// ... and adding it to the message list.
+			// ... and add it to the message list.
 			MessagesList.Children.Add(eventDisplay);
 
 			// See EventDisplay.xaml(.cs) to see how we handle events.

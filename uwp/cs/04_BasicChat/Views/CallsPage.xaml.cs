@@ -31,7 +31,7 @@ namespace _04_BasicChat.Views
 
 		private VideoService VideoService { get; } = VideoService.Instance;
 
-		private Call IncommingCall;
+		private Call IncomingCall;
 
 		public CallsPage()
 		{
@@ -63,14 +63,14 @@ namespace _04_BasicChat.Views
 			CoreService.Call(UriToCall.Text);
 		}
 
-		private void HangOutClick(object sender, RoutedEventArgs e)
+		private void OnHangUpClicked(object sender, RoutedEventArgs e)
 		{
 			CoreService.Core.TerminateAllCalls();
 		}
 
 		private void SoundClick(object sender, RoutedEventArgs e)
 		{
-			if (CoreService.SpeakerMutedSwitch())
+			if (CoreService.ToggleSpeaker())
 			{
 				Sound.Content = "Switch on Sound";
 			}
@@ -82,14 +82,14 @@ namespace _04_BasicChat.Views
 
 		private async void CameraClick(object sender, RoutedEventArgs e)
 		{
-			await CoreService.CameraEnabledSwitchAsync();
+			await CoreService.ToggleCameraAsync();
 			Camera.Content = "Waiting for accept ...";
 			Camera.IsEnabled = false;
 		}
 
 		private void MicClick(object sender, RoutedEventArgs e)
 		{
-			if (CoreService.MicEnabledSwitch())
+			if (CoreService.ToggleMic())
 			{
 				Mic.Content = "Mute";
 			}
@@ -99,18 +99,19 @@ namespace _04_BasicChat.Views
 			}
 		}
 
-		private void AnswerClick(object sender, RoutedEventArgs e)
+		private async void AnswerClick(object sender, RoutedEventArgs e)
 		{
-			IncommingCall.Accept();
-			IncommingCall = null;
+			await CoreService.OpenMicrophonePopup();
+			IncomingCall.Accept();
+			IncomingCall = null;
 		}
 
 		private void DeclineClick(object sender, RoutedEventArgs e)
 		{
-			if (IncommingCall != null)
+			if (IncomingCall != null)
 			{
-				IncommingCall.Decline(Reason.Declined);
-				IncommingCall = null;
+				IncomingCall.Decline(Reason.Declined);
+				IncomingCall = null;
 			}
 		}
 
@@ -121,7 +122,7 @@ namespace _04_BasicChat.Views
 			{
 				case CallState.IncomingReceived:
 
-					IncommingCall = call;
+					IncomingCall = call;
 					IncomingCallStackPanel.Visibility = Visibility.Visible;
 					IncommingCallText.Text = " " + call.RemoteAddress.AsString();
 					break;
@@ -130,7 +131,7 @@ namespace _04_BasicChat.Views
 				case CallState.OutgoingProgress:
 				case CallState.OutgoingRinging:
 
-					HangOut.IsEnabled = true;
+					HangUp.IsEnabled = true;
 					break;
 
 				case CallState.StreamsRunning:
@@ -151,7 +152,7 @@ namespace _04_BasicChat.Views
 				case CallState.End:
 				case CallState.Released:
 
-					IncommingCall = null;
+					IncomingCall = null;
 					EndingCallGuiUpdates();
 					VideoService.StopVideoStream();
 					break;
@@ -178,7 +179,7 @@ namespace _04_BasicChat.Views
 		{
 			IncomingCallStackPanel.Visibility = Visibility.Collapsed;
 			CallButton.IsEnabled = true;
-			HangOut.IsEnabled = false;
+			HangUp.IsEnabled = false;
 			Sound.IsEnabled = false;
 			Camera.IsEnabled = false;
 			Mic.IsEnabled = false;
@@ -192,7 +193,7 @@ namespace _04_BasicChat.Views
 		{
 			IncomingCallStackPanel.Visibility = Visibility.Collapsed;
 			CallButton.IsEnabled = false;
-			HangOut.IsEnabled = true;
+			HangUp.IsEnabled = true;
 			Sound.IsEnabled = true;
 			Camera.IsEnabled = true;
 			Mic.IsEnabled = true;

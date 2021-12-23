@@ -45,8 +45,8 @@ namespace _06_GroupChat.Views
 			CoreService.AddOnOnMessageReceivedDelegate(OnMessageReceiveOrSent);
 			CoreService.AddOnMessageSentDelegate(OnMessageReceiveOrSent);
 
-			// We registered to this callback so we can update the list with the new
-			// name when a chat room subject change.
+			// We registered this callback to update the list with the new
+			// name when a chat room subject is changed.
 			CoreService.AddOnChatRoomSubjectChangedDelegate(AddOnChatRoomSubjectChanged);
 		}
 
@@ -61,7 +61,7 @@ namespace _06_GroupChat.Views
 
 		private void OnMessageReceiveOrSent(Core core, ChatRoom chatRoom, ChatMessage message) => UpdateChatRooms();
 
-		private void AddOnChatRoomSubjectChanged(Core core, ChatRoom chatRoom) => UpdateChatRooms();
+		private void AddOnChatRoomSubjectChanged(Core core, ChatRoom chatRoom) => UpdateChatRooms(); // NEW!
 
 		public void UpdateChatRooms()
 		{
@@ -90,7 +90,7 @@ namespace _06_GroupChat.Views
 		private async void NewChatRoom_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
 		{
 			string peerSipAddress = await Utils.InputTextDialogAsync("Enter peer sip address");
-			if (!String.IsNullOrWhiteSpace(peerSipAddress))
+			if (!string.IsNullOrWhiteSpace(peerSipAddress))
 			{
 				ChatRoom newChatRoom = CoreService.CreateOrGetChatRoom(peerSipAddress);
 				if (newChatRoom != null)
@@ -113,7 +113,7 @@ namespace _06_GroupChat.Views
 
 		private void NewGroupChatRoom_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
 		{
-			// To create a new group chat room you need a list of participant and a subject.
+			// To create a new group chat room you need a list of participants and a subject.
 			// See CreateGroupChatRoom.xaml(.cs) to see how to create a group chat room.
 			ChatRoomFrame.Navigate(typeof(CreateGroupChatRoom));
 		}

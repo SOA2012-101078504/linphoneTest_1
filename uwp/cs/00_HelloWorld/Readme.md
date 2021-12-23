@@ -1,19 +1,15 @@
 ﻿Linphone X UWP tutorial 00_HelloWorld
 ======================================
 
-The first tutorial is just here to display a hello world app with the current Linphone's version number.
-
-Don't forget to install those NuGet packages :
- - LinphoneSDK (can be found here : https://www.linphone.org/snapshots/windows/sdk/)
- - Microsoft.NETCore.UniversalWindowsPlatform (version 6.2.12 recommended)
+The first tutorial is just a hello world app displaying the current SDK version number.
 
 Main files :
 ```
 00_HelloWorld
-│   README.md : you are here  
+│   README.md : you are here
 │   App.xaml(.cs) : Default Windows Application file, nothing special here
-│   MainPage.xaml(.cs) : This is were the magic happen, 
-│       jump into this file to learn about Linphone core creation and how to display a hello world.
+│   MainPage.xaml(.cs) : This is were the magic happens, 
+│       jump into this file to learn the basics of how to setup your app to use Linphone by creating the Core object.
 │
 └───Assets : default UWP app assets
     │   LockScreenLogo.scale-200.png

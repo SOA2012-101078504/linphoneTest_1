@@ -51,8 +51,8 @@ namespace _04_BasicChat.Views
 			// Here we want to update the list every time a message is
 			// received (list order and unread message count, see ChatsPage.xaml)
 			// or sent (list order)
-			CoreService.AddOnOnMessageReceivedDelegate(OnMessageReceiveOrSent);
-			CoreService.AddOnMessageSentDelegate(OnMessageReceiveOrSent);
+			CoreService.AddOnOnMessageReceivedDelegate(OnMessageReceivedOrSent);
+			CoreService.AddOnMessageSentDelegate(OnMessageReceivedOrSent);
 		}
 
 		protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -61,16 +61,16 @@ namespace _04_BasicChat.Views
 
 			// You need to unregister delegate to allow the garbage collector to
 			// collect this instance when you navigate away.
-			CoreService.RemoveOnOnMessageReceivedDelegate(OnMessageReceiveOrSent);
-			CoreService.RemoveOnMessageSentDelegate(OnMessageReceiveOrSent);
+			CoreService.RemoveOnOnMessageReceivedDelegate(OnMessageReceivedOrSent);
+			CoreService.RemoveOnMessageSentDelegate(OnMessageReceivedOrSent);
 
 			base.OnNavigatedFrom(e);
 		}
 
 		/// <summary>
-		/// Method called too update the list every time a message is received or sent.
+		/// Method called to update the list every time a message is received or sent.
 		/// </summary>
-		private void OnMessageReceiveOrSent(Core core, ChatRoom chatRoom, ChatMessage message) => UpdateChatRooms();
+		private void OnMessageReceivedOrSent(Core core, ChatRoom chatRoom, ChatMessage message) => UpdateChatRooms();
 
 		public void UpdateChatRooms()
 		{
@@ -80,13 +80,13 @@ namespace _04_BasicChat.Views
 			// In the ChatRooms list attribute you can find every ChatRooms linked
 			// to your user. The list is ordered by ChatRoom last activity date
 			// (most recent first).
-			// You can see in Chats.xaml that we only use the properties
+			// You can see in ChatsPage.xaml that we only use the properties
 			// UnreadMessagesCount and PeerAdress to display our chat rooms.
-			// In further steps we will do more.
+			// In later steps we will do more.
 			foreach (ChatRoom chatRoom in CoreService.Core.ChatRooms)
 			{
 				// Here we use the HistorySize attribute to display only
-				// ChatRooms were at least one message was exchange.
+				// ChatRooms where at least one message was exchanged.
 				if (chatRoom.HistorySize > 0)
 				{
 					ChatRoomsLV.Items.Add(chatRoom);
@@ -110,31 +110,33 @@ namespace _04_BasicChat.Views
 		private async void NewChatRoom_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
 		{
 			string peerSipAddress = await InputTextDialogAsync("Enter peer sip address");
-			if (!String.IsNullOrWhiteSpace(peerSipAddress))
+			if (string.IsNullOrWhiteSpace(peerSipAddress))
 			{
-				// We create a new ChatRoom with the address the user gave us.
-				// See CoreService.CreateOrGetChatRoom(string sipAddress) for more info
-				ChatRoom newChatRoom = CoreService.CreateOrGetChatRoom(peerSipAddress);
+				return;
+			}
 
-				if (newChatRoom != null)
-				{
-					// If the ChatRoom creation succeed render/navigate to a ChatPage in the inner
-					// frame of the ChatsPage.
-					// See ChatPage.xaml.cs to understand how to get message history and how to send/receive 
-					// and display new messages.
-					ChatRoomFrame.Navigate(typeof(ChatPage), newChatRoom);
-				}
-				else
-				{
-					ContentDialog noSettingsDialog = new ContentDialog
-					{
-						Title = "ChatRoom creation error",
-						Content = "An error occurred during ChatRoom creation, check sip address validity and try again.",
-						CloseButtonText = "OK"
-					};
+			// We create a new ChatRoom with the address the user gave us.
+			// See CoreService.CreateOrGetChatRoom(string sipAddress) for more info
+			ChatRoom newChatRoom = CoreService.CreateOrGetChatRoom(peerSipAddress);
 
-					await noSettingsDialog.ShowAsync();
-				}
+			if (newChatRoom != null)
+			{
+				// If the ChatRoom creation succeeded, render/navigate to a ChatPage in the inner
+				// frame of the ChatsPage.
+				// See ChatPage.xaml.cs to understand how to get message history and how to send/receive
+				// and display new messages.
+				ChatRoomFrame.Navigate(typeof(ChatPage), newChatRoom);
+			}
+			else
+			{
+				ContentDialog chatRoomCreationErrDialog = new ContentDialog
+				{
+					Title = "ChatRoom creation error",
+					Content = "An error occurred during ChatRoom creation, check sip address validity and try again.",
+					CloseButtonText = "OK"
+				};
+
+				await chatRoomCreationErrDialog.ShowAsync();
 			}
 		}
 

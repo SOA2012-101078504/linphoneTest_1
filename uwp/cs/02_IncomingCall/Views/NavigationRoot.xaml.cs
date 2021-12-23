@@ -52,7 +52,7 @@ namespace _02_IncomingCall.Views
 		{
 			switch (e.SourcePageType)
 			{
-				case Type c when e.SourcePageType == typeof(CallsPage):
+				case Type _ when e.SourcePageType == typeof(CallsPage):
 					((NavigationViewItem)navview.MenuItems[0]).IsSelected = true;
 					break;
 			}
@@ -65,18 +65,17 @@ namespace _02_IncomingCall.Views
 				ContentDialog noSettingsDialog = new ContentDialog
 				{
 					Title = "No settings",
-					Content = "There is no settings in this little app",
+					Content = "There are no settings in this little app",
 					CloseButtonText = "OK"
 				};
 
-				ContentDialogResult result = await noSettingsDialog.ShowAsync();
+				_ = await noSettingsDialog.ShowAsync();
 				return;
 			}
 
-			string invokedItemValue = args.InvokedItem as string;
-			if (invokedItemValue != null && invokedItemValue.Contains("Calls"))
+			if (args.InvokedItem is string invokedItemValue && invokedItemValue.Contains("Calls"))
 			{
-				AppNavFrame.Navigate(typeof(CallsPage));
+				_ = AppNavFrame.Navigate(typeof(CallsPage));
 			}
 		}
 
@@ -90,7 +89,7 @@ namespace _02_IncomingCall.Views
 			ContentDialog signOutDialog = new ContentDialog
 			{
 				Title = "Sign out ?",
-				Content = "All your current calls and actions will be canceled, are you sure to continue ?",
+				Content = "All your current calls and actions will be canceled.",
 				PrimaryButtonText = "Sign out",
 				CloseButtonText = "Cancel"
 			};

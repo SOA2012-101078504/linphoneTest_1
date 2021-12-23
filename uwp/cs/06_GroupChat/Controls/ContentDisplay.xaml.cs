@@ -43,7 +43,7 @@ namespace _06_GroupChat.Controls
 		private void UpdateLayoutFromContent()
 		{
 			// We kept the code from the old MessageDisplay class. Working
-			// with a single object instead of a List of content make it
+			// with a single object instead of a List of content makes it
 			// cleaner.
 			if (DisplayedContent.IsFile || DisplayedContent.IsFileTransfer)
 			{
@@ -53,15 +53,15 @@ namespace _06_GroupChat.Controls
 				FileName.Text = DisplayedContent.Name;
 				FileSize.Text = DisplayedContent.FileSize + " bits";
 
-				if (DisplayedContent.IsFile || DisplayedContent.IsFileTransfer && ChatMessage.IsOutgoing)
+				if (DisplayedContent.IsFile || (DisplayedContent.IsFileTransfer && ChatMessage.IsOutgoing))
 				{
-					OpenFile.Visibility = Visibility.Visible;
+					OpenFolder.Visibility = Visibility.Visible;
 					Download.Visibility = Visibility.Collapsed;
 				}
 				else
 				{
 					Download.Visibility = Visibility.Visible;
-					OpenFile.Visibility = Visibility.Collapsed;
+					OpenFolder.Visibility = Visibility.Collapsed;
 				}
 			}
 			else if (DisplayedContent.IsText)
@@ -85,12 +85,11 @@ namespace _06_GroupChat.Controls
 			ChatMessage.DownloadContent(DisplayedContent);
 		}
 
-		private async void OpenFile_Click(object sender, RoutedEventArgs e)
+		private async void OpenFolder_Click(object sender, RoutedEventArgs e)
 		{
-			string filePath = DisplayedContent.FilePath;
-			string folderPath = filePath.Substring(0, filePath.LastIndexOf("\\"));
-
-			await Launcher.LaunchFolderAsync(await StorageFolder.GetFolderFromPathAsync(folderPath));
+			var folderPath = Path.GetDirectoryName(DisplayedContent.FilePath);
+			var folder = await StorageFolder.GetFolderFromPathAsync(folderPath);
+			_ = await Launcher.LaunchFolderAsync(folder);
 		}
 	}
 }

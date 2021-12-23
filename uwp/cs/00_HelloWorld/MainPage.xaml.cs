@@ -63,16 +63,16 @@ namespace _00_HelloWorld
 			factory.MspluginsDir = ".";
 
 			// Your Core can use up to 2 configuration files, but that isn't mandatory.
-			// The third parameter is the application context, he isn't mandatory when working
-			// with UWP, he is mandatory in an Android context for example.
+			// The third parameter is the application context, which is *not* mandatory when working
+			// with UWP, but *is* mandatory in an Android context for example.
 			// You can now create your Core object :
 			Core core = factory.CreateCore("", "", IntPtr.Zero);
 
-			// Once you got your core you can start to do a lot of things.
+			// Once you have your core you can start to do a lot of things.
 			HelloText += Core.Version;
 
-			// You should store the Core to keep a reference on it at all times while your app is alive.
-			// A good solution for that is either subclass the Application object or create a Service.
+			// You should store the Core to keep a reference to it at all times while your app is alive.
+			// A good solution for that is to either subclass the Application object or create a Service.
 			StoredCore = core;
 		}
 

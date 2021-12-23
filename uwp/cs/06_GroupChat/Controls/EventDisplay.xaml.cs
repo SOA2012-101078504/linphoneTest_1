@@ -28,9 +28,9 @@ namespace _06_GroupChat.Controls
 		{
 			// An EventDisplay is always linked to an EventLog object and is displayed at the center
 			// of the message list.
-			this.InitializeComponent();
+			InitializeComponent();
 
-			// After we simply create the text we want to display based on the type on event
+			// Then we simply create the text we want to display based on the type of event
 			// and from information we get from the EventLog object.
 			switch (eventLog.Type)
 			{
@@ -45,29 +45,29 @@ namespace _06_GroupChat.Controls
 					break;
 
 				case EventLogType.ConferenceCallStart:
-					EventText.Text = "Call start";
+					EventText.Text = "Call started";
 					break;
 
 				case EventLogType.ConferenceCallEnd:
-					EventText.Text = "Call end";
+					EventText.Text = "Call ended";
 					break;
 
 				case EventLogType.ConferenceParticipantAdded:
 					// Or you can access a ParticipantAddress attribute when the type of
 					// event is linked to a participant.
-					EventText.Text = $"{eventLog.ParticipantAddress.Username} is added";
+					EventText.Text = $"{eventLog.ParticipantAddress.Username} joined";
 					break;
 
 				case EventLogType.ConferenceParticipantRemoved:
-					EventText.Text = $"{eventLog.ParticipantAddress.Username} is removed";
+					EventText.Text = $"{eventLog.ParticipantAddress.Username} left";
 					break;
 
 				case EventLogType.ConferenceParticipantSetAdmin:
-					EventText.Text = $"{eventLog.ParticipantAddress.Username} is now admin";
+					EventText.Text = $"{eventLog.ParticipantAddress.Username} is now an admin";
 					break;
 
 				case EventLogType.ConferenceParticipantUnsetAdmin:
-					EventText.Text = $"{eventLog.ParticipantAddress.Username} admin status removed";
+					EventText.Text = $"{eventLog.ParticipantAddress.Username} is no longer an admin";
 					break;
 
 				case EventLogType.ConferenceSubjectChanged:

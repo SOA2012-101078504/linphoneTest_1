@@ -40,7 +40,7 @@ namespace _04_BasicChat.Views
 		protected override void OnNavigatedTo(NavigationEventArgs e)
 		{
 			base.OnNavigatedTo(e);
-			ChatRoom = ((ChatRoom)e.Parameter);
+			ChatRoom = (ChatRoom)e.Parameter;
 
 			// The ChatRoom also offers to register to some callbacks.
 			// One of them is OnMessageReceived, like the one we used
@@ -49,17 +49,17 @@ namespace _04_BasicChat.Views
 			// ChatRoom.
 			ChatRoom.Listener.OnMessageReceived += OnMessageReceived;
 
-			// The method GetHistory get all the ChatMessage you have
+			// The method GetHistory gets all the ChatMessage's you have
 			// in your local database for this ChatRoom. GetHistory(0)
-			// means everything but you can specify a max number of messages.
+			// means 'all of them', but you can specify a max number of messages.
 			foreach (ChatMessage chatMessage in ChatRoom.GetHistory(0))
 			{
 				// See AddMessage(ChatMessage chatMessage) to see how we display messages
 				AddMessage(chatMessage);
 			}
 
-			// Mark all the messages in th ChatRoom as read, if some messages
-			// weren't, this will trigger some read notifications to the remote.
+			// Mark all the messages in the ChatRoom as read, if some messages
+			// weren't, this will send read notifications to the remote.
 			ChatRoom.MarkAsRead();
 
 			// Only here to update display of unread message count on parent frames.
@@ -99,8 +99,8 @@ namespace _04_BasicChat.Views
 			TextBlock textBlock = new TextBlock();
 
 			// You can find a lot of information on a ChatMessage object.
-			// Here we used the IsOutgoing info to choose on each side
-			// of the frame the message should be displayed.
+			// Here we use the IsOutgoing info to choose which side
+			// of the frame the message should be displayed on.
 			if (chatMessage.IsOutgoing)
 			{
 				textBlock.HorizontalAlignment = HorizontalAlignment.Right;
@@ -110,13 +110,13 @@ namespace _04_BasicChat.Views
 				textBlock.HorizontalAlignment = HorizontalAlignment.Left;
 			}
 
-			// You can see we take the first element of the Contents list of our ChatMessage. To keep
+			// We take the first element of the Contents list of our ChatMessage. To keep
 			// it simple we assume that we only send simple text message, we will talk more about multipart
 			// messages and other types of messagse in the next step.
-			// For now we only handle chat messages with one content, so we can find our text in
+			// For now we only handle chat messages with a single content item, so we can find our text in
 			// chatMessage.Contents.First().Utf8Text.
-			// We used ["" +]  because if the message is a file transfer for example the Utf8Text can be null.
-			textBlock.Text = "" + chatMessage.Contents.First().Utf8Text;
+			// We wrap in a dollar string because if the message is e.g. a file transfer, the Utf8Text can be null.
+			textBlock.Text = $"{chatMessage.Contents.First().Utf8Text}";
 
 			MessagesList.Children.Add(textBlock);
 
@@ -136,8 +136,7 @@ namespace _04_BasicChat.Views
 		{
 			if (ChatRoom != null && OutgoingMessageText.Text != null && OutgoingMessageText.Text.Length > 0)
 			{
-				// We use the ChatRoom to create a new ChatMessage object. Here we used
-				// the method CreateMessage(string message) to create a text message.
+				// We use the ChatRoom to create a new ChatMessage object.
 				ChatMessage chatMessage = ChatRoom.CreateMessage(OutgoingMessageText.Text);
 
 				// And simply call the Send() method to send the message.

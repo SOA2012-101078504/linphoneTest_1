@@ -15,6 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "05_FileTransfer", "05_FileT
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{248A2D49-EC1F-4957-B6C4-E88A0D854CE6}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		Readme.md = Readme.md
 	EndProjectSection
 EndProject

@@ -34,41 +34,41 @@ namespace _06_GroupChat.Views
 
 		public ObservableCollection<Address> DisplayedAddresses
 		{
-			get { return this.addresses; }
+			get { return addresses; }
 		}
 
 		public CreateGroupChatRoom()
 		{
-			this.InitializeComponent();
+			InitializeComponent();
 		}
 
 		private async void Create_Click(object sender, RoutedEventArgs e)
 		{
-			// This page goal is to allow the allow the user to choose the subject of
-			// his group chat room and to prepare the list of participant.
-			// With this two things we can create a group chat room, see CoreService.CreateGroupChatRoom
+			// The purpose of this page is to allow the user to choose the subject of
+			// their group chat room and to prepare the list of participants.
+			// With these two things we can create a group chat room, see CoreService.CreateGroupChatRoom
 			// to learn how to create it !
 			ChatRoom newChatRoom = CoreService.CreateGroupChatRoom(DisplayedAddresses, Subject.Text);
 			if (newChatRoom != null)
 			{
-				this.Frame.Navigate(typeof(ChatPage), newChatRoom);
+				Frame.Navigate(typeof(ChatPage), newChatRoom);
 			}
 			else
 			{
-				ContentDialog noSettingsDialog = new ContentDialog
+				ContentDialog errorDialog = new ContentDialog
 				{
 					Title = "ChatRoom creation error",
 					Content = "An error occurred during group ChatRoom creation, check sip addresses validity and try again.",
 					CloseButtonText = "OK"
 				};
 
-				await noSettingsDialog.ShowAsync();
+				await errorDialog.ShowAsync();
 			}
 		}
 
 		private void AddAddress_Click(object sender, RoutedEventArgs e)
 		{
-			if (!String.IsNullOrWhiteSpace(Address.Text))
+			if (!string.IsNullOrWhiteSpace(Address.Text))
 			{
 				DisplayedAddresses.Add(CoreService.Core.InterpretUrl(Address.Text));
 				AddressesLV.ItemsSource = DisplayedAddresses;

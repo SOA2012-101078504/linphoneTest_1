@@ -26,6 +26,9 @@ using Windows.UI.Xaml.Navigation;
 
 namespace _03_OutgoingCall.Views
 {
+	/// <summary>
+	/// Introduced in step 02 IncomingCall
+	/// </summary>
 	public sealed partial class NavigationRoot : Page
 	{
 		private CoreService CoreService { get; } = CoreService.Instance;
@@ -38,9 +41,6 @@ namespace _03_OutgoingCall.Views
 
 		private void Page_Loaded(object sender, RoutedEventArgs e)
 		{
-			// Only do an inital navigate the first time the page loads
-			// when we switch out of compactoverloadmode this will fire but we don't want to navigate because
-			// there is already a page loaded
 			if (!hasLoadedPreviously)
 			{
 				AppNavFrame.Navigate(typeof(CallsPage));
@@ -52,7 +52,7 @@ namespace _03_OutgoingCall.Views
 		{
 			switch (e.SourcePageType)
 			{
-				case Type c when e.SourcePageType == typeof(CallsPage):
+				case Type _ when e.SourcePageType == typeof(CallsPage):
 					((NavigationViewItem)navview.MenuItems[0]).IsSelected = true;
 					break;
 			}
@@ -65,18 +65,16 @@ namespace _03_OutgoingCall.Views
 				ContentDialog noSettingsDialog = new ContentDialog
 				{
 					Title = "No settings",
-					Content = "There is no settings in this little app",
+					Content = "There are no settings in this little app",
 					CloseButtonText = "OK"
 				};
-
-				ContentDialogResult result = await noSettingsDialog.ShowAsync();
+				_ = await noSettingsDialog.ShowAsync();
 				return;
 			}
 
-			string invokedItemValue = args.InvokedItem as string;
-			if (invokedItemValue != null && invokedItemValue.Contains("Calls"))
+			if (args.InvokedItem is string invokedItemValue && invokedItemValue.Contains("Calls"))
 			{
-				AppNavFrame.Navigate(typeof(CallsPage));
+				_ = AppNavFrame.Navigate(typeof(CallsPage));
 			}
 		}
 
@@ -90,7 +88,7 @@ namespace _03_OutgoingCall.Views
 			ContentDialog signOutDialog = new ContentDialog
 			{
 				Title = "Sign out ?",
-				Content = "All your current calls and actions will be canceled, are you sure to continue ?",
+				Content = "All your current calls and actions will be canceled.",
 				PrimaryButtonText = "Sign out",
 				CloseButtonText = "Cancel"
 			};

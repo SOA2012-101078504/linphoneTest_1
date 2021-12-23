@@ -35,15 +35,7 @@ namespace _07_AdvancedChat.Service
 	{
 		private Timer Timer;
 
-		private static readonly CoreService instance = new CoreService();
-
-		public static CoreService Instance
-		{
-			get
-			{
-				return instance;
-			}
-		}
+		public static CoreService Instance { get; } = new CoreService();
 
 		private Core core;
 
@@ -173,9 +165,6 @@ namespace _07_AdvancedChat.Service
 
 			accountParams.RegisterEnabled = true;
 
-			// If you want to create some group chats (conferences) you need to
-			// specify a conference factory URI. Here is the Linphone.org conference
-			// factory URI.
 			accountParams.ConferenceFactoryUri = "sip:conference-factory@sip.linphone.org";
 
 			Account account = Core.CreateAccount(accountParams);
@@ -208,17 +197,17 @@ namespace _07_AdvancedChat.Service
 			Core.InviteAddress(address);
 		}
 
-		public bool MicEnabledSwitch()
+		public bool ToggleMic()
 		{
 			return Core.MicEnabled = !Core.MicEnabled;
 		}
 
-		public bool SpeakerMutedSwitch()
+		public bool ToggleSpeaker()
 		{
 			return Core.CurrentCall.SpeakerMuted = !Core.CurrentCall.SpeakerMuted;
 		}
 
-		public async Task<bool> CameraEnabledSwitchAsync()
+		public async Task<bool> ToggleCameraAsync()
 		{
 			await OpenCameraPopup();
 
@@ -237,22 +226,22 @@ namespace _07_AdvancedChat.Service
 			Address localAdress = Core.DefaultProxyConfig.IdentityAddress;
 
 			ChatRoomParams chatRoomParams = Core.CreateDefaultChatRoomParams();
-			// To create a one-to-one  encrypted chat room we still put GroupEnabled to false.
+			// To create a one-to-one encrypted chat room we still set GroupEnabled to false...
 			chatRoomParams.GroupEnabled = false;
 			chatRoomParams.RttEnabled = false;
 
 			if (isSecure)
 			{
-				// But here are the things that differ from a basic chat room.
+				// ...But here are the things that differ from a basic chat room.
 				// You must use a Flexisip backend,
 				chatRoomParams.Backend = ChatRoomBackend.FlexisipChat;
 
 				// enable encryption and choose your type of encryption backend,
 				chatRoomParams.EncryptionBackend = ChatRoomEncryptionBackend.Lime;
-				chatRoomParams.EncryptionEnabled = isSecure;
+				chatRoomParams.EncryptionEnabled = true;
 
 				// and you must set a subject. But often for one-to-one chat rooms the client
-				// don't use or display the subject (see ChatRoomToStringConverter), so you can
+				// doesn't display the subject (see ChatRoomToStringConverter), so you can
 				// put a hard coded subject.
 				chatRoomParams.Subject = "Dummy Subject";
 			}
@@ -260,7 +249,7 @@ namespace _07_AdvancedChat.Service
 			{
 				chatRoomParams.Backend = ChatRoomBackend.Basic;
 				chatRoomParams.EncryptionBackend = ChatRoomEncryptionBackend.None;
-				chatRoomParams.EncryptionEnabled = isSecure;
+				chatRoomParams.EncryptionEnabled = false;
 			}
 
 			return Core.CreateChatRoom(chatRoomParams, localAdress, new[] { remoteAddress });
@@ -279,18 +268,18 @@ namespace _07_AdvancedChat.Service
 			if (isSecure)
 			{
 				// If you want to use encryption you should be in a chat room with a Flexisip
-				// backend, this why we offer the option only on the group chat room for now.
+				// backend, this is why we offer the option only on the group chat room for now.
 				// Then simply choose your encryption backend (only LIME is available by default)
 				chatRoomParams.EncryptionBackend = ChatRoomEncryptionBackend.Lime;
 				// and put EncryptionEnabled to true.
-				chatRoomParams.EncryptionEnabled = isSecure;
+				chatRoomParams.EncryptionEnabled = true;
 
-				// Simply doing this you have now a group chat room with end-to-end encryption.
+				// And just like that, you now have a group chat room with end-to-end encryption.
 			}
 			else
 			{
 				chatRoomParams.EncryptionBackend = ChatRoomEncryptionBackend.None;
-				chatRoomParams.EncryptionEnabled = isSecure;
+				chatRoomParams.EncryptionEnabled = false;
 			}
 
 			return Core.CreateChatRoom(chatRoomParams, localAdress, participants);
@@ -307,13 +296,10 @@ namespace _07_AdvancedChat.Service
 			content.Type = splittedMimeType[0];
 			content.Subtype = splittedMimeType[1];
 
-			// Set the file name for the receiver
-			content.Name = fileCopy.Name;
-
 			return content;
 		}
 
-		private async Task OpenMicrophonePopup()
+		public async Task OpenMicrophonePopup()
 		{
 			AudioGraphSettings settings = new AudioGraphSettings(Windows.Media.Render.AudioRenderCategory.Media);
 			CreateAudioGraphResult result = await AudioGraph.CreateAsync(settings);
@@ -328,11 +314,18 @@ namespace _07_AdvancedChat.Service
 
 		private async Task OpenCameraPopup()
 		{
-			MediaCapture mediaCapture = new Windows.Media.Capture.MediaCapture();
-			await mediaCapture.InitializeAsync(new MediaCaptureInitializationSettings
+			MediaCapture mediaCapture = new MediaCapture();
+			try
 			{
-				StreamingCaptureMode = StreamingCaptureMode.Video
-			});
+				await mediaCapture.InitializeAsync(new MediaCaptureInitializationSettings
+				{
+					StreamingCaptureMode = StreamingCaptureMode.Video
+				});
+			}
+			catch (Exception e) when (e.Message.StartsWith("No capture devices are available."))
+			{
+				// Ignored.
+			}
 			mediaCapture.Dispose();
 		}
 	}

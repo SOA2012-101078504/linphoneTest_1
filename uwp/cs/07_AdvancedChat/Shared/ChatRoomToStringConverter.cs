@@ -31,7 +31,7 @@ namespace _07_AdvancedChat.Shared
 				nameInList += " #SECURE#";
 			}
 
-			if (String.IsNullOrEmpty(nameInList))
+			if (string.IsNullOrEmpty(nameInList))
 			{
 				nameInList = "Incoherent ChatRoom values";
 			}

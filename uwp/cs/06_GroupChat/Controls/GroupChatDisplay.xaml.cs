@@ -88,10 +88,10 @@ namespace _06_GroupChat.Controls
 			ParticipantsLV.Items.Clear();
 
 			// You can find the participant list in the ChatRoom.Participants attribute.
-			// You can note that the participant list doesn't contain yourself.
+			// Note that the participant list doesn't contain yourself.
 			foreach (Participant participant in ChatRoom.Participants)
 			{
-				if (participant.Address != null && !String.IsNullOrWhiteSpace(participant.Address.Username))
+				if (participant.Address != null && !string.IsNullOrWhiteSpace(participant.Address.Username))
 				{
 					ParticipantsLV.Items.Add(participant);
 				}
@@ -106,10 +106,10 @@ namespace _06_GroupChat.Controls
 			Participant participantToRemove = (Participant)((Button)sender).Tag;
 
 			// To remove a participant simply use the RemoveParticipant(Participant participant) method
-			// on a ChatRoom object. If you are admin and the participant is present in the ChatRoom he
+			// on a ChatRoom object. If you are admin and the participant is present in the ChatRoom they
 			// will be removed.
-			// The method RemoveParticipants(IEnumerable<Participant> participants) also exist if you want to
-			// remove multiple participant at once.
+			// The method RemoveParticipants(IEnumerable<Participant> participants) also exists if you want to
+			// remove multiple participants at once.
 			ChatRoom.RemoveParticipant(participantToRemove);
 		}
 
@@ -118,24 +118,24 @@ namespace _06_GroupChat.Controls
 		/// </summary>
 		private async void AddParticipant_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
 		{
-			string peerSipAddress = await Utils.InputTextDialogAsync("Enter peer sip address");
+			string peerSipAddress = await Utils.InputTextDialogAsync("Enter peer SIP address");
 			Address address = CoreService.Core.InterpretUrl(peerSipAddress);
 			if (address != null)
 			{
 				// To add a participant simply call the method AddParticipant(Address addr).
-				// If you are admin and the participant have a device that can handle
-				// group chat connected to the conference server he will be added.
-				// You can use AddParticipants(IEnumerable<Address> addresses) to add multiple
+				// If you are admin and the participant has a device that can handle
+				// group chats connected to the conference server, they will be added.
+				// You can also use AddParticipants(IEnumerable<Address> addresses) to add multiple
 				// participants at once.
 				// Here we use Core.InterpretUrl to transform a string sip address to a valid
-				// Linphone.Address object as we done multiple times before.
+				// Linphone.Address object as we have done multiple times before.
 				ChatRoom.AddParticipant(address);
 			}
 			else
 			{
 				ContentDialog badAddressDialog = new ContentDialog
 				{
-					Title = "Adding participant failed",
+					Title = "Failed to add participant",
 					Content = "An error occurred during address interpretation, check sip address validity and try again.",
 					CloseButtonText = "OK"
 				};
@@ -152,7 +152,7 @@ namespace _06_GroupChat.Controls
 			Participant participantToUpgrade = (Participant)((Button)sender).Tag;
 
 			// Use the SetParticipantAdminStatus(Participant participant, bool isAdmin) to change
-			// the admin of a participant, you must be admin yourself if you want this action to work.
+			// the admin status of a participant, you must be admin yourself if you want this action to work.
 			ChatRoom.SetParticipantAdminStatus(participantToUpgrade, !participantToUpgrade.IsAdmin);
 		}
 

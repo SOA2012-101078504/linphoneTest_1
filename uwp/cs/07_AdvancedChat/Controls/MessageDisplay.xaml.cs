@@ -121,11 +121,11 @@ namespace _07_AdvancedChat.Controls
 
 		private void OnEphemeralMessageTimerStarted(ChatMessage message)
 		{
-			// Here we create a basic timer with the windows UI library, you can
-			// just note that we can found the ephemeral lifetime of this message
-			// as a read only attribute (ChatMessage.EphemeralLifetime).
+			// Here we create a basic timer with the windows UI library.
+			// Simply note that the ephemeral lifetime is available
+			// as a read only attribute of a ChatMessage.
 			Basetime = ChatMessage.EphemeralLifetime;
-			EphemeralLifetime.Text = $"{Basetime.ToString()} remaining before deletion";
+			EphemeralLifetime.Text = $"{Basetime} remaining before deletion";
 
 			// See Timer_Tick
 			Timer.Start();
@@ -134,9 +134,14 @@ namespace _07_AdvancedChat.Controls
 		private void OnEphemeralMessageDeleted(ChatMessage message)
 		{
 			// When this callback is triggered we erase the message from the view.
-			// Be careful, if you communicate with different clients some can choose
-			// to keep the message displayed even if it was an ephemeral one !
-			this.Content = new TextBlock
+
+			// Note on security:
+			// As you can see ephemeral messages are a client-side only feature.
+			// This means that a malicious client program can easily keep a "deleted" ephemeral message.
+			// You shouldn't rely on ephemeral messages if you cannot make sure all participants of
+			// a conversation use compliant applications.
+
+			Content = new TextBlock
 			{
 				Text = "deleted ephemeral message"
 			};

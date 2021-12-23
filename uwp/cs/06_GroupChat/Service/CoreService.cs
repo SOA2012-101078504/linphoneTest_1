@@ -63,14 +63,14 @@ namespace _06_GroupChat.Service
 					factory.ImageResourcesDir = Path.Combine(assetsPath, "images");
 					factory.MspluginsDir = ".";
 
-					// In a Flexisip ChatRoom you are identified by your authentication info and your device (you can have multiple device
-					// connected to your account, some can accept group chat and some cannot). To identify your different devices Linphone
-					// use UUID generated when your start your app for the first time on your device. This UUID is stored in a configuration
-					// file, this is why we specify a file for this configuration file now, if you don't every time you will start your app
+					// In a Flexisip ChatRoom you are identified by your authentication info and your device (you can have multiple devices
+					// connected to your account, some may accept group chat and others not). To identify your different devices, Linphone
+					// uses a UUID generated when you start your app for the first time on the device. This UUID is stored in a configuration
+					// file, this is why we specify a path for this configuration file now. If you don't, every time you start your app
 					// it will be identified as a new device.
-					// A second effect of this you will soon notify is that your authentication informations are also stored in this file
-					// and are loaded at core startup. So if you don't use the sign out button and simply close the app the next time you won't
-					// have to login, it will be automatic.
+					// A side-effect to this you will soon notice is that your authentication information is also stored in this file
+					// and is loaded at core startup. So if you don't use the sign out button and simply close the app, it will log you
+					// back in the next time it starts.
 					core = factory.CreateCore(Path.Combine(ApplicationData.Current.LocalFolder.Path, "configuration"), "", IntPtr.Zero);
 
 					core.AudioPort = 7666;
@@ -84,10 +84,8 @@ namespace _06_GroupChat.Service
 					videoActivationPolicy.AutomaticallyInitiate = false;
 					core.VideoActivationPolicy = videoActivationPolicy;
 
-					if (core.VideoSupported())
-					{
-						core.VideoCaptureEnabled = true;
-					}
+
+					core.VideoCaptureEnabled = core.VideoSupported();
 					core.UsePreviewWindow(true);
 
 					core.FileTransferServer = "https://www.linphone.org:444/lft.php";
@@ -209,17 +207,17 @@ namespace _06_GroupChat.Service
 			Core.InviteAddress(address);
 		}
 
-		public bool MicEnabledSwitch()
+		public bool ToggleMic()
 		{
 			return Core.MicEnabled = !Core.MicEnabled;
 		}
 
-		public bool SpeakerMutedSwitch()
+		public bool ToggleSpeaker()
 		{
 			return Core.CurrentCall.SpeakerMuted = !Core.CurrentCall.SpeakerMuted;
 		}
 
-		public async Task<bool> CameraEnabledSwitchAsync()
+		public async Task<bool> ToggleCameraAsync()
 		{
 			await OpenCameraPopup();
 
@@ -266,7 +264,7 @@ namespace _06_GroupChat.Service
 			chatRoomParams.RttEnabled = false;
 
 			// Now you can create your group chat room. the participants list must be not empty.
-			// With the different information you send the conference factory will try to create your ChatRoom.
+			// The conference factory will attempt to create a ChatRoom from the configuration you pass it.
 			// See ChatPage.OnNavigatedTo to see how to know when your ChatRoom is ready.
 			return Core.CreateChatRoom(chatRoomParams, localAdress, participants);
 		}
@@ -278,23 +276,20 @@ namespace _06_GroupChat.Service
 			Content content = Core.CreateContent();
 			content.FilePath = fileCopy.Path;
 
-			string[] splittedMimeType = fileCopy.ContentType.Split("/");
-			content.Type = splittedMimeType[0];
-			content.Subtype = splittedMimeType[1];
-
-			// Set the file name for the receiver
-			content.Name = fileCopy.Name;
+			string[] splitMimeType = fileCopy.ContentType.Split("/");
+			content.Type = splitMimeType[0];
+			content.Subtype = splitMimeType[1];
 
 			return content;
 		}
 
-		private async Task OpenMicrophonePopup()
+		public async Task OpenMicrophonePopup()
 		{
 			AudioGraphSettings settings = new AudioGraphSettings(Windows.Media.Render.AudioRenderCategory.Media);
 			CreateAudioGraphResult result = await AudioGraph.CreateAsync(settings);
 			AudioGraph audioGraph = result.Graph;
 
-			CreateAudioDeviceInputNodeResult resultNode = await audioGraph.CreateDeviceInputNodeAsync(Windows.Media.Capture.MediaCategory.Media);
+			CreateAudioDeviceInputNodeResult resultNode = await audioGraph.CreateDeviceInputNodeAsync(MediaCategory.Media);
 			AudioDeviceInputNode deviceInputNode = resultNode.DeviceInputNode;
 
 			deviceInputNode.Dispose();
@@ -303,11 +298,18 @@ namespace _06_GroupChat.Service
 
 		private async Task OpenCameraPopup()
 		{
-			MediaCapture mediaCapture = new Windows.Media.Capture.MediaCapture();
-			await mediaCapture.InitializeAsync(new MediaCaptureInitializationSettings
+			MediaCapture mediaCapture = new MediaCapture();
+			try
 			{
-				StreamingCaptureMode = StreamingCaptureMode.Video
-			});
+				await mediaCapture.InitializeAsync(new MediaCaptureInitializationSettings
+				{
+					StreamingCaptureMode = StreamingCaptureMode.Video
+				});
+			}
+			catch (Exception e) when (e.Message.StartsWith("No capture devices are available."))
+			{
+				// Ignored.
+			}
 			mediaCapture.Dispose();
 		}
 	}

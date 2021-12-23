@@ -32,7 +32,7 @@
 				<TextBlock x:Name="CallText" Text="Your call state is : Idle" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10" />
 
 				<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10">
-					<Button x:Name="HangOut" Content="Hang out" Click="HangOutClick" IsEnabled="False" />
+					<Button x:Name="HangUp" Content="Hang up" Click="OnHangUpClicked" IsEnabled="False" />
 					<Button x:Name="Sound" Content="Switch off Sound" Click="SoundClick" IsEnabled="False" />
 					<Button x:Name="Camera" Content="Switch on Camera" Click="CameraClick" IsEnabled="False" />
 					<Button x:Name="Mic" Content="Mute" Click="MicClick" IsEnabled="False" />

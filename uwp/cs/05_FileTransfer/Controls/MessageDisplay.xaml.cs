@@ -58,13 +58,13 @@ namespace _05_FileTransfer.Controls
 		private void OnMessageStateChanged(ChatMessage message, ChatMessageState state)
 		{
 			// We display the message state. It can be really useful for the user
-			// to know if the remote received the message (state = Delivered) or
-			// if he read it (state = Displayed)
+			// to know if the remote only received the message (state = Delivered) or
+			// if they read it (state = Displayed)
 			MessageState.Text = "The message state is : " + state;
 
 			switch (state)
 			{
-				// They're is multiple state during a file transfer (FileTransferInProgress,
+				// A file transfer can be in multiple states (FileTransferInProgress,
 				// FileTransferDone, FileTransferError). We update the layout if the file
 				// is done downloading to replace the "Download" button by an "Open file" button.
 				case ChatMessageState.FileTransferDone:
@@ -78,7 +78,7 @@ namespace _05_FileTransfer.Controls
 			MessageState.Text = "The message state is : " + ChatMessage.State;
 
 			// You can find the sending date of a ChatMessage in ChatMessage.Time.
-			// The time number respect the time_t type specification.
+			// The time number follows the time_t type specification. (Unix timestamp)
 			ReceiveDate.Text = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(ChatMessage.Time).ToLocalTime().ToString("HH:mm");
 
 			if (ChatMessage.IsOutgoing)
@@ -90,11 +90,11 @@ namespace _05_FileTransfer.Controls
 				this.HorizontalAlignment = HorizontalAlignment.Left;
 			}
 
-			// A ChatMessage hold a list of Content object, Contents.
+			// A ChatMessage holds a list of Content objects, Contents.
 			// But in a basic ChatRoom, using a basic backend, by default the multipart
-			// is disable. So in any received message there is only one Content in the list.
+			// is disabled. So in any received message there is only one Content in the list.
 			// You can enable multipart on a ChatRoom object with ChatRoom.AllowMultipart() but it
-			// can be risky. In fact if your remote doesn't support multipart and you send him
+			// can be risky. In fact if your remote doesn't support multipart and you send them
 			// a multipart message it could not work properly.
 			if (ChatMessage.Contents.Any(c => c.IsFile))
 			{
@@ -104,7 +104,7 @@ namespace _05_FileTransfer.Controls
 				// the Content object.
 				TextStack.Visibility = Visibility.Collapsed;
 				FileStack.Visibility = Visibility.Visible;
-				OpenFile.Visibility = Visibility.Visible;
+				OpenFolder.Visibility = Visibility.Visible;
 				Download.Visibility = Visibility.Collapsed;
 
 				// We can do this because we don't allowMultipart and can assume
@@ -126,7 +126,7 @@ namespace _05_FileTransfer.Controls
 				TextStack.Visibility = Visibility.Collapsed;
 				FileStack.Visibility = Visibility.Visible;
 				Download.Visibility = Visibility.Visible;
-				OpenFile.Visibility = Visibility.Collapsed;
+				OpenFolder.Visibility = Visibility.Collapsed;
 
 				Content content = ChatMessage.Contents.First((c) => c.IsFileTransfer);
 
@@ -173,16 +173,13 @@ namespace _05_FileTransfer.Controls
 			}
 		}
 
-		private async void OpenFile_Click(object sender, RoutedEventArgs e)
+		private async void OpenFolder_Click(object sender, RoutedEventArgs e)
 		{
-			// Just get the FilePath attribute from the Content object
-			string filePath = CurrentShownContent.FilePath;
-
-			// Only keep the folder part
-			string folderPath = filePath.Substring(0, filePath.LastIndexOf("\\"));
-
-			// And launch the Windows explorer
-			await Launcher.LaunchFolderAsync(await StorageFolder.GetFolderFromPathAsync(folderPath));
+			// Linphone can sometimes return paths with Unix-style forward slashes ('/').
+			// System.IO.Path.* methods are made to deal with such paths.
+			var folderPath = Path.GetDirectoryName(CurrentShownContent.FilePath);
+			var folder = await StorageFolder.GetFolderFromPathAsync(folderPath);
+			_ = await Launcher.LaunchFolderAsync(folder);
 		}
 	}
 }

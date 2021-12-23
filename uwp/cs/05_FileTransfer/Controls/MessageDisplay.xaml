@@ -26,7 +26,7 @@
 					<TextBlock x:Name="FileName" Text="" FontWeight="Bold" />
 					<TextBlock x:Name="FileSize" Text="" />
 					<Button x:Name="Download" Content="Download" Click="Download_Click" Visibility="Collapsed" />
-					<Button x:Name="OpenFile" Content="Open file" Click="OpenFile_Click" Visibility="Collapsed" />
+					<Button x:Name="OpenFolder" Content="Open folder" Click="OpenFolder_Click" Visibility="Collapsed" />
 				</StackPanel>
 
 				<TextBlock x:Name="MessageState" />

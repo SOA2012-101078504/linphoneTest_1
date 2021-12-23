@@ -1,25 +1,20 @@
 ﻿Linphone X UWP tutorial 06_group_chat
 ========================================
 
-In this step we are going to approach to new concepts: group chat and multipart message. To enable 
+In this step we will tackle two new concepts: group chats and multipart messages. To enable 
 those new features we are going to use Flexisip as a backend (see group ChatRoom creation). Flexisip
 is a complete and modular SIP server suite. If you need more informations about Flexisip you can read
 this [Flexisip presentation](http://linphone.org/technical-corner/flexisip) or 
 [Contact us](http://linphone.org/contact). 
 
-We created a new page so you can prepare your participant list before creating a group chat, see 
-CreateGroupChatRoom.xaml(.cs) and CoreService.cs to learn how to create group chat.
+We will create a new page so you can prepare your participant list before creating a group chat, see 
+CreateGroupChatRoom.xaml(.cs) and CoreService.cs to learn how to create group chats.
 
-We also updated the ChatPage.xaml(.cs) and the MessageDisplay.xaml(cs) so you can send and display multipart
-messages correctly. Multipart message are allowed by default in flexisip, you can try it right now in group chat room.
-In group ChatRoom some events that can occur (subject change, admin status modification...) are also displayed, see EventDisplay.xaml(.cs).
-And last we change the way we display the ChatRoom in the list (ChatsPage.xml) see ChatRoomToStringConverter.cs.
+We will update the ChatPage.xaml(.cs) and the MessageDisplay.xaml(cs) so you can send and display multipart
+messages correctly. Multipart messages are allowed by default in flexisip, you can try it right now in a group chat room.
+In a group ChatRoom some events that can occur (subject change, admin status modification...) will also be displayed. See EventDisplay.xaml(.cs).
+And lastly we will change the way we display the ChatRoom in the list (ChatsPage.xml). See ChatRoomToStringConverter.cs.
 
-
-Don't forget to install those NuGet packages :
- - LinphoneSDK (can be found here : https://www.linphone.org/snapshots/windows/sdk/)
- - Microsoft.NETCore.UniversalWindowsPlatform (version 6.2.12 recommended)
- - ANGLE.WindowsStore (for video rendering, version 2.1.13 recommended)
 
 New/updated files :
 
@@ -43,13 +38,13 @@ New/updated files :
 │
 └───Service :
 │   │   CoreService.cs : A singleton service which contains the Linphone.Core. 
-│   │               Watch the LogIn method to see how to setup a conference factory.
+│   │               Take a look at the LogIn method to see how to setup a conference factory.
 │
 └───Shared :
-│   │   ChatRoomToStringConverter.cs : a class that implement IValueConverter to display the 
-│   │               the chat room name according to its type.
+│   │   ChatRoomToStringConverter.cs : a class that implements IValueConverter to display 
+│   │               the chat room name depending on its type.
 │   │
-│   │   Utils.cs : Utility class to regroup static methods used in different other classes.
+│   │   Utils.cs : Utility class to gather static methods used in different other classes.
 │
 └───Views :
 │   │    

@@ -28,7 +28,7 @@ using Windows.UI.Xaml.Navigation;
 namespace _04_BasicChat.Views
 {
 	/// <summary>
-	/// A really simple app for a first Login with LinphoneSDK x UWP
+	/// Introduced in step 02 IncomingCall
 	/// </summary>
 	public sealed partial class NavigationRoot : Page
 	{
@@ -44,26 +44,23 @@ namespace _04_BasicChat.Views
 		protected override void OnNavigatedTo(NavigationEventArgs e)
 		{
 			base.OnNavigatedTo(e);
-			this.CoreService.AddOnOnMessageReceivedDelegate(OnMessageReveive);
+			this.CoreService.AddOnOnMessageReceivedDelegate(OnMessageReceived);
 		}
 
 		protected override void OnNavigatedFrom(NavigationEventArgs e)
 		{
-			this.CoreService.RemoveOnOnMessageReceivedDelegate(OnMessageReveive);
+			this.CoreService.RemoveOnOnMessageReceivedDelegate(OnMessageReceived);
 			base.OnNavigatedFrom(e);
 		}
 
 		private void Page_Loaded(object sender, RoutedEventArgs e)
 		{
-			// Only do an inital navigate the first time the page loads
-			// when we switch out of compactoverloadmode this will fire but we don't want to navigate because
-			// there is already a page loaded
 			if (!hasLoadedPreviously)
 			{
 				AppNavFrame.Navigate(typeof(CallsPage));
 				UpdateUnreadMessageCount();
 				hasLoadedPreviously = true;
-				NavigationService.CurrentNavigationRoot = this;
+				NavigationService.CurrentNavigationRoot = this; // NEW!
 			}
 		}
 
@@ -71,11 +68,12 @@ namespace _04_BasicChat.Views
 		{
 			switch (e.SourcePageType)
 			{
-				case Type c when e.SourcePageType == typeof(CallsPage):
+				case Type _ when e.SourcePageType == typeof(CallsPage):
 					((NavigationViewItem)navview.MenuItems[0]).IsSelected = true;
 					break;
 
-				case Type c when e.SourcePageType == typeof(ChatsPage):
+				// NEW!
+				case Type _ when e.SourcePageType == typeof(ChatsPage):
 					((NavigationViewItem)navview.MenuItems[1]).IsSelected = true;
 					break;
 			}
@@ -88,22 +86,20 @@ namespace _04_BasicChat.Views
 				ContentDialog noSettingsDialog = new ContentDialog
 				{
 					Title = "No settings",
-					Content = "There is no settings in this little app",
+					Content = "There are no settings in this little app",
 					CloseButtonText = "OK"
 				};
-
-				ContentDialogResult result = await noSettingsDialog.ShowAsync();
+				_ = await noSettingsDialog.ShowAsync();
 				return;
 			}
 
-			string invokedItemValue = args.InvokedItem as string;
-			if (invokedItemValue != null && invokedItemValue.Contains("Calls"))
+			if (args.InvokedItem is string invokedItemValue && invokedItemValue.Contains("Calls"))
 			{
-				AppNavFrame.Navigate(typeof(CallsPage));
+				_ = AppNavFrame.Navigate(typeof(CallsPage));
 			}
-			else
+			else // NEW!
 			{
-				AppNavFrame.Navigate(typeof(ChatsPage));
+				_ = AppNavFrame.Navigate(typeof(ChatsPage));
 			}
 		}
 
@@ -117,7 +113,7 @@ namespace _04_BasicChat.Views
 			ContentDialog signOutDialog = new ContentDialog
 			{
 				Title = "Sign out ?",
-				Content = "All your current calls and actions will be canceled, are you sure to continue ?",
+				Content = "All your current calls and actions will be canceled.",
 				PrimaryButtonText = "Sign out",
 				CloseButtonText = "Cancel"
 			};
@@ -133,20 +129,22 @@ namespace _04_BasicChat.Views
 			}
 		}
 
-		private void OnMessageReveive(Core core, ChatRoom chatRoom, ChatMessage message)
+		// NEW!
+		private void OnMessageReceived(Core core, ChatRoom chatRoom, ChatMessage message)
 		{
 			UpdateUnreadMessageCount();
 		}
 
+		// NEW!
 		public void UpdateUnreadMessageCount()
 		{
-			// The property UnreadChatMessageCountFromActiveLocals return the total
-			// number of unread messages in all the chat rooms off all connected accounts
+			// The property UnreadChatMessageCountFromActiveLocals gives the total
+			// number of unread messages in all the chat rooms of all the connected accounts
 			// on the device. In the tutorial we only allow one account at a time, so
 			// you get the global unread message count for your account.
 			if (CoreService.Core.UnreadChatMessageCountFromActiveLocals > 0)
 			{
-				NewMessageCount.Text = "" + CoreService.Core.UnreadChatMessageCountFromActiveLocals;
+				NewMessageCount.Text = CoreService.Core.UnreadChatMessageCountFromActiveLocals.ToString();
 				NewMessageCountBorder.Visibility = Visibility.Visible;
 			}
 			else

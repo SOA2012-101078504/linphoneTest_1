@@ -75,10 +75,8 @@ namespace _05_FileTransfer.Service
 					videoActivationPolicy.AutomaticallyInitiate = false;
 					core.VideoActivationPolicy = videoActivationPolicy;
 
-					if (core.VideoSupported())
-					{
-						core.VideoCaptureEnabled = true;
-					}
+
+					core.VideoCaptureEnabled = core.VideoSupported();
 					core.UsePreviewWindow(true);
 
 					// You must set up your file transfer server if you want to transfer files.
@@ -186,17 +184,17 @@ namespace _05_FileTransfer.Service
 			Core.InviteAddress(address);
 		}
 
-		public bool MicEnabledSwitch()
+		public bool ToggleMic()
 		{
 			return Core.MicEnabled = !Core.MicEnabled;
 		}
 
-		public bool SpeakerMutedSwitch()
+		public bool ToggleSpeaker()
 		{
 			return Core.CurrentCall.SpeakerMuted = !Core.CurrentCall.SpeakerMuted;
 		}
 
-		public async Task<bool> CameraEnabledSwitchAsync()
+		public async Task<bool> ToggleCameraAsync()
 		{
 			await OpenCameraPopup();
 
@@ -235,21 +233,22 @@ namespace _05_FileTransfer.Service
 			// File Path is the only mandatory field to set.
 			content.FilePath = fileCopy.Path;
 
-			// You can set the type and subtype of your file, it help
-			// the server and receiver identifying the file (images can
+			// You can set the type and subtype of your file, it helps
+			// the server and receiver to identify the file (images can
 			// be directly displayed for example).
-			string[] splittedMimeType = fileCopy.ContentType.Split("/");
-			content.Type = splittedMimeType[0];
-			content.Subtype = splittedMimeType[1];
+			string[] splitMimeType = fileCopy.ContentType.Split("/");
+			content.Type = splitMimeType[0];
+			content.Subtype = splitMimeType[1];
 
-			// Set the file name for the receiver, by default the same name is taken.
-			// This line is useful only for the explanation.
+			// You can set the file name on the receiver's end. For the purposes of
+			// demonstration we set it to the original's name, but this is unnecessary
+			// since this is the default behaviour.
 			content.Name = fileCopy.Name;
 
 			return content;
 		}
 
-		private async Task OpenMicrophonePopup()
+		public async Task OpenMicrophonePopup()
 		{
 			AudioGraphSettings settings = new AudioGraphSettings(Windows.Media.Render.AudioRenderCategory.Media);
 			CreateAudioGraphResult result = await AudioGraph.CreateAsync(settings);
@@ -264,11 +263,18 @@ namespace _05_FileTransfer.Service
 
 		private async Task OpenCameraPopup()
 		{
-			MediaCapture mediaCapture = new Windows.Media.Capture.MediaCapture();
-			await mediaCapture.InitializeAsync(new MediaCaptureInitializationSettings
+			MediaCapture mediaCapture = new MediaCapture();
+			try
 			{
-				StreamingCaptureMode = StreamingCaptureMode.Video
-			});
+				await mediaCapture.InitializeAsync(new MediaCaptureInitializationSettings
+				{
+					StreamingCaptureMode = StreamingCaptureMode.Video
+				});
+			}
+			catch (Exception e) when (e.Message.StartsWith("No capture devices are available."))
+			{
+				// Ignored.
+			}
 			mediaCapture.Dispose();
 		}
 	}

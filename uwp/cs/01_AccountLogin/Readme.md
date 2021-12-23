@@ -1,17 +1,13 @@
 ﻿Linphone X UWP tutorial 01_AccountLogin
 ================================
 
-In this tutorial we present you the different steps to login and logout a SIP account.
+This project will walk you through the different steps of logging in and out of a SIP account.
 
-To first register an account go here : https://www.linphone.org/freesip/home
-
-Don't forget to install those NuGet packages :
- - LinphoneSDK (can be found here : https://www.linphone.org/snapshots/windows/sdk/)
- - Microsoft.NETCore.UniversalWindowsPlatform (version 6.2.12 recommended)
+If you do not yet have a SIP account, please create one here : https://www.linphone.org/freesip/home
 
 New/updated files to watch :
 ```
 01_AccountLogin
-│   MainPage.xaml(.cs) : This time this page is a minimalist login page and it display your login status.
-│                   Watch its code to understand how to login/out with LinphoneSDK.
+│   MainPage.xaml(.cs) : This was changed to a minimalist login page and displays your login status.
+│                        take a look at the code to understand how to login/out with LinphoneSDK.
 ```

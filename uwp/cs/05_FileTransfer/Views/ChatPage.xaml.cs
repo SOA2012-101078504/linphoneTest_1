@@ -44,7 +44,7 @@ namespace _05_FileTransfer.Views
 		protected override void OnNavigatedTo(NavigationEventArgs e)
 		{
 			base.OnNavigatedTo(e);
-			ChatRoom = ((ChatRoom)e.Parameter);
+			ChatRoom = (ChatRoom)e.Parameter;
 			ChatHeaderText.Text += ChatRoom.PeerAddress.Username;
 			ChatRoom.Listener.OnMessageReceived += OnMessageReceived;
 			foreach (ChatMessage chatMessage in ChatRoom.GetHistory(0))
@@ -76,7 +76,7 @@ namespace _05_FileTransfer.Views
 
 		private void AddMessage(ChatMessage chatMessage)
 		{
-			// Instead of simply display a TextBlock we now create a
+			// Instead of simply displaying a TextBlock we now create a
 			// MessageDisplay object to show more informations about the message.
 			// See Controls/MessageDisplay.xaml(.cs)
 			MessageDisplay messageDisplay = new MessageDisplay(chatMessage);
@@ -110,9 +110,11 @@ namespace _05_FileTransfer.Views
 		{
 			// Basic Windows code to let the user select a file and gain
 			// read access to a StorageFile object.
-			FileOpenPicker picker = new FileOpenPicker();
-			picker.ViewMode = PickerViewMode.List;
-			picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+			FileOpenPicker picker = new FileOpenPicker
+			{
+				ViewMode = PickerViewMode.List,
+				SuggestedStartLocation = PickerLocationId.DocumentsLibrary
+			};
 			picker.FileTypeFilter.Add("*");
 			StorageFile file = await picker.PickSingleFileAsync();
 

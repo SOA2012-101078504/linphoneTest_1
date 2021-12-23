@@ -28,7 +28,8 @@ using Windows.UI.Xaml.Navigation;
 namespace _05_FileTransfer.Views
 {
 	/// <summary>
-	/// A really simple app for a first Login with LinphoneSDK x UWP
+	/// Introduced in step 02 IncomingCall
+	/// Changed in step 04 BasicChat
 	/// </summary>
 	public sealed partial class NavigationRoot : Page
 	{
@@ -55,9 +56,6 @@ namespace _05_FileTransfer.Views
 
 		private void Page_Loaded(object sender, RoutedEventArgs e)
 		{
-			// Only do an inital navigate the first time the page loads
-			// when we switch out of compactoverloadmode this will fire but we don't want to navigate because
-			// there is already a page loaded
 			if (!hasLoadedPreviously)
 			{
 				AppNavFrame.Navigate(typeof(CallsPage));
@@ -71,11 +69,11 @@ namespace _05_FileTransfer.Views
 		{
 			switch (e.SourcePageType)
 			{
-				case Type c when e.SourcePageType == typeof(CallsPage):
+				case Type _ when e.SourcePageType == typeof(CallsPage):
 					((NavigationViewItem)navview.MenuItems[0]).IsSelected = true;
 					break;
 
-				case Type c when e.SourcePageType == typeof(ChatsPage):
+				case Type _ when e.SourcePageType == typeof(ChatsPage):
 					((NavigationViewItem)navview.MenuItems[1]).IsSelected = true;
 					break;
 			}
@@ -88,22 +86,21 @@ namespace _05_FileTransfer.Views
 				ContentDialog noSettingsDialog = new ContentDialog
 				{
 					Title = "No settings",
-					Content = "There is no settings in this little app",
+					Content = "There are no settings in this little app",
 					CloseButtonText = "OK"
 				};
-
-				ContentDialogResult result = await noSettingsDialog.ShowAsync();
+				_ = await noSettingsDialog.ShowAsync();
 				return;
 			}
 
 			string invokedItemValue = args.InvokedItem as string;
 			if (invokedItemValue != null && invokedItemValue.Contains("Calls"))
 			{
-				AppNavFrame.Navigate(typeof(CallsPage));
+				_ = AppNavFrame.Navigate(typeof(CallsPage));
 			}
 			else
 			{
-				AppNavFrame.Navigate(typeof(ChatsPage));
+				_ = AppNavFrame.Navigate(typeof(ChatsPage));
 			}
 		}
 
@@ -117,7 +114,7 @@ namespace _05_FileTransfer.Views
 			ContentDialog signOutDialog = new ContentDialog
 			{
 				Title = "Sign out ?",
-				Content = "All your current calls and actions will be canceled, are you sure to continue ?",
+				Content = "All your current calls and actions will be canceled.",
 				PrimaryButtonText = "Sign out",
 				CloseButtonText = "Cancel"
 			};
